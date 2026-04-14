@@ -20,7 +20,7 @@ AgriSupplyChain/
             │   ├── SanPhamDTO.java      
             │   └── DonHangDTO.java      
             │
-            ├── dal/                     # Tương tác CSDL (Chứa mã SQL)
+            ├── dal/                     # Tương tác CSDL (Code gọi Procedure)
             │   ├── SanPhamDAL.java      
             │   └── DonHangDAL.java      
             │
