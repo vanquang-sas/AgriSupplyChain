@@ -1,0 +1,19 @@
+# --- 1. Ignore thư mục build sinh ra sau khi chạy code ---
+target/
+bin/
+out/
+*.class
+
+# --- 2. Ignore cấu hình của IDE Eclipse ---
+.classpath
+.project
+.settings/
+
+# --- 3. Ignore cấu hình của IDE IntelliJ IDEA ---
+.idea/
+*.iml
+*.iws
+
+# --- 4. Ignore các file hệ điều hành sinh ra (Rác hệ thống) ---
+.DS_Store
+Thumbs.db
