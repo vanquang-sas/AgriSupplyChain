@@ -43,5 +43,5 @@ AgriSupplyChain/
             │   ├── DBConnection.java    # File cấu hình kết nối Oracle
             │   └── Session.java
             │
-            └── MainApplication.java     # Chứa public static void main(), khởi tạo View và Controller (Entry Point)
+            └── Main.java     # Chứa public static void main(), khởi tạo View và Controller (Entry Point)
 </pre>
