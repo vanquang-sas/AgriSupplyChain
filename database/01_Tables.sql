@@ -1,5 +1,5 @@
 -- ====================================================================================
---              PHẦN 1: TẠO BẢNG VÀ MỘT SỐ RÀNG BUỘC TOÀN VẸN
+--              PHẦN 1: TẠO BẢNG VÀ CONSTRAINT
 -- ====================================================================================
 
 -- 1. Bảng THAMSO
@@ -79,6 +79,7 @@ CREATE TABLE SANPHAM (
     GiaBan NUMBER(12,2),
     DonViTinh NVARCHAR2(20),
     BaoQuan NVARCHAR2(100) CHECK (BaoQuan IN ('Mát', 'Lạnh', 'Đông')),
+    HinhAnh NVARCHAR2(200),
     CONSTRAINT FK_SP_LSP FOREIGN KEY (MaLSP) REFERENCES LOAISANPHAM(MaLSP)
 );
 
