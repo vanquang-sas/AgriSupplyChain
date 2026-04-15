@@ -3,6 +3,16 @@
 ## 1. Cấu trúc Nhánh (Git Branch)
 
 Sử dụng mô hình **Git Flow** sau:
+```
+(main) ●────────────●
+                    ↑ merge dev
+
+(dev)   ●───●───────●───────●
+             \     / 
+              ●───●   (feature/login)
+                   \
+                    ●───● (feature/cart)
+```
 
 - **`main`**: Chứa code đã hoàn thiện. Chỉ merge từ `dev` khi code đã chạy ổn định.
 - **`dev`**: Nhánh merge các tính năng lại với nhau
