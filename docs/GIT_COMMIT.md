@@ -18,7 +18,7 @@ Dưới đây là các từ khóa bắt buộc sử dụng ở đầu mỗi comm
 | **FEAT**  | Tính năng mới | Thêm một chức năng mới hoàn chỉnh. |
 | **FIX**   | Sửa lỗi       | Sửa một lỗi logic, lỗi giao diện hoặc các lỗi khác. |
 | **UI**    | Giao diện     | Thay đổi liên quan đến giao diện: màu sắc, font chữ, kích thước, icon, ảnh (không đổi logic chính). |
-| **DOCS**  | Tài liệu      | Thay đổi file README, comment, ghi chú hướng dẫn trong folder `docs` (không ảnh hưởng đến code). |
+| **DOCS**  | Tài liệu      | Thay đổi file README, comment code, ghi chú hướng dẫn trong folder `docs` (không ảnh hưởng đến code). |
 | **REFACTOR** | Tái cấu trúc | Thay đổi cấu trúc code hoặc cấu trúc các file (không đổi logic chính). |
 | **DB**    | Database      | Thay đổi các script liên quan tới database trong `database`. |
 | **PERF**  | Hiệu suất     | Tối ưu giúp ứng dụng chạy nhanh hơn hoặc tốn ít tài nguyên hơn. |
