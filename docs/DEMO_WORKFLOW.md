@@ -8,7 +8,7 @@
 **DEMO 1**: Thêm một sản phẩm mới
 Người dùng (Quản lý) mở màn hình Java Swing, nhập thông tin sản phẩm mới gồm: Mã SP (SP001), Tên SP (Cà rốt loại 1), Giá Mua (15000), Giá Bán (20000). Bấm nút "Lưu".
 
-`View` -> `DTO` -> `BLL` -> `DAL` -> Database 
+`View` -> `DTO` -> `BLL` -> `DAO` -> Database 
 
 1. Màn hình (View) lấy text từ các ô nhập liệu, đóng gói tất cả vào 1 đối tượng DTO.
 2. View truyền đối tượng DTO này xuống BLL, BLL kiểm tra logic rồi đẩy tiếp xuống DAL.

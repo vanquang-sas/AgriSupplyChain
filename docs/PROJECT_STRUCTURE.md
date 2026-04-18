@@ -20,9 +20,9 @@ AgriSupplyChain/
             │   ├── SanPhamDTO.java      
             │   └── DonHangDTO.java      
             │
-            ├── dal/                     # Tương tác CSDL (Code gọi Procedure)
-            │   ├── SanPhamDAL.java      
-            │   └── DonHangDAL.java      
+            ├── dao/                     # Tương tác CSDL (Code gọi Procedure)
+            │   ├── SanPhamDAO.java      
+            │   └── DonHangDAO.java      
             │
             # --- TẦNG BUSINESS LOGIC (BLL) ---
             ├── bll/                     # Xử lý tính toán, gọi DAL, quản lý Transaction
