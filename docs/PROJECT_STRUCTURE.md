@@ -37,7 +37,7 @@ AgriSupplyChain/
             │
             # --- THÀNH PHẦN KHÁC ---
             ├── util/                    # Các lớp hỗ trợ dùng chung toàn hệ thống
-            │   ├── DBConnection.java    # Quản lý kết nối Oracle (Nên dùng Singleton)
+            │   ├── DBConnection.java    # Quản lý kết nối Oracle 
             │   └── Session.java         # Lưu trữ phiên làm việc (Người dùng đang đăng nhập)
             │
             └── Main.java     # Entry Point: Hàm main() khởi chạy giao diện đầu tiên của ứng dụng
