@@ -1,47 +1,44 @@
 # Cấu trúc dự án AgriSupplyChain
-## Mô hình Hybrid
-Dự án được thiết kế theo mô hình **Hybrid** (Kết hợp) giữa **3-Layer** để phân chia trách nhiệm hệ thống *(Presentation, Business, Data)* và **MVC** để quản lý luồng dữ liệu tại tầng giao diện *(Presentation)*.
+
+## Mô hình 3 Lớp (3-Tier Architecture)
+Dự án được thiết kế theo mô hình **3 Lớp** tiêu chuẩn. Hệ thống được phân chia thành 3 tầng độc lập để dễ dàng quản lý code, phân chia công việc và bảo trì: **Presentation Layer** (Giao diện), **Business Logic Layer** (Xử lý nghiệp vụ), và **Data Access Layer** (Truy cập dữ liệu).
 
 ## Cây cấu trúc
 <pre>
 AgriSupplyChain/
 ├── pom.xml
 ├── .gitignore
-├── database/                         # Chứa các file .sql
+├── database/                         # Chứa các file .sql 
 └── src/
     └── main/
         ├── resources/
         │   ├── icons/                  # Ảnh icon các tính năng...
-        │   └── images/                 # Ảnh các sản phẩm...
+        │   └── images/                 # Ảnh minh họa nông sản...
         └── java/
             │   
             # --- TẦNG DATA ACCESS (DAL) ---
-            ├── dto/                     # Data Transfer Object: Ánh xạ bảng CSDL
+            ├── dto/                     # Data Transfer Object: Ánh xạ các thực thể từ Oracle Database
             │   ├── SanPhamDTO.java      
             │   └── DonHangDTO.java      
             │
-            ├── dao/                     # Tương tác CSDL (Code gọi Procedure)
+            ├── dao/                     # Chứa code JDBC, thực thi truy vấn hoặc gọi Procedure từ DB
             │   ├── SanPhamDAO.java      
             │   └── DonHangDAO.java      
             │
             # --- TẦNG BUSINESS LOGIC (BLL) ---
-            ├── bll/                     # Xử lý tính toán, gọi DAL, quản lý Transaction
+            ├── bll/                     # Xử lý logic của hệ thống: Tính toán giá sàn, xử lý nghiệp vụ, gọi DAL
             │   ├── SanPhamBLL.java      
             │   └── DonHangBLL.java      
             │
-            # --- TẦNG PRESENTATION ---
-            ├── view/                    # Chỉ chứa code GUI (JFrame, JButton, JTable)
-            │   ├── LoginView.java
-            │   └── DonHangView.java     
-            │
-            ├── controller/              # Lắng nghe sự kiện từ View, gọi xuống BLL
-            │   ├── LoginController.java # Chứa ActionListener cho nút Đăng nhập
-            │   └── DonHangController.java
+            # --- TẦNG PRESENTATION (GUI) ---
+            ├── gui/                     # Chứa code giao diện (JFrame/JPanel) VÀ Xử lý sự kiện (ActionListener)
+            │   ├── LoginGUI.java        # Giao diện đăng nhập và code bắt sự kiện nút "Đăng nhập"
+            │   └── DonHangGUI.java      # Giao diện quản lý hợp đồng/đơn hàng
             │
             # --- THÀNH PHẦN KHÁC ---
-            ├── util/                    # Tiện ích dùng chung
-            │   ├── DBConnection.java    # File cấu hình kết nối Oracle
-            │   └── Session.java
+            ├── util/                    # Các lớp hỗ trợ dùng chung toàn hệ thống
+            │   ├── DBConnection.java    # Quản lý kết nối Oracle (Nên dùng Singleton)
+            │   └── Session.java         # Lưu trữ phiên làm việc (Người dùng đang đăng nhập)
             │
-            └── Main.java     # Chứa public static void main(), khởi tạo View và Controller (Entry Point)
+            └── Main.java     # Entry Point: Hàm main() khởi chạy giao diện đầu tiên của ứng dụng
 </pre>

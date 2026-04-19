@@ -41,7 +41,7 @@ Dưới đây là các từ khóa bắt buộc sử dụng ở đầu mỗi comm
         - Bước 2: `git add` các file liên quan đến sửa lỗi -> `git commit -m "FIX: ..."`
     - **Cách 2**: Gộp chung 1 commit
         - Bước 1: `git add` tất cả các file liên quan tới việc thay đổi
-        - Bước 2: Gõ `git commit -m "FEAT: Thêm bộ lọc mới` *(Không đóng ngoặc kép ở đây `"`)*
+        - Bước 2: Gõ `git commit -m "FEAT: Thêm bộ lọc mới;` *(Không đóng ngoặc kép ở đây `"`)*
         - Bước 3: Nhấn Enter để xuống dòng
         - Bước 4: Gõ tiếp các thay đổi khác `FIX: Sửa lỗi kết nối database` *(Mỗi thay đổi 1 dòng)*
         - Bước 5: Đóng dấu ngoặc kép `"` và nhấn Enter lần nữa để hoàn tất
