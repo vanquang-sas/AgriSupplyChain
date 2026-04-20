@@ -173,25 +173,41 @@ END;
 /
 
 -- ================================= Bảng XUATKHO =================================
--- 9. Khi một phiếu xuất kho được tạo, tự động lấy SLConLai trong bảng TONKHO trừ đi SLXuat. Nếu SLConLai < SLXuat thì báo lỗi và rollback
+-- 9. Xử lý trừ tồn kho dựa trên TrangThaiXK
 CREATE OR REPLACE TRIGGER TRG_XK_TRU_TONKHO
-BEFORE INSERT ON XUATKHO
+BEFORE INSERT OR UPDATE ON XUATKHO
 FOR EACH ROW
 DECLARE
     v_SLConLai NUMBER(10, 2);
+    v_SLKhaDung NUMBER(10, 2);
 BEGIN
-    SELECT SLConLai INTO v_SLConLai
+    SELECT SLConLai, SLKhaDung INTO v_SLConLai, v_SLKhaDung
     FROM TONKHO
     WHERE MaTonKho = :NEW.MaTonKho;
 
-    IF v_SLConLai < :NEW.SLXuat THEN
-        RAISE_APPLICATION_ERROR(-20010, 'Lỗi: Số lượng xuất (' || :NEW.SLXuat || ') vượt quá tồn kho khả dụng (' || v_SLConLai || ').');
-    ELSE
-        UPDATE TONKHO
-        SET SLConLai = SLConLai - :NEW.SLXuat
-        WHERE MaTonKho = :NEW.MaTonKho;
+    IF INSERTING THEN
+        IF :NEW.TrangThaiXK = 'Tạm giữ' THEN
+            IF v_SLKhaDung < :NEW.SLXuat THEN
+                RAISE_APPLICATION_ERROR(-20010, 'Lỗi: Tồn kho khả dụng không đủ (' || v_SLKhaDung || ').');
+            ELSE
+                UPDATE TONKHO SET SLKhaDung = SLKhaDung - :NEW.SLXuat WHERE MaTonKho = :NEW.MaTonKho;
+            END IF;
+        ELSIF :NEW.TrangThaiXK = 'Đã xuất' THEN
+            IF v_SLConLai < :NEW.SLXuat THEN
+                RAISE_APPLICATION_ERROR(-20010, 'Lỗi: Tồn kho thực tế không đủ (' || v_SLConLai || ').');
+            ELSE
+                UPDATE TONKHO 
+                SET SLConLai = SLConLai - :NEW.SLXuat, SLKhaDung = SLKhaDung - :NEW.SLXuat 
+                WHERE MaTonKho = :NEW.MaTonKho;
+            END IF;
+        END IF;
+        
+    ELSIF UPDATING THEN
+        -- Chuyển trạng thái từ Tạm giữ sang Đã xuất thì trừ SLConLai (Vì SLKhaDung đã trừ lúc Tạm giữ rồi)
+        IF :OLD.TrangThaiXK = 'Tạm giữ' AND :NEW.TrangThaiXK = 'Đã xuất' THEN
+            UPDATE TONKHO SET SLConLai = SLConLai - :NEW.SLXuat WHERE MaTonKho = :NEW.MaTonKho;
+        END IF;
     END IF;
-
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
         RAISE_APPLICATION_ERROR(-20011, 'Lỗi: Không tìm thấy mã lô tồn kho ' || :NEW.MaTonKho);

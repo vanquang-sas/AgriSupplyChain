@@ -6,15 +6,17 @@ public class TonKhoDTO {
     private String maKho;
     private String maCTLH;
     private double slConLai;
+    private double slKhaDung;
     private Date tgNhapKho;
     private Date tgHetHan;
     private String viTri;
 
     public TonKhoDTO() {}
 
-    public TonKhoDTO(String maTonKho, String maKho, String maCTLH, double slConLai, Date tgNhapKho, Date tgHetHan, String viTri) {
+    public TonKhoDTO(String maTonKho, String maKho, String maCTLH, double slConLai, double slKhaDung, Date tgNhapKho, Date tgHetHan, String viTri) {
         this.maTonKho = maTonKho; this.maKho = maKho; this.maCTLH = maCTLH; 
-        this.slConLai = slConLai; this.tgNhapKho = tgNhapKho; this.tgHetHan = tgHetHan; this.viTri = viTri;
+        this.slConLai = slConLai; this.slKhaDung = slKhaDung; 
+        this.tgNhapKho = tgNhapKho; this.tgHetHan = tgHetHan; this.viTri = viTri;
     }
 
     public String getMaTonKho() { return maTonKho; }
@@ -25,6 +27,8 @@ public class TonKhoDTO {
     public void setMaCTLH(String maCTLH) { this.maCTLH = maCTLH; }
     public double getSlConLai() { return slConLai; }
     public void setSlConLai(double slConLai) { this.slConLai = slConLai; }
+    public double getSlKhaDung() { return slKhaDung; }
+    public void setSlKhaDung(double slKhaDung) { this.slKhaDung = slKhaDung; }
     public Date getTgNhapKho() { return tgNhapKho; }
     public void setTgNhapKho(Date tgNhapKho) { this.tgNhapKho = tgNhapKho; }
     public Date getTgHetHan() { return tgHetHan; }

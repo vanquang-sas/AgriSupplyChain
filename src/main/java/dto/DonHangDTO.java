@@ -8,16 +8,21 @@ public class DonHangDTO {
     private String diaChiGiaoHang;
     private Date tgDat;
     private Date tgGiaoDK;
+    private double phiVanChuyen;
     private double tongTien;
     private String trangThaiDH;
 
     public DonHangDTO() {}
 
-    public DonHangDTO(String maDH, String maKH, String maNV, String diaChiGiaoHang, Date tgDat, Date tgGiaoDK, double tongTien, String trangThaiDH) {
+    public DonHangDTO(String maDH, String maKH, String maNV, String diaChiGiaoHang, Date tgDat, Date tgGiaoDK, double phiVanChuyen, double tongTien, String trangThaiDH) {
         this.maDH = maDH; this.maKH = maKH; this.maNV = maNV; this.diaChiGiaoHang = diaChiGiaoHang;
-        this.tgDat = tgDat; this.tgGiaoDK = tgGiaoDK; this.tongTien = tongTien; this.trangThaiDH = trangThaiDH;
+        this.tgDat = tgDat; this.tgGiaoDK = tgGiaoDK; this.phiVanChuyen = phiVanChuyen; 
+        this.tongTien = tongTien; this.trangThaiDH = trangThaiDH;
     }
 
+    public double getPhiVanChuyen() { return phiVanChuyen; }
+    public void setPhiVanChuyen(double phiVanChuyen) { this.phiVanChuyen = phiVanChuyen; }
+    
     public String getMaDH() { return maDH; }
     public void setMaDH(String maDH) { this.maDH = maDH; }
     public String getMaKH() { return maKH; }

@@ -289,9 +289,12 @@ END;
 /
 
 -- ================================= Bảng DONHANG =================================
-CREATE OR REPLACE PROCEDURE SP_THEM_DH (p_MaKH IN VARCHAR2, p_MaNV IN VARCHAR2, p_DiaChiGiaoHang IN NVARCHAR2) IS
+CREATE OR REPLACE PROCEDURE SP_THEM_DH (
+    p_MaKH IN VARCHAR2, p_MaNV IN VARCHAR2, p_DiaChiGiaoHang IN NVARCHAR2, p_PhiVanChuyen IN NUMBER
+) IS
 BEGIN
-    INSERT INTO DONHANG (MaKH, MaNV, DiaChiGiaoHang) VALUES (p_MaKH, p_MaNV, p_DiaChiGiaoHang);
+    INSERT INTO DONHANG (MaKH, MaNV, DiaChiGiaoHang, PhiVanChuyen)
+    VALUES (p_MaKH, p_MaNV, p_DiaChiGiaoHang, p_PhiVanChuyen);
     COMMIT;
 END;
 /

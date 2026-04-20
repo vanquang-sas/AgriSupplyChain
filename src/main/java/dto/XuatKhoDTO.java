@@ -5,14 +5,16 @@ public class XuatKhoDTO {
     private String maXK;
     private String maCTDH;
     private String maTonKho;
+    private String maNV;
     private double slXuat;
-    private Date tgXuat;
+    private Date tgCapNhat;       
+    private String trangThaiXK;   
 
     public XuatKhoDTO() {}
 
-    public XuatKhoDTO(String maXK, String maCTDH, String maTonKho, double slXuat, Date tgXuat) {
+    public XuatKhoDTO(String maXK, String maCTDH, String maTonKho, String maNV, double slXuat, Date tgCapNhat, String trangThaiXK) {
         this.maXK = maXK; this.maCTDH = maCTDH; this.maTonKho = maTonKho; 
-        this.slXuat = slXuat; this.tgXuat = tgXuat;
+        this.maNV = maNV; this.slXuat = slXuat; this.tgCapNhat = tgCapNhat; this.trangThaiXK = trangThaiXK;
     }
 
     public String getMaXK() { return maXK; }
@@ -21,8 +23,12 @@ public class XuatKhoDTO {
     public void setMaCTDH(String maCTDH) { this.maCTDH = maCTDH; }
     public String getMaTonKho() { return maTonKho; }
     public void setMaTonKho(String maTonKho) { this.maTonKho = maTonKho; }
+    public String getMaNV() { return maNV; }
+    public void setMaNV(String maNV) { this.maNV = maNV; }
     public double getSlXuat() { return slXuat; }
     public void setSlXuat(double slXuat) { this.slXuat = slXuat; }
-    public Date getTgXuat() { return tgXuat; }
-    public void setTgXuat(Date tgXuat) { this.tgXuat = tgXuat; }
+    public Date getTgCapNhat() { return tgCapNhat; }
+    public void setTgCapNhat(Date tgCapNhat) { this.tgCapNhat = tgCapNhat; }
+    public String getTrangThaiXK() { return trangThaiXK; }
+    public void setTrangThaiXK(String trangThaiXK) { this.trangThaiXK = trangThaiXK; }
 }
