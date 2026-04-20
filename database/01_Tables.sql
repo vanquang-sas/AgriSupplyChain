@@ -109,7 +109,7 @@ CREATE TABLE LOHANG (
     MaNV VARCHAR2(10),
     TGNhap DATE DEFAULT SYSDATE,
     TongTien NUMBER(12,2) DEFAULT 0 CHECK (TongTien >= 0),
-    TrangThaiLH NVARCHAR2(50) DEFAULT 'Chờ kiểm duyệt' CHECK (TrangThaiLH IN ('Chờ kiểm duyệt', 'Đã nhập kho')),
+    TrangThaiLH NVARCHAR2(50) DEFAULT 'Chờ kiểm duyệt' CHECK (TrangThaiLH IN ('Chờ kiểm duyệt', 'Chờ nhập kho', 'Đã nhập kho')),
     CONSTRAINT FK_LH_NCC FOREIGN KEY (MaNCC) REFERENCES NHACUNGCAP(MaNCC),
     CONSTRAINT FK_LH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
 );
@@ -151,7 +151,7 @@ CREATE TABLE DONHANG (
     DiaChiGiaoHang NVARCHAR2(255),
     PhiVanChuyen NUMBER(12,2) CHECK (PhiVanChuyen >= 0),
     TongTien NUMBER(12,2) DEFAULT 0 CHECK (TongTien >= 0),
-    TrangThaiDH NVARCHAR2(50) DEFAULT 'Đã đặt' CHECK (TrangThaiDH IN ('Đã đặt', 'Chờ thanh toán', 'Đã thanh toán', 'Đang giao', 'Hoàn thành', 'Đã huỷ')),
+    TrangThaiDH NVARCHAR2(50) DEFAULT 'Đã đặt' CHECK (TrangThaiDH IN ('Đã đặt', 'Chờ thanh toán', 'Đã thanh toán', 'Chờ giao hàng', 'Hoàn thành', 'Đã huỷ')),
     CONSTRAINT FK_DH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
     CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV),
     CONSTRAINT CK_TGGiaoDK CHECK (TGGiaoDK >= TGDat)
