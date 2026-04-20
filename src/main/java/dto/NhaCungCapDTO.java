@@ -1,4 +1,4 @@
-package java.dto;
+package dto;
 
 public class NhaCungCapDTO {
     private String maNCC;

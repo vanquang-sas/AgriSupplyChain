@@ -1,4 +1,4 @@
-package java.gui;
+package gui;
 
 public DonHangGUI {
     
