@@ -462,6 +462,7 @@ BEGIN
               AND TK.SLKhaDung > 0 
               AND TK.TGHetHan >= TRUNC(SYSDATE)
             ORDER BY TK.TGHetHan ASC, TK.TGNhapKho ASC
+            FOR UPDATE -- Thêm dòng này để lock record
         ) LOOP
             EXIT WHEN v_SoLuongCan = 0;
 

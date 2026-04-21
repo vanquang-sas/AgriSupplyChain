@@ -26,14 +26,17 @@ AgriSupplyChain/
             │   └── DonHangDAO.java      
             │
             # --- TẦNG BUSINESS LOGIC (BLL) ---
-            ├── bll/                     # Xử lý logic của hệ thống: Tính toán giá sàn, xử lý nghiệp vụ, gọi DAL
-            │   ├── SanPhamBLL.java      
-            │   └── DonHangBLL.java      
+            ├── bus/                     # Xử lý logic của hệ thống: Tính toán giá sàn, xử lý nghiệp vụ, gọi DAL
+            │   ├── SanPhamBUS.java      
+            │   └── DonHangBUS.java      
             │
             # --- TẦNG PRESENTATION (GUI) ---
             ├── gui/                     # Chứa code giao diện (JFrame/JPanel) VÀ Xử lý sự kiện (ActionListener)
             │   ├── LoginGUI.java        # Giao diện đăng nhập và code bắt sự kiện nút "Đăng nhập"
             │   └── DonHangGUI.java      # Giao diện quản lý hợp đồng/đơn hàng
+            │
+            # --- TEST ---
+            ├── test/                    # Test các chức năng của hệ thống
             │
             # --- THÀNH PHẦN KHÁC ---
             ├── util/                    # Các lớp hỗ trợ dùng chung toàn hệ thống
