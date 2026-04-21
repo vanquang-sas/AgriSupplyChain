@@ -33,7 +33,7 @@ CREATE TABLE KHACHHANG (
     MaKH VARCHAR2(10) PRIMARY KEY,
     Username NVARCHAR2(50),
     TenKH NVARCHAR2(100),
-    LoaiKH NVARCHAR2(50) CHECK (LoaiKH IN ('Thường','VIP')),
+    LoaiKH NVARCHAR2(50) CHECK (LoaiKH IN ('Hộ kinh doanh','Doanh nghiệp')),
     DiaChi NVARCHAR2(255),
     SDT VARCHAR2(12),
     Email NVARCHAR2(100),

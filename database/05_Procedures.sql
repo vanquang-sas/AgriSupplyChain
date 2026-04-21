@@ -293,12 +293,14 @@ CREATE OR REPLACE PROCEDURE SP_THEM_DH (
     p_MaKH IN VARCHAR2, p_MaNV IN VARCHAR2, p_DiaChiGiaoHang IN NVARCHAR2, p_PhiVanChuyen IN NUMBER
 ) IS
 BEGIN
-    INSERT INTO DONHANG (MaKH, MaNV, DiaChiGiaoHang, PhiVanChuyen)
-    VALUES (p_MaKH, p_MaNV, p_DiaChiGiaoHang, p_PhiVanChuyen);
+    -- Khởi tạo TongTien ban đầu bằng với phí vận chuyển. 
+    -- PhiVanChuyen = DON_GIA_VANCHUYEN * Khoảng cách
+    -- Phí vận chuyển được tính ở phần code java và truyền xuống
+    INSERT INTO DONHANG (MaKH, MaNV, DiaChiGiaoHang, PhiVanChuyen, TongTien)
+    VALUES (p_MaKH, p_MaNV, p_DiaChiGiaoHang, p_PhiVanChuyen, p_PhiVanChuyen);
     COMMIT;
 END;
 /
-
 CREATE OR REPLACE PROCEDURE SP_CAPNHAT_DH (
     p_MaDH IN VARCHAR2, p_DiaChiGiaoHang IN NVARCHAR2, 
     p_TGGiaoDK IN DATE, p_TrangThaiDH IN NVARCHAR2

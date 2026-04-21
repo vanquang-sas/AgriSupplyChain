@@ -46,18 +46,50 @@ EXCEPTION
         RAISE_APPLICATION_ERROR(-20002, 'Lỗi: Không tìm thấy sản phẩm có mã ' || :NEW.MaSP);
 END;
 /
+
 -- 4. Tự động tính TongTien DONHANG khi thay đổi CHITIETDONHANG
 CREATE OR REPLACE TRIGGER TRG_CTDH_TONGTIEN
 AFTER INSERT OR UPDATE OR DELETE ON CHITIETDONHANG
 FOR EACH ROW
+DECLARE
+    v_Delta NUMBER := 0;
+    v_MaDH VARCHAR2(10);
+    v_LoaiKH NVARCHAR2(50);
+    v_Thue_VAT NUMBER := 0;
 BEGIN
+    -- 1. Xác định mức thay đổi của ThanhTien (Delta)
     IF INSERTING THEN
-        UPDATE DONHANG SET TongTien = NVL(TongTien, 0) + :NEW.ThanhTien WHERE MaDH = :NEW.MaDH;
+        v_Delta := :NEW.ThanhTien;
+        v_MaDH := :NEW.MaDH;
     ELSIF UPDATING THEN
-        UPDATE DONHANG SET TongTien = NVL(TongTien, 0) - :OLD.ThanhTien + :NEW.ThanhTien WHERE MaDH = :NEW.MaDH;
+        v_Delta := :NEW.ThanhTien - :OLD.ThanhTien;
+        v_MaDH := :NEW.MaDH;
     ELSIF DELETING THEN
-        UPDATE DONHANG SET TongTien = NVL(TongTien, 0) - :OLD.ThanhTien WHERE MaDH = :OLD.MaDH;
+        v_Delta := -:OLD.ThanhTien;
+        v_MaDH := :OLD.MaDH;
     END IF;
+
+    -- 2. Lấy thông tin Loại khách hàng từ bảng KHACHHANG
+    SELECT KH.LoaiKH INTO v_LoaiKH
+    FROM DONHANG DH
+    JOIN KHACHHANG KH ON DH.MaKH = KH.MaKH
+    WHERE DH.MaDH = v_MaDH;
+
+    -- 3. Lấy giá trị thuế VAT nếu là Hộ kinh doanh
+    IF v_LoaiKH = 'Hộ kinh doanh' THEN
+        BEGIN
+            SELECT GiaTri INTO v_Thue_VAT FROM THAMSO WHERE TenTS = 'THUE_VAT';
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN 
+                v_Thue_VAT := 0.05; -- Fallback an toàn nếu chưa có trong bảng THAMSO
+        END;
+    END IF;
+
+    -- 4. Cập nhật lại TongTien
+    -- Công thức: TongTien cũ + Phần tiền hàng thay đổi + Phần thuế VAT của số tiền thay đổi
+    UPDATE DONHANG 
+    SET TongTien = NVL(TongTien, 0) + v_Delta + (v_Delta * v_Thue_VAT)
+    WHERE MaDH = v_MaDH;
 END;
 /
 
