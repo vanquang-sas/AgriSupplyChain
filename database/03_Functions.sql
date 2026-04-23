@@ -2,19 +2,30 @@
 --                              PHẦN 3: TẠO FUNCTION
 -- ====================================================================================
 
--- Tính tổng tồn kho khả dụng của 1 sản phẩm
-CREATE OR REPLACE FUNCTION FN_TINHTONG_TONKHO_KHADUNG (p_MaSP IN SANPHAM.MaSP%TYPE) 
-RETURN NUMBER 
+-- Tính phí vận chuyển của 1 đơn hàng
+-- Ý tưởng: Khi người dùng nhập DiaChiGiaoHang, gọi API tới bên thứ 3 
+-- để tính khoảng cách giao hàng rồi truyền vào hàm để tính phí
+CREATE OR REPLACE FUNCTION FN_TINH_PHIVANCHUYEN (
+    p_KhoangCach IN NUMBER
+) RETURN NUMBER 
 IS
-    v_TongTonKho NUMBER(10, 2);
+    v_DonGia NUMBER := 0;
+    v_PhiVanChuyen NUMBER := 0;
 BEGIN
-    -- Chỉ tính những lô hàng có Ngày hết hạn >= Ngày hiện tại
-    SELECT NVL(SUM(TK.SLConLai), 0) INTO v_TongTonKho
-    FROM TONKHO TK
-    JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH
-    WHERE CTLH.MaSP = p_MaSP
-        AND TK.TGHetHan >= TRUNC(SYSDATE);
+    -- 1. Lấy đơn giá vận chuyển từ bảng THAMSO
+    SELECT GIA_TRI INTO v_DonGia
+    FROM THAMSO
+    WHERE TenTS = 'DON_GIA_VANCHUYEN';
 
-    RETURN v_TongTonKho;
+    -- 2. Tính toán phí vận chuyển
+    v_PhiVanChuyen := p_KhoangCach * v_DonGia;
+
+    -- 3. Trả về kết quả
+    RETURN v_PhiVanChuyen;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        -- Xử lý trường hợp không tìm thấy tham số trong bảng
+        RETURN -1;
 END;
 /

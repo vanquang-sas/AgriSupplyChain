@@ -1,5 +1,5 @@
 -- ====================================================================================
---              PHẦN 1: TẠO BẢNG VÀ MỘT SỐ RÀNG BUỘC TOÀN VẸN
+--              PHẦN 1: TẠO BẢNG VÀ CONSTRAINT
 -- ====================================================================================
 
 -- 1. Bảng THAMSO
@@ -33,7 +33,7 @@ CREATE TABLE KHACHHANG (
     MaKH VARCHAR2(10) PRIMARY KEY,
     Username NVARCHAR2(50),
     TenKH NVARCHAR2(100),
-    LoaiKH NVARCHAR2(50) CHECK (LoaiKH IN ('Thường','VIP')),
+    LoaiKH NVARCHAR2(50) CHECK (LoaiKH IN ('Hộ kinh doanh','Doanh nghiệp')),
     DiaChi NVARCHAR2(255),
     SDT VARCHAR2(12),
     Email NVARCHAR2(100),
@@ -79,6 +79,7 @@ CREATE TABLE SANPHAM (
     GiaBan NUMBER(12,2),
     DonViTinh NVARCHAR2(20),
     BaoQuan NVARCHAR2(100) CHECK (BaoQuan IN ('Mát', 'Lạnh', 'Đông')),
+    HinhAnh NVARCHAR2(200),
     CONSTRAINT FK_SP_LSP FOREIGN KEY (MaLSP) REFERENCES LOAISANPHAM(MaLSP)
 );
 
@@ -108,7 +109,7 @@ CREATE TABLE LOHANG (
     MaNV VARCHAR2(10),
     TGNhap DATE DEFAULT SYSDATE,
     TongTien NUMBER(12,2) DEFAULT 0 CHECK (TongTien >= 0),
-    TrangThaiLH NVARCHAR2(50) DEFAULT 'Chờ kiểm duyệt' CHECK (TrangThaiLH IN ('Chờ kiểm duyệt', 'Đã nhập kho')),
+    TrangThaiLH NVARCHAR2(50) DEFAULT 'Chờ kiểm duyệt' CHECK (TrangThaiLH IN ('Chờ kiểm duyệt', 'Chờ nhập kho', 'Đã nhập kho')),
     CONSTRAINT FK_LH_NCC FOREIGN KEY (MaNCC) REFERENCES NHACUNGCAP(MaNCC),
     CONSTRAINT FK_LH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
 );
@@ -131,11 +132,13 @@ CREATE TABLE TONKHO (
     MaKho VARCHAR2(10),
     MaCTLH VARCHAR2(10),
     SLConLai NUMBER(10,2) CHECK (SLConLai >= 0),
+    SLKhaDung NUMBER(10,2) CHECK (SLKhaDung >= 0),
     TGNhapKho DATE DEFAULT SYSDATE,
     TGHetHan DATE,
     ViTri NVARCHAR2(100),
     CONSTRAINT FK_TK_KHO FOREIGN KEY (MaKho) REFERENCES KHO(MaKho),
-    CONSTRAINT FK_TK_CTLH FOREIGN KEY (MaCTLH) REFERENCES CHITIETLOHANG(MaCTLH)
+    CONSTRAINT FK_TK_CTLH FOREIGN KEY (MaCTLH) REFERENCES CHITIETLOHANG(MaCTLH),
+    CONSTRAINT CK_TGHetHan CHECK (TGHetHan >= TGNhapKho)
 );
 
 -- 14. Bảng DONHANG
@@ -143,13 +146,15 @@ CREATE TABLE DONHANG (
     MaDH VARCHAR2(10) PRIMARY KEY,
     MaKH VARCHAR2(10),
     MaNV VARCHAR2(10),
-    DiaChiGiaoHang NVARCHAR2(255),
     TGDat DATE DEFAULT SYSDATE,
     TGGiaoDK DATE,
+    DiaChiGiaoHang NVARCHAR2(255),
+    PhiVanChuyen NUMBER(12,2) CHECK (PhiVanChuyen >= 0),
     TongTien NUMBER(12,2) DEFAULT 0 CHECK (TongTien >= 0),
-    TrangThaiDH NVARCHAR2(50) DEFAULT 'Đã đặt' CHECK (TrangThaiDH IN ('Đã đặt', 'Chờ thanh toán', 'Đã thanh toán', 'Đang giao', 'Hoàn thành', 'Đã huỷ')),
+    TrangThaiDH NVARCHAR2(50) DEFAULT 'Đã đặt' CHECK (TrangThaiDH IN ('Đã đặt', 'Chờ thanh toán', 'Đã thanh toán', 'Chờ giao hàng', 'Hoàn thành', 'Đã huỷ')),
     CONSTRAINT FK_DH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
-    CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
+    CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV),
+    CONSTRAINT CK_TGGiaoDK CHECK (TGGiaoDK >= TGDat)
 );
 
 -- 15. Bảng CHITIETDONHANG
@@ -169,8 +174,11 @@ CREATE TABLE XUATKHO (
     MaXK VARCHAR2(10) PRIMARY KEY,
     MaCTDH VARCHAR2(10),
     MaTonKho VARCHAR2(10),
+    MaNV VARCHAR2(10),
     SLXuat NUMBER(10,2) CHECK (SLXuat > 0),
-    TGXuat DATE DEFAULT SYSDATE,
+    TGCapNhat DATE DEFAULT SYSDATE,
+    TrangThaiXK NVARCHAR2(50) DEFAULT 'Tạm giữ' CHECK (TrangThaiXK IN ('Tạm giữ', 'Đã xuất')),
     CONSTRAINT FK_XK_CTDH FOREIGN KEY (MaCTDH) REFERENCES CHITIETDONHANG(MaCTDH),
-    CONSTRAINT FK_XK_TK FOREIGN KEY (MaTonKho) REFERENCES TONKHO(MaTonKho)
+    CONSTRAINT FK_XK_TonKho FOREIGN KEY (MaTonKho) REFERENCES TONKHO(MaTonKho),
+    CONSTRAINT FK_XK_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
 );

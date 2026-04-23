@@ -46,18 +46,50 @@ EXCEPTION
         RAISE_APPLICATION_ERROR(-20002, 'Lỗi: Không tìm thấy sản phẩm có mã ' || :NEW.MaSP);
 END;
 /
+
 -- 4. Tự động tính TongTien DONHANG khi thay đổi CHITIETDONHANG
 CREATE OR REPLACE TRIGGER TRG_CTDH_TONGTIEN
 AFTER INSERT OR UPDATE OR DELETE ON CHITIETDONHANG
 FOR EACH ROW
+DECLARE
+    v_Delta NUMBER := 0;
+    v_MaDH VARCHAR2(10);
+    v_LoaiKH NVARCHAR2(50);
+    v_Thue_VAT NUMBER := 0;
 BEGIN
+    -- 1. Xác định mức thay đổi của ThanhTien (Delta)
     IF INSERTING THEN
-        UPDATE DONHANG SET TongTien = NVL(TongTien, 0) + :NEW.ThanhTien WHERE MaDH = :NEW.MaDH;
+        v_Delta := :NEW.ThanhTien;
+        v_MaDH := :NEW.MaDH;
     ELSIF UPDATING THEN
-        UPDATE DONHANG SET TongTien = NVL(TongTien, 0) - :OLD.ThanhTien + :NEW.ThanhTien WHERE MaDH = :NEW.MaDH;
+        v_Delta := :NEW.ThanhTien - :OLD.ThanhTien;
+        v_MaDH := :NEW.MaDH;
     ELSIF DELETING THEN
-        UPDATE DONHANG SET TongTien = NVL(TongTien, 0) - :OLD.ThanhTien WHERE MaDH = :OLD.MaDH;
+        v_Delta := -:OLD.ThanhTien;
+        v_MaDH := :OLD.MaDH;
     END IF;
+
+    -- 2. Lấy thông tin Loại khách hàng từ bảng KHACHHANG
+    SELECT KH.LoaiKH INTO v_LoaiKH
+    FROM DONHANG DH
+    JOIN KHACHHANG KH ON DH.MaKH = KH.MaKH
+    WHERE DH.MaDH = v_MaDH;
+
+    -- 3. Lấy giá trị thuế VAT nếu là Hộ kinh doanh
+    IF v_LoaiKH = 'Hộ kinh doanh' THEN
+        BEGIN
+            SELECT GiaTri INTO v_Thue_VAT FROM THAMSO WHERE TenTS = 'THUE_VAT';
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN 
+                v_Thue_VAT := 0.05; -- Fallback an toàn nếu chưa có trong bảng THAMSO
+        END;
+    END IF;
+
+    -- 4. Cập nhật lại TongTien
+    -- Công thức: TongTien cũ + Phần tiền hàng thay đổi + Phần thuế VAT của số tiền thay đổi
+    UPDATE DONHANG 
+    SET TongTien = NVL(TongTien, 0) + v_Delta + (v_Delta * v_Thue_VAT)
+    WHERE MaDH = v_MaDH;
 END;
 /
 
@@ -173,31 +205,58 @@ END;
 /
 
 -- ================================= Bảng XUATKHO =================================
--- 9. Khi một phiếu xuất kho được tạo, tự động lấy SLConLai trong bảng TONKHO trừ đi SLXuat. Nếu SLConLai < SLXuat thì báo lỗi và rollback
-CREATE OR REPLACE TRIGGER TRG_XK_TRU_TONKHO
-BEFORE INSERT ON XUATKHO
+-- 9. Xử lý trừ tồn kho dựa trên TrangThaiXK
+CREATE OR REPLACE TRIGGER TRG_XK_CAPNHAT_TONKHO
+BEFORE INSERT OR UPDATE OF TrangThaiXK OR DELETE ON XUATKHO
 FOR EACH ROW
 DECLARE
-    v_SLConLai NUMBER(10, 2);
+    v_SLConLai NUMBER;
+    v_SLKhaDung NUMBER;
+    v_MaTonKho_Check VARCHAR2;
 BEGIN
-    SELECT SLConLai INTO v_SLConLai
-    FROM TONKHO
-    WHERE MaTonKho = :NEW.MaTonKho;
+    -- Lấy mã tồn kho tuỳ theo thao tác
+    IF DELETING THEN v_MaTonKho_Check := :OLD.MaTonKho;
+    ELSE v_MaTonKho_Check := :NEW.MaTonKho; END IF;
 
-    IF v_SLConLai < :NEW.SLXuat THEN
-        RAISE_APPLICATION_ERROR(-20010, 'Lỗi: Số lượng xuất (' || :NEW.SLXuat || ') vượt quá tồn kho khả dụng (' || v_SLConLai || ').');
-    ELSE
-        UPDATE TONKHO
-        SET SLConLai = SLConLai - :NEW.SLXuat
-        WHERE MaTonKho = :NEW.MaTonKho;
+    -- Lấy số lượng hiện tại trong kho để kiểm tra
+    SELECT SLConLai, SLKhaDung INTO v_SLConLai, v_SLKhaDung 
+    FROM TONKHO WHERE MaTonKho = v_MaTonKho_Check;
+
+    IF INSERTING THEN
+        -- Lúc INSERT TrangThaiXK luôn là 'Tạm giữ', khi nào nhân viên xác nhận xuất hàng mới chuyển thành 'Đã xuất'
+        IF v_SLKhaDung < :NEW.SLXuat THEN
+            RAISE_APPLICATION_ERROR(-20010, 'Lỗi: Kho không đủ SL khả dụng (' || v_SLKhaDung || ') cho lô ' || :NEW.MaTonKho);
+        ELSE
+            UPDATE TONKHO SET SLKhaDung = SLKhaDung - :NEW.SLXuat WHERE MaTonKho = :NEW.MaTonKho;
+        END IF;
+
+    ELSIF UPDATING THEN
+        -- Chuyển từ "Tạm giữ" -> "Đã xuất": Lấy hàng ra khỏi kho (Trừ SLConLai, còn SLKhaDung đã trừ trước đó rồi)
+        IF :OLD.TrangThaiXK = 'Tạm giữ' AND :NEW.TrangThaiXK = 'Đã xuất' THEN
+            UPDATE TONKHO SET SLConLai = SLConLai - :NEW.SLXuat WHERE MaTonKho = :NEW.MaTonKho;
+            
+        -- Chuyển từ "Tạm giữ" -> "Đã huỷ": Khách huỷ đơn trước khi giao, hoàn lại SLKhaDung
+        ELSIF :OLD.TrangThaiXK = 'Tạm giữ' AND :NEW.TrangThaiXK = 'Đã huỷ' THEN
+            UPDATE TONKHO SET SLKhaDung = SLKhaDung + :OLD.SLXuat WHERE MaTonKho = :NEW.MaTonKho;
+            
+        -- Chuyển từ "Đã xuất" -> "Đã huỷ": Hàng đã đi nhưng bị trả về, hoàn lại cả 2
+        ELSIF :OLD.TrangThaiXK = 'Đã xuất' AND :NEW.TrangThaiXK = 'Đã huỷ' THEN
+            UPDATE TONKHO 
+            SET SLConLai = SLConLai + :OLD.SLXuat, SLKhaDung = SLKhaDung + :OLD.SLXuat 
+            WHERE MaTonKho = :NEW.MaTonKho;
+        END IF;
+
+    ELSIF DELETING THEN
+        IF :OLD.TrangThaiXK = 'Tạm giữ' THEN
+            UPDATE TONKHO SET SLKhaDung = SLKhaDung + :OLD.SLXuat WHERE MaTonKho = :OLD.MaTonKho;
+        ELSIF :OLD.TrangThaiXK = 'Đã xuất' THEN
+            UPDATE TONKHO 
+            SET SLConLai = SLConLai + :OLD.SLXuat, SLKhaDung = SLKhaDung + :OLD.SLXuat 
+            WHERE MaTonKho = :OLD.MaTonKho;
+        END IF;
     END IF;
-
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        RAISE_APPLICATION_ERROR(-20011, 'Lỗi: Không tìm thấy mã lô tồn kho ' || :NEW.MaTonKho);
 END;
 /
-
 -- ================================= Bảng SANPHAM =================================
 -- 10. Tự động ghi nhận lịch sử giá mỗi khi thay đổi giá mua hoặc bán của sản phẩm
 CREATE OR REPLACE TRIGGER TRG_SP_LUU_LSG
