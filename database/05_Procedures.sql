@@ -12,15 +12,11 @@ CREATE OR REPLACE PROCEDURE SP_CAPNHAT_GIA (
 IS
     v_MaGia VARCHAR2(10);
 BEGIN
-    -- 1. Cập nhật giá trong bảng SANPHAM
+
     UPDATE SANPHAM
     SET GiaMua = p_GiaMuaMoi,
         GiaBan = p_GiaBanMoi
     WHERE MaSP = p_MaSP;
-
-    -- 2. Ghi nhận vào LICHSUGIA
-    INSERT INTO LICHSUGIA (MaSP, GiaMua, GiaBan)
-    VALUES (p_MaSP, p_GiaMuaMoi, p_GiaBanMoi);
 
     COMMIT;
 EXCEPTION

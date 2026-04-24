@@ -265,13 +265,11 @@ FOR EACH ROW
 BEGIN
     IF  INSERTING OR (UPDATING AND (:OLD.GiaMua <> :NEW.GiaMua) OR (:OLD.GiaBan <> :NEW.GiaBan)) THEN
         INSERT INTO LICHSUGIA (
-            MaGia, 
             MaSP, 
             GiaMua, 
             GiaBan
         ) 
         VALUES (
-            'LSG' || TO_CHAR(SYSTIMESTAMP, 'SSSMIC'), -- Tạo mã tạm thời bằng timestamp để tránh trùng
             :NEW.MaSP, 
             :NEW.GiaMua, 
             :NEW.GiaBan
@@ -305,12 +303,9 @@ BEGIN
         JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP 
         WHERE CTLH.MaCTLH = :NEW.MaCTLH;
 
-        -- Tạo mã thông báo ngẫu nhiên (chống trùng PK)
-        v_MaTB := 'TB' || DBMS_RANDOM.STRING('X', 8);
-
         -- Insert vào bảng THONGBAO
-        INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao)
-        VALUES (v_MaTB, N'Sắp hết hạn', N'Lô ' || :NEW.MaTonKho || N' của SP ' || v_TenSP || N' sẽ hết hạn vào ' || TO_CHAR(:NEW.TGHetHan, 'DD/MM/YYYY'), 0, SYSDATE);
+        INSERT INTO THONGBAO (LoaiTB, NoiDung, TrangThaiTB, TGTao)
+        VALUES (N'Sắp hết hạn', N'Lô ' || :NEW.MaTonKho || N' của SP ' || v_TenSP || N' sẽ hết hạn vào ' || TO_CHAR(:NEW.TGHetHan, 'DD/MM/YYYY'), 0, SYSDATE);
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
