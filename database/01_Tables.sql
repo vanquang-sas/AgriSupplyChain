@@ -33,7 +33,7 @@ CREATE TABLE KHACHHANG (
     MaKH VARCHAR2(10) PRIMARY KEY,
     Username NVARCHAR2(50),
     TenKH NVARCHAR2(100),
-    LoaiKH NVARCHAR2(50) CHECK (LoaiKH IN ('Hộ kinh doanh','Doanh nghiệp')),
+    LoaiKH NVARCHAR2(50) CHECK (LoaiKH IN ('Thường','Thân thiết','VIP')),
     DiaChi NVARCHAR2(255),
     SDT VARCHAR2(12),
     Email NVARCHAR2(100),
@@ -142,20 +142,49 @@ CREATE TABLE TONKHO (
 );
 
 -- 14. Bảng DONHANG
+-- CREATE TABLE DONHANG (
+--     MaDH VARCHAR2(10) PRIMARY KEY,
+--     MaKH VARCHAR2(10),
+--     MaNV VARCHAR2(10),
+--     TGDat DATE DEFAULT SYSDATE,
+--     TGGiaoDK DATE,
+--     DiaChiGiaoHang NVARCHAR2(255),
+--     PhiVanChuyen NUMBER(12,2) CHECK (PhiVanChuyen >= 0),
+--     TongTien NUMBER(12,2) DEFAULT 0 CHECK (TongTien >= 0),
+--     TrangThaiDH NVARCHAR2(50) DEFAULT 'Đã đặt' CHECK (TrangThaiDH IN ('Đã đặt', 'Chờ thanh toán', 'Đã thanh toán', 'Chờ giao hàng', 'Hoàn thành', 'Đã huỷ')),
+--     CONSTRAINT FK_DH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
+--     CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV),
+--     CONSTRAINT CK_TGGiaoDK CHECK (TGGiaoDK >= TGDat)
+-- );
+-- =======================================================================================================
+-- 14. Bảng DONHANG
 CREATE TABLE DONHANG (
     MaDH VARCHAR2(10) PRIMARY KEY,
     MaKH VARCHAR2(10),
     MaNV VARCHAR2(10),
     TGDat DATE DEFAULT SYSDATE,
-    TGGiaoDK DATE,
+    TGGiaoYC DATE CHECK (TGGiaoYC >= TGDat),
+    TGGiaoTT DATE CHECK (TGGiaoTT >= TGGiaoYC),
     DiaChiGiaoHang NVARCHAR2(255),
+    LyDoHuy NVARCHAR2(500),     -- Lý do huỷ đơn hàng (nếu có)
+
     PhiVanChuyen NUMBER(12,2) CHECK (PhiVanChuyen >= 0),
+    TongTienHang NUMBER(12,2) DEFAULT 0 CHECK (TongTienHang >= 0),  -- Tổng tiền trước giảm giá
+    GiamGia NUMBER(12,2) DEFAULT 0 CHECK (GiamGia >= 0),            -- Số tiền được giảm dựa trên LoaiKH
     TongTien NUMBER(12,2) DEFAULT 0 CHECK (TongTien >= 0),
-    TrangThaiDH NVARCHAR2(50) DEFAULT 'Đã đặt' CHECK (TrangThaiDH IN ('Đã đặt', 'Chờ thanh toán', 'Đã thanh toán', 'Chờ giao hàng', 'Hoàn thành', 'Đã huỷ')),
+
+    TrangThaiDH NVARCHAR2(50) DEFAULT 'Đã đặt' 
+    CHECK (TrangThaiDH IN ('Đã đặt', 'Chờ xử lý', 'Chờ giao hàng', 'Hoàn thành', 'Đã huỷ')),
+
+    TrangThaiTT NUMBER(1) DEFAULT 0 CHECK (TrangThaiTT IN (0, 1)),
+    PhuongThucTT NVARCHAR2(50) DEFAULT 'COD' 
+    CHECK (PhuongThucTT IN ('COD', 'Chuyển khoản', 'Ví điện tử')),
+
     CONSTRAINT FK_DH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
     CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV),
     CONSTRAINT CK_TGGiaoDK CHECK (TGGiaoDK >= TGDat)
 );
+-- =======================================================================================================
 
 -- 15. Bảng CHITIETDONHANG
 CREATE TABLE CHITIETDONHANG (
