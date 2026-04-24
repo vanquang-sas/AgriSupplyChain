@@ -181,8 +181,7 @@ CREATE TABLE DONHANG (
     CHECK (PhuongThucTT IN ('COD', 'Chuyển khoản', 'Ví điện tử')),
 
     CONSTRAINT FK_DH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
-    CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV),
-    CONSTRAINT CK_TGGiaoDK CHECK (TGGiaoDK >= TGDat)
+    CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
 );
 -- =======================================================================================================
 
@@ -206,7 +205,7 @@ CREATE TABLE XUATKHO (
     MaNV VARCHAR2(10),
     SLXuat NUMBER(10,2) CHECK (SLXuat > 0),
     TGCapNhat DATE DEFAULT SYSDATE,
-    TrangThaiXK NVARCHAR2(50) DEFAULT 'Tạm giữ' CHECK (TrangThaiXK IN ('Tạm giữ', 'Đã xuất')),
+    TrangThaiXK NVARCHAR2(50) DEFAULT 'Tạm giữ' CHECK (TrangThaiXK IN ('Tạm giữ', 'Đã xuất', 'Đã huỷ')),
     CONSTRAINT FK_XK_CTDH FOREIGN KEY (MaCTDH) REFERENCES CHITIETDONHANG(MaCTDH),
     CONSTRAINT FK_XK_TonKho FOREIGN KEY (MaTonKho) REFERENCES TONKHO(MaTonKho),
     CONSTRAINT FK_XK_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)

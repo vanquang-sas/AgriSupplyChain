@@ -286,41 +286,86 @@ END;
 
 -- ================================= Bảng DONHANG =================================
 CREATE OR REPLACE PROCEDURE SP_THEM_DH (
-    p_MaKH IN VARCHAR2, p_MaNV IN VARCHAR2, p_DiaChiGiaoHang IN NVARCHAR2, p_PhiVanChuyen IN NUMBER
+    p_MaKH IN VARCHAR2, 
+    p_MaNV IN VARCHAR2, 
+    p_DiaChiGiaoHang IN NVARCHAR2, 
+    p_PhiVanChuyen IN NUMBER,
+    p_PhuongThucTT IN NVARCHAR2 -- Thêm tham số phương thức thanh toán
 ) IS
 BEGIN
-    -- Khởi tạo TongTien ban đầu bằng với phí vận chuyển. 
+    -- Khởi tạo đơn hàng mới. 
+    -- Tiền hàng và Chiết khấu bằng 0, Tổng thanh toán tạm thời bằng phí vận chuyển.
     -- PhiVanChuyen = DON_GIA_VANCHUYEN * Khoảng cách
     -- Phí vận chuyển được tính ở phần code java và truyền xuống
-    INSERT INTO DONHANG (MaKH, MaNV, DiaChiGiaoHang, PhiVanChuyen, TongTien)
-    VALUES (p_MaKH, p_MaNV, p_DiaChiGiaoHang, p_PhiVanChuyen, p_PhiVanChuyen);
+    -- TrangThaiTT mặc định là 0 (Chưa thanh toán).
+    INSERT INTO DONHANG (
+        MaKH, MaNV, DiaChiGiaoHang, PhiVanChuyen, 
+        TongTienHang, ChietKhau, TongThanhToan, 
+        TrangThaiDH, PhuongThucTT, TrangThaiTT
+    )
+    VALUES (
+        p_MaKH, p_MaNV, p_DiaChiGiaoHang, p_PhiVanChuyen, 
+        0, 0, p_PhiVanChuyen, 
+        'Đã đặt', p_PhuongThucTT, 0
+    );
     COMMIT;
 END;
 /
+
 CREATE OR REPLACE PROCEDURE SP_CAPNHAT_DH (
-    p_MaDH IN VARCHAR2, p_DiaChiGiaoHang IN NVARCHAR2, 
-    p_TGGiaoDK IN DATE, p_TrangThaiDH IN NVARCHAR2
+    p_MaDH IN VARCHAR2, 
+    p_DiaChiGiaoHang IN NVARCHAR2, 
+    p_TGGiaoYC IN DATE,      -- Đổi từ TGGiaoDK sang TGGiaoYC theo PDF
+    p_TGGiaoTT IN DATE,      -- Thêm cột thời gian giao thực tế
+    p_TrangThaiDH IN NVARCHAR2,
+    p_TrangThaiTT IN NUMBER, -- Thêm cập nhật trạng thái thanh toán
+    p_LyDoHuy IN NVARCHAR2   -- Thêm cập nhật lý do hủy nếu có
 ) IS
 BEGIN
     UPDATE DONHANG 
     SET DiaChiGiaoHang = NVL(p_DiaChiGiaoHang, DiaChiGiaoHang), 
-        TGGiaoDK = NVL(p_TGGiaoDK, TGGiaoDK), 
-        TrangThaiDH = NVL(p_TrangThaiDH, TrangThaiDH) 
+        TGGiaoYC = NVL(p_TGGiaoYC, TGGiaoYC),
+        TGGiaoTT = NVL(p_TGGiaoTT, TGGiaoTT), 
+        TrangThaiDH = NVL(p_TrangThaiDH, TrangThaiDH),
+        TrangThaiTT = NVL(p_TrangThaiTT, TrangThaiTT),
+        LyDoHuy = NVL(p_LyDoHuy, LyDoHuy)
     WHERE MaDH = p_MaDH;
     COMMIT;
 END;
 /
 
-CREATE OR REPLACE PROCEDURE SP_XOA_DH (p_MaDH IN VARCHAR2) IS
-    v_TrangThai NVARCHAR2(50);
+CREATE OR REPLACE PROCEDURE SP_HUY_DH (
+    p_MaDH IN VARCHAR2,
+    p_LyDoHuy IN NVARCHAR2
+) IS
+    v_TrangThaiDH NVARCHAR2(50);
 BEGIN
-    SELECT TrangThaiDH INTO v_TrangThai FROM DONHANG WHERE MaDH = p_MaDH;
-    IF v_TrangThai NOT IN ('Đã đặt', 'Chờ thanh toán') THEN
-        RAISE_APPLICATION_ERROR(-20021, 'Chỉ có thể xoá đơn hàng mới đặt hoặc chờ thanh toán!');
+    SELECT TrangThaiDH INTO v_TrangThaiDH FROM DONHANG WHERE MaDH = p_MaDH;
+    
+    -- Nếu đơn đã hoàn thành hoặc đã huỷ trước đó rồi thì không cho phép huỷ nữa
+    IF v_TrangThaiDH IN ('Hoàn thành', 'Đã huỷ') THEN
+        RAISE_APPLICATION_ERROR(-20030, 'Không thể huỷ đơn hàng đã hoàn thành hoặc đã huỷ!');
     END IF;
-    DELETE FROM CHITIETDONHANG WHERE MaDH = p_MaDH;
-    DELETE FROM DONHANG WHERE MaDH = p_MaDH;
+
+    -- 1. Cập nhật trạng thái Đơn hàng và ghi lại lý do
+    UPDATE DONHANG 
+    SET TrangThaiDH = 'Đã huỷ',
+        LyDoHuy = p_LyDoHuy
+    WHERE MaDH = p_MaDH;
+
+    -- 2. Cập nhật trạng thái Xuất kho (nếu có)
+    -- Thao tác này sẽ tự động kích hoạt Trigger TRG_XK_CAPNHAT_TONKHO
+    -- Trigger sẽ tự tính toán việc hoàn trả SLKhaDung và SLConLai vào bảng TONKHO
+    UPDATE XUATKHO 
+    SET TrangThaiXK = 'Đã huỷ', 
+        TGCapNhat = SYSDATE
+    WHERE MaCTDH IN (SELECT MaCTDH FROM CHITIETDONHANG WHERE MaDH = p_MaDH);
+
     COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        RAISE_APPLICATION_ERROR(-20031, 'Lỗi xử lý huỷ đơn hàng: ' || SQLERRM);
 END;
 /
 
