@@ -52,17 +52,36 @@ END;
 /
 
 -- ================================= Bảng TAIKHOAN =================================
--- Thêm tài khoản
-CREATE OR REPLACE PROCEDURE SP_THEM_TAIKHOAN (
+CREATE OR REPLACE PROCEDURE SP_DANGKY_TAIKHOAN (
     p_Username IN NVARCHAR2,
     p_Password IN VARCHAR2,
-    p_LoaiTK IN NUMBER
-) IS
+    p_LoaiTK IN NUMBER,       -- 0: Quản lý, 1: Nhân viên, 2: Khách hàng
+    p_Ten IN NVARCHAR2,
+    p_DiaChi IN NVARCHAR2,
+    p_SDT IN VARCHAR2,
+    p_Email IN NVARCHAR2,
+    p_LoaiKHoacChucVu IN NVARCHAR2, -- Nhận LoaiKH (Thường/VIP) hoặc ChucVu (Quản lý/NV kho...)
+    p_Luong IN NUMBER         -- Chỉ dùng cho nhân viên, KH truyền NULL
+) 
+IS
 BEGIN
-    -- TrangThaiTK mặc định là 1 (Hoạt động), TGTao mặc định SYSDATE
-    INSERT INTO TAIKHOAN (Username, Password, LoaiTK, TrangThaiTK) 
-    VALUES (p_Username, p_Password, p_LoaiTK, 1);
+    -- 1. Gọi SP tạo tài khoản gốc
+    SP_THEM_TAIKHOAN(p_Username, p_Password, p_LoaiTK);
+
+    -- 2. Phân nhánh thêm thông tin chi tiết
+    IF p_LoaiTK = 2 THEN 
+        -- Nếu là Khách hàng (Mặc định loại KH là 'Thường')
+        SP_THEM_KH(p_Username, p_Ten, NVL(p_LoaiKHoacChucVu, 'Thường'), p_DiaChi, p_SDT, p_Email);
+    ELSIF p_LoaiTK IN (0, 1) THEN 
+        -- Nếu là Quản lý hoặc Nhân viên
+        SP_THEM_NV(p_Username, p_Ten, p_LoaiKHoacChucVu, p_SDT, NVL(p_Luong, 0));
+    END IF;
+
     COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        RAISE_APPLICATION_ERROR(-20040, 'Lỗi hệ thống khi đăng ký tài khoản: ' || SQLERRM);
 END;
 /
 
