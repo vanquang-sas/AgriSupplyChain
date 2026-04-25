@@ -45,7 +45,7 @@ CREATE TABLE NHANVIEN (
     MaNV VARCHAR2(10) PRIMARY KEY,
     Username NVARCHAR2(50),
     TenNV NVARCHAR2(100),
-    ChucVu NVARCHAR2(50) CHECK (ChucVu IN ('NV thu mua', 'NV kho', 'NV giao hàng')),
+    ChucVu NVARCHAR2(50) CHECK (ChucVu IN ('NV thu mua', 'NV kho', 'NV giao hàng','Quản lý')),
     SDT VARCHAR2(12),
     Luong NUMBER(12,2),
     CONSTRAINT FK_NV_TAIKHOAN FOREIGN KEY (Username) REFERENCES TAIKHOAN(Username)
