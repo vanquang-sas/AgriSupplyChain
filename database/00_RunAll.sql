@@ -6,10 +6,10 @@ SET FEEDBACK ON;
 SET ECHO ON;
 SET SERVEROUTPUT ON;
 
-PROMPT --- DỌN DẸP VÀ TẠO MỚI USER C##AGRI ---
+PROMPT --- DỌN DẸP VÀ TẠO MỚI USER AGRIAPP ---
 BEGIN
    -- Xóa user cũ và toàn bộ dữ liệu đi kèm (CASCADE)
-   EXECUTE IMMEDIATE 'DROP USER C##AGRI CASCADE';
+   EXECUTE IMMEDIATE 'DROP USER AGRIAPP CASCADE';
 EXCEPTION
    WHEN OTHERS THEN
       IF SQLCODE != -1918 THEN -- Nếu không phải lỗi "User không tồn tại" thì báo lỗi
@@ -19,7 +19,7 @@ END;
 /
 
 -- Tạo user với mật khẩu từ DBConnection.java
-CREATE USER C##AGRI IDENTIFIED BY 123456;
+CREATE USER AGRIAPP IDENTIFIED BY 123456;
 
 -- Cấp các quyền cần thiết để Java có thể thao tác
 GRANT CONNECT, RESOURCE, CREATE VIEW TO C##AGRI;
