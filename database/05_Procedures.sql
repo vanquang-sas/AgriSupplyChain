@@ -52,6 +52,18 @@ END;
 /
 
 -- ================================= Bảng TAIKHOAN =================================
+CREATE OR REPLACE PROCEDURE SP_THEM_TAIKHOAN (
+    p_Username IN NVARCHAR2,
+    p_Password IN VARCHAR2,
+    p_LoaiTK IN NUMBER
+) IS
+BEGIN
+    -- Mặc định TrangThaiTK = 1 (Đang hoạt động)
+    INSERT INTO TAIKHOAN (Username, Password, LoaiTK, TrangThaiTK) 
+    VALUES (p_Username, p_Password, p_LoaiTK, 1);
+END;
+/
+
 CREATE OR REPLACE PROCEDURE SP_DANGKY_TAIKHOAN (
     p_Username IN NVARCHAR2,
     p_Password IN VARCHAR2,
@@ -65,7 +77,7 @@ CREATE OR REPLACE PROCEDURE SP_DANGKY_TAIKHOAN (
 ) 
 IS
 BEGIN
-    -- 1. Gọi SP tạo tài khoản gốc
+    -- 1. Gọi SP tạo tài khoản
     SP_THEM_TAIKHOAN(p_Username, p_Password, p_LoaiTK);
 
     -- 2. Phân nhánh thêm thông tin chi tiết

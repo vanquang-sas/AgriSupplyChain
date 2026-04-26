@@ -1,0 +1,30 @@
+SQL> 
+SQL> PROMPT --- ĐANG CHẠY FILE 1: TẠO BẢNG VÀ CONSTRAINT ---
+> @@01_Tables.sql;
+--- ĐANG CHẠY FILE 1: TẠO BẢNG VÀ CONSTRAINT -- @@01_Tables.sql
+SQL> 
+SQL> PROMPT --- ĐANG CHẠY FILE 2: TẠO SEQUENCE ---
+> @@02_Sequences.sql;
+--- ĐANG CHẠY FILE 2: TẠO SEQUENCE -- @@02_Sequences.sql
+SQL> 
+SQL> PROMPT --- ĐANG CHẠY FILE 3: TẠO FUNCTION ---
+> @@03_Functions.sql;
+--- ĐANG CHẠY FILE 3: TẠO FUNCTION -- @@03_Functions.sql
+SQL> 
+SQL> PROMPT --- ĐANG CHẠY FILE 4: TẠO TRIGGER ---
+> @@04_Triggers.sql;
+--- ĐANG CHẠY FILE 4: TẠO TRIGGER -- @@04_Triggers.sql
+SQL> 
+SQL> PROMPT --- ĐANG CHẠY FILE 5: TẠO PROCEDURE ---
+> @@05_Procedures.sql;
+--- ĐANG CHẠY FILE 5: TẠO PROCEDURE -- @@05_Procedures.sql
+SQL> 
+SQL> PROMPT --- ĐANG CHẠY FILE 6: THÊM DỮ LIỆU CẦN THIẾT ---
+> @@06_InsertData.sql;
+--- ĐANG CHẠY FILE 6: THÊM DỮ LIỆU CẦN THIẾT -- @@06_InsertData.sql
+SQL> 
+SQL> PROMPT --- ĐANG CHẠY FILE 7: THÊM DỮ LIỆU MẪU ---
+> @@07_InsertDemoData.sql;
+--- ĐANG CHẠY FILE 7: THÊM DỮ LIỆU MẪU -- @@07_InsertDemoData.sql
+SQL> 
+SQL> SPOOL OFF;

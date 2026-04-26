@@ -6,28 +6,22 @@ SET FEEDBACK ON;
 SET ECHO ON;
 SET SERVEROUTPUT ON;
 
-PROMPT --- DỌN DẸP VÀ TẠO MỚI USER AGRIAPP ---
-BEGIN
-   -- Xóa user cũ và toàn bộ dữ liệu đi kèm (CASCADE)
-   EXECUTE IMMEDIATE 'DROP USER AGRIAPP CASCADE';
-EXCEPTION
-   WHEN OTHERS THEN
-      IF SQLCODE != -1918 THEN -- Nếu không phải lỗi "User không tồn tại" thì báo lỗi
-         RAISE;
-      END IF;
-END;
-/
+-- 1. Bỏ qua kiểm tra bảo mật khắt khe của Oracle 21c
+ALTER SESSION SET "_ORACLE_SCRIPT"=true; 
 
--- Tạo user với mật khẩu từ DBConnection.java
+PROMPT --- DỌN DẸP USER CU ---
+-- 2. Xóa user cũ. 
+DROP USER AGRIAPP CASCADE;
+
+PROMPT --- TAO USER MOI AGRIAPP ---
+-- 3. Tạo lại user và cấp quyền
 CREATE USER AGRIAPP IDENTIFIED BY 123456;
-
--- Cấp các quyền cần thiết để Java có thể thao tác
 GRANT CONNECT, RESOURCE, CREATE VIEW TO AGRIAPP;
 GRANT UNLIMITED TABLESPACE TO AGRIAPP;
 
-PROMPT --- CHUYỂN ĐỔI KẾT NỐI SANG USER AGRIAPP ---
--- Sau lệnh này, mọi bảng và procedure bên dưới sẽ thuộc về AGRIAPP
-CONNECT AGRIAPP/123456;
+PROMPT --- CHUYEN DOI KET NOI ---
+-- 4. BẮT BUỘC: Phải có @localhost:1521/orcldb thì mới kết nối thành công
+CONNECT AGRIAPP/123456@localhost:1521/orcldb;
 
 -- ====================================================================================
 -- PHẦN 2: TẠO CẤU TRÚC DATABASE (TABLES, SEQUENCES, LOGIC)

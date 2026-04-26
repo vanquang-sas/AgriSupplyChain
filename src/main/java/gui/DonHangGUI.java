@@ -1,5 +1,5 @@
 package gui;
 
-public DonHangGUI {
+public class DonHangGUI {
     
 }
