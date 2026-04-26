@@ -290,17 +290,14 @@ CREATE OR REPLACE PROCEDURE SP_THEM_DH (
     p_MaNV IN VARCHAR2, 
     p_DiaChiGiaoHang IN NVARCHAR2, 
     p_PhiVanChuyen IN NUMBER,
-    p_PhuongThucTT IN NVARCHAR2 -- Thêm tham số phương thức thanh toán
+    p_PhuongThucTT IN NVARCHAR2 
 ) IS
 BEGIN
     -- Khởi tạo đơn hàng mới. 
-    -- Tiền hàng và Chiết khấu bằng 0, Tổng thanh toán tạm thời bằng phí vận chuyển.
-    -- PhiVanChuyen = DON_GIA_VANCHUYEN * Khoảng cách
-    -- Phí vận chuyển được tính ở phần code java và truyền xuống
-    -- TrangThaiTT mặc định là 0 (Chưa thanh toán).
+    -- Tiền hàng và Giảm giá bằng 0. Do chưa có hàng nên Tổng tiền tạm thời chính bằng phí vận chuyển.
     INSERT INTO DONHANG (
         MaKH, MaNV, DiaChiGiaoHang, PhiVanChuyen, 
-        TongTienHang, ChietKhau, TongThanhToan, 
+        TongTienHang, GiamGia, TongTien, 
         TrangThaiDH, PhuongThucTT, TrangThaiTT
     )
     VALUES (

@@ -55,7 +55,11 @@ DECLARE
     v_Delta NUMBER := 0;
     v_MaDH VARCHAR2(10);
     v_LoaiKH NVARCHAR2(50);
-    v_Thue_VAT NUMBER := 0;
+    
+    v_TyLeGiamGia NUMBER := 0;
+    v_TongTienHangMoi NUMBER := 0;
+    v_PhiVanChuyen NUMBER := 0;
+    v_GiamGiaMoi NUMBER := 0;
 BEGIN
     -- 1. Xác định mức thay đổi của ThanhTien (Delta)
     IF INSERTING THEN
@@ -69,31 +73,46 @@ BEGIN
         v_MaDH := :OLD.MaDH;
     END IF;
 
-    -- 2. Lấy thông tin Loại khách hàng từ bảng KHACHHANG
-    SELECT KH.LoaiKH INTO v_LoaiKH
+    -- 2. Lấy Tổng tiền hàng hiện tại, Phí vận chuyển và Loại khách hàng
+    SELECT DH.TongTienHang, DH.PhiVanChuyen, KH.LoaiKH 
+    INTO v_TongTienHangMoi, v_PhiVanChuyen, v_LoaiKH
     FROM DONHANG DH
     JOIN KHACHHANG KH ON DH.MaKH = KH.MaKH
     WHERE DH.MaDH = v_MaDH;
 
-    -- 3. Lấy giá trị thuế VAT nếu là Hộ kinh doanh
-    IF v_LoaiKH = 'Hộ kinh doanh' THEN
-        BEGIN
-            SELECT GiaTri INTO v_Thue_VAT FROM THAMSO WHERE TenTS = 'THUE_VAT';
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN 
-                v_Thue_VAT := 0.05; -- Fallback an toàn nếu chưa có trong bảng THAMSO
-        END;
-    END IF;
+    -- Cộng dồn Delta để ra Tổng tiền hàng mới
+    v_TongTienHangMoi := NVL(v_TongTienHangMoi, 0) + v_Delta;
 
-    -- 4. Cập nhật lại TongTien
-    -- Công thức: TongTien cũ + Phần tiền hàng thay đổi + Phần thuế VAT của số tiền thay đổi
+    -- 3. Xác định tỷ lệ giảm giá từ bảng THAMSO dựa trên LoaiKH
+    -- Giả sử giá trị lưu trong THAMSO là số thập phân (Ví dụ: 0.05 tương đương 5%)
+    BEGIN
+        IF v_LoaiKH = 'Thường' THEN
+            SELECT GiaTri INTO v_TyLeGiamGia FROM THAMSO WHERE TenTS = 'GG_THUONG';
+        ELSIF v_LoaiKH = 'Thân thiết' THEN
+            SELECT GiaTri INTO v_TyLeGiamGia FROM THAMSO WHERE TenTS = 'GG_THANTHIET';
+        ELSIF v_LoaiKH = 'VIP' THEN
+            SELECT GiaTri INTO v_TyLeGiamGia FROM THAMSO WHERE TenTS = 'GG_VIP';
+        ELSE
+            v_TyLeGiamGia := 0;
+        END IF;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN 
+            v_TyLeGiamGia := 0; 
+    END;
+
+    -- 4. Tính toán số tiền Giảm giá mới
+    v_GiamGiaMoi := v_TongTienHangMoi * v_TyLeGiamGia;
+
+    -- 5. Cập nhật TongTien = TongTienHang + PhiVanChuyen - GiamGia
     UPDATE DONHANG 
-    SET TongTien = NVL(TongTien, 0) + v_Delta + (v_Delta * v_Thue_VAT)
+    SET TongTienHang = v_TongTienHangMoi,
+        GiamGia = v_GiamGiaMoi,
+        TongTien = v_TongTienHangMoi + NVL(v_PhiVanChuyen, 0) - v_GiamGiaMoi
     WHERE MaDH = v_MaDH;
 END;
 /
 
--- 5. Không cho phép thêm, sửa, xóa chi tiết đơn hàng nếu đang giao hoặc đã hoàn thành
+-- 5. Không cho phép thêm, sửa, xóa chi tiết đơn hàng nếu chờ xử lý hoặc hoàn thành
 CREATE OR REPLACE TRIGGER TRG_CTDH_CHECK_TRANGTHAIDH
 BEFORE INSERT OR UPDATE OR DELETE ON CHITIETDONHANG
 FOR EACH ROW
@@ -112,7 +131,7 @@ BEGIN
     FROM DONHANG
     WHERE MaDH = v_MaDH_Check;
 
-    IF v_TrangThai IN ('Đang giao', 'Hoàn thành') THEN
+    IF v_TrangThai IN ('Chờ xử lý', 'Hoàn thành') THEN
         RAISE_APPLICATION_ERROR(-20003, 
             'Khong the thay doi chi tiet don hang vi don hang dang o trang thai: ' || v_TrangThai);
     END IF;
