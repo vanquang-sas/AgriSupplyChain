@@ -597,3 +597,77 @@ EXCEPTION
         RAISE;
 END;
 /
+
+-- ================================= LỊCH SỬ ĐƠN HÀNG (Module Nhóm 4) =================================
+-- Lấy danh sách đơn hàng của một khách hàng kèm chi tiết sản phẩm gom bằng LISTAGG
+-- Procedure này kết hợp 3 bảng: DONHANG, CHITIETDONHANG, SANPHAM
+-- Sử dụng LISTAGG để gom tên sản phẩm + số lượng thành chuỗi, ví dụ: "2 Xoài, 1 Chuối"
+CREATE OR REPLACE PROCEDURE SP_LAY_DS_DONHANG_BY_KH (
+    p_MaKH IN VARCHAR2,
+    p_Cursor OUT SYS_REFCURSOR
+) IS
+BEGIN
+    OPEN p_Cursor FOR
+    SELECT 
+        DH.MaDH,
+        DH.MaKH,
+        DH.TGDat,
+        DH.TongTien,
+        DH.TrangThaiDH,
+        DH.TrangThaiTT,
+        -- Gom tất cả tên sản phẩm cùng số lượng thành một chuỗi
+        LISTAGG(CTDH.SoLuong || ' ' || SP.TenSP, ', ') 
+            WITHIN GROUP (ORDER BY SP.TenSP) AS DanhSachSP
+    FROM DONHANG DH
+    LEFT JOIN CHITIETDONHANG CTDH ON DH.MaDH = CTDH.MaDH
+    LEFT JOIN SANPHAM SP ON CTDH.MaSP = SP.MaSP
+    WHERE DH.MaKH = p_MaKH
+    GROUP BY DH.MaDH, DH.MaKH, DH.TGDat, DH.TongTien, DH.TrangThaiDH, DH.TrangThaiTT
+    ORDER BY DH.TGDat DESC;
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20040, 'Lỗi khi lấy danh sách đơn hàng: ' || SQLERRM);
+END SP_LAY_DS_DONHANG_BY_KH;
+/
+
+-- Xoá (soft delete) đơn hàng - Chỉ UPDATE trạng thái thành 'Đã huỷ'
+-- Procedure này được gọi từ tầng DAO sau khi kiểm tra điều kiện ở tầng BUS
+-- Chỉ cho phép xoá nếu: TrangThaiDH = 'Đã đặt' HOẶC TrangThaiDH = 'Chờ xử lý'
+CREATE OR REPLACE PROCEDURE SP_XOA_DH (
+    p_MaDH IN VARCHAR2
+) IS
+    v_TrangThaiDH NVARCHAR2(50);
+BEGIN
+    -- Lấy trạng thái hiện tại
+    SELECT TrangThaiDH INTO v_TrangThaiDH 
+    FROM DONHANG 
+    WHERE MaDH = p_MaDH;
+    
+    -- Logic kiểm tra: Chỉ cho phép xoá (hủy) nếu TrangThaiDH là "Đã đặt" hoặc "Chờ xử lý"
+    IF NOT (v_TrangThaiDH IN ('Đã đặt', 'Chờ xử lý')) THEN
+        RAISE_APPLICATION_ERROR(-20041, 
+            'Không thể huỷ đơn hàng này! Trạng thái hiện tại: ' || v_TrangThaiDH);
+    END IF;
+    
+    -- Soft delete: cập nhật trạng thái thành 'Đã huỷ' thay vì DELETE
+    UPDATE DONHANG 
+    SET TrangThaiDH = 'Đã huỷ'
+    WHERE MaDH = p_MaDH;
+    
+    -- Cập nhật trạng thái xuất kho liên quan (nếu có)
+    UPDATE XUATKHO 
+    SET TrangThaiXK = 'Đã huỷ', 
+        TGCapNhat = SYSDATE
+    WHERE MaCTDH IN (SELECT MaCTDH FROM CHITIETDONHANG WHERE MaDH = p_MaDH)
+      AND TrangThaiXK IN ('Tạm giữ', 'Đã xuất');
+    
+    COMMIT;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20042, 'Không tìm thấy đơn hàng với mã: ' || p_MaDH);
+    WHEN OTHERS THEN
+        ROLLBACK;
+        RAISE_APPLICATION_ERROR(-20043, 'Lỗi khi xoá đơn hàng: ' || SQLERRM);
+END SP_XOA_DH;
+/
