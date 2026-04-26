@@ -5,8 +5,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBConnection {
-    private static final String URL = "jdbc:oracle:thin:@localhost:1521:orcl"; 
-    private static final String USER = "C##AGRI";
+    private static final String URL = "jdbc:oracle:thin:@localhost:1521/orcldb"; 
+    private static final String USER = "AGRIAPP";
     private static final String PASS = "123456";
     public static Connection getConnection() {
         try {
