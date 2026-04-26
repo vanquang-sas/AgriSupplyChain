@@ -22,12 +22,12 @@ END;
 CREATE USER AGRIAPP IDENTIFIED BY 123456;
 
 -- Cấp các quyền cần thiết để Java có thể thao tác
-GRANT CONNECT, RESOURCE, CREATE VIEW TO C##AGRI;
-GRANT UNLIMITED TABLESPACE TO C##AGRI;
+GRANT CONNECT, RESOURCE, CREATE VIEW TO AGRIAPP;
+GRANT UNLIMITED TABLESPACE TO AGRIAPP;
 
-PROMPT --- CHUYỂN ĐỔI KẾT NỐI SANG USER C##AGRI ---
--- Sau lệnh này, mọi bảng và procedure bên dưới sẽ thuộc về C##AGRI
-CONNECT C##AGRI/123456;
+PROMPT --- CHUYỂN ĐỔI KẾT NỐI SANG USER AGRIAPP ---
+-- Sau lệnh này, mọi bảng và procedure bên dưới sẽ thuộc về AGRIAPP
+CONNECT AGRIAPP/123456;
 
 -- ====================================================================================
 -- PHẦN 2: TẠO CẤU TRÚC DATABASE (TABLES, SEQUENCES, LOGIC)
