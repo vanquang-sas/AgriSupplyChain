@@ -26,35 +26,26 @@ SELECT * FROM dual;
 -- 3. SANPHAM (Mỗi loại 5 sản phẩm -> 25 SP)
 -- -------------------------------------------------------------------------
 INSERT ALL
-    -- LSP00001: Thịt (Đông)
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000001', N'Thịt heo Iberico', 'LSP00001', N'Loại 1', 150000, 200000, 'Kg', N'Đông')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000002', N'Thịt bò Kobe', 'LSP00001', N'Loại 1', 1500000, 2200000, 'Kg', N'Đông')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000003', N'Thịt gà ta thả vườn', 'LSP00001', N'Loại 2', 90000, 130000, 'Kg', N'Lạnh')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000004', N'Đùi cừu Úc', 'LSP00001', N'Loại 1', 300000, 420000, 'Kg', N'Đông')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000005', N'Thịt vịt xiêm', 'LSP00001', N'Loại 2', 80000, 110000, 'Kg', N'Lạnh')
-
-    -- LSP00002: Thủy hải sản (Lạnh/Đông)
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000006', N'Cá hồi NaUy nguyên con', 'LSP00002', N'Loại 1', 350000, 500000, 'Kg', N'Lạnh')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000007', N'Mực ống Trường Sa', 'LSP00002', N'Loại 1', 250000, 320000, 'Kg', N'Đông')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000008', N'Tôm sú Cà Mau', 'LSP00002', N'Loại 2', 200000, 280000, 'Kg', N'Đông')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000009', N'Cua thịt Năm Căn', 'LSP00002', N'Loại 1', 400000, 550000, 'Kg', N'Mát')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000010', N'Bạch tuộc sữa', 'LSP00002', N'Loại 3', 120000, 160000, 'Kg', N'Đông')
-
-    -- LSP00003: Rau củ quả (Mát)
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000011', N'Cải bắp Đà Lạt', 'LSP00003', N'Loại 1', 15000, 25000, 'Kg', N'Mát')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000012', N'Cà chua Cherry', 'LSP00003', N'Loại 1', 40000, 60000, 'Kg', N'Mát')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000013', N'Súp lơ xanh', 'LSP00003', N'Loại 2', 20000, 35000, 'Kg', N'Mát')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000014', N'Cà rốt Baby', 'LSP00003', N'Loại 1', 30000, 50000, 'Kg', N'Mát')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000015', N'Khoai tây mầm', 'LSP00003', N'Loại 3', 10000, 18000, 'Kg', N'Mát')
-
-    -- LSP00004: Trái cây (Mát)
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000016', N'Táo Envy Mỹ', 'LSP00004', N'Loại 1', 180000, 250000, 'Kg', N'Mát')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000017', N'Nho mẫu đơn Hàn Quốc', 'LSP00004', N'Loại 1', 500000, 750000, 'Chùm', N'Mát')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000018', N'Dâu tây Mộc Châu', 'LSP00004', N'Loại 2', 120000, 180000, 'Hộp', N'Mát')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000019', N'Dưa lưới Taki', 'LSP00004', N'Loại 1', 60000, 95000, 'Kg', N'Mát')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000020', N'Bơ sáp Đắk Lắk', 'LSP00004', N'Loại 2', 35000, 55000, 'Kg', N'Mát')
-
-    -- LSP00005: Ngũ cốc & Hạt (Mát)
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000021', N'Hạt điều rang củi', 'LSP00005', N'Loại 1', 250000, 350000, 'Kg', N'Mát')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000022', N'Hạt macca Úc', 'LSP00005', N'Loại 1', 300000, 420000, 'Kg', N'Mát')
     INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000023', N'Đậu phộng sấy', 'LSP00005', N'Loại 3', 50000, 80000, 'Kg', N'Mát')
@@ -93,26 +84,19 @@ SELECT * FROM dual;
 -- Ghi chú: LoaiTK (1: Nhân viên, 2: Khách hàng)
 -- -------------------------------------------------------------------------
 INSERT ALL
-    -- Tài khoản cho Nhân viên thu mua
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvtm01', '123456', 1, 1)
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvtm02', '123456', 1, 1)
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvtm03', '123456', 1, 1)
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvtm04', '123456', 1, 1)
-    
-    -- Tài khoản cho Nhân viên kho
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvkho01', '123456', 1, 1)
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvkho02', '123456', 1, 1)
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvkho03', '123456', 1, 1)
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvkho04', '123456', 1, 1)
-
-    -- Tài khoản cho Nhân viên giao hàng
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh01', '123456', 1, 1)
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh02', '123456', 1, 1)
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh03', '123456', 1, 1)
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh04', '123456', 1, 1)
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh05', '123456', 1, 1)
-
-    -- Tài khoản cho Khách hàng
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh01', 'passkh', 2, 1)
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh02', 'passkh', 2, 1)
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh03', 'passkh', 2, 1)
@@ -139,19 +123,14 @@ SELECT * FROM dual;
 -- 6. NHANVIEN (13 Nhân viên mới - Nối tiếp 2 quản lý ở file 06)
 -- -------------------------------------------------------------------------
 INSERT ALL
-    -- NV Thu mua
     INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000003', 'nvtm01', N'Trần Hữu Trọng', N'NV thu mua', '0981112221', 12000000)
     INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000004', 'nvtm02', N'Phạm Tấn Tài', N'NV thu mua', '0981112222', 12500000)
     INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000005', 'nvtm03', N'Lê Tú Anh', N'NV thu mua', '0981112223', 11000000)
     INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000006', 'nvtm04', N'Đinh Hoàng Hải', N'NV thu mua', '0981112224', 13000000)
-
-    -- NV Kho
     INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000007', 'nvkho01', N'Nguyễn Hữu Quyết', N'NV kho', '0982223331', 10000000)
     INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000008', 'nvkho02', N'Lâm Tiến Đạt', N'NV kho', '0982223332', 9500000)
     INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000009', 'nvkho03', N'Phan Công Minh', N'NV kho', '0982223333', 10500000)
     INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000010', 'nvkho04', N'Bùi Trọng Đạo', N'NV kho', '0982223334', 11000000)
-
-    -- NV Giao hàng
     INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000011', 'nvgh01', N'Võ Thanh Hùng', N'NV giao hàng', '0983334441', 8000000)
     INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000012', 'nvgh02', N'Đỗ Quốc Cường', N'NV giao hàng', '0983334442', 8500000)
     INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000013', 'nvgh03', N'Lê Thanh Sang', N'NV giao hàng', '0983334443', 9000000)
@@ -168,19 +147,16 @@ INSERT ALL
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000003', 'kh03', N'Lê Hoàng Nam', N'Thân thiết', N'Thủ Đức, TP.HCM', '0912345003', 'nam.le@yahoo.com')
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000004', 'kh04', N'Phạm Quang Dũng', N'Thường', N'Bình Thạnh, TP.HCM', '0912345004', 'dung.pham@gmail.com')
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000005', 'kh05', N'Võ Thị Yến', N'Thường', N'Gò Vấp, TP.HCM', '0912345005', 'yen.vo@hotmail.com')
-    
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000006', 'kh06', N'Đặng Thái Sơn', N'VIP', N'Tân Bình, TP.HCM', '0912345006', 'son.dang@gmail.com')
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000007', 'kh07', N'Bùi Thúy Hạnh', N'Thường', N'Quận 7, TP.HCM', '0912345007', 'hanh.bui@gmail.com')
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000008', 'kh08', N'Đỗ Hữu Nghĩa', N'Thân thiết', N'Quận 10, TP.HCM', '0912345008', 'nghia.do@gmail.com')
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000009', 'kh09', N'Hồ Thanh Thảo', N'Thường', N'Quận 4, TP.HCM', '0912345009', 'thao.ho@yahoo.com')
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000010', 'kh10', N'Dương Quốc Vượng', N'Thân thiết', N'Quận 5, TP.HCM', '0912345010', 'vuong.duong@gmail.com')
-    
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000011', 'kh11', N'Vũ Đức Cảnh', N'Thường', N'Quận 8, TP.HCM', '0912345011', 'canh.vu@gmail.com')
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000012', 'kh12', N'Ngô Nhật Cường', N'VIP', N'Quận 2, TP.HCM', '0912345012', 'cuong.ngo@gmail.com')
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000013', 'kh13', N'Đoàn Tuấn Kiệt', N'Thường', N'Bình Tân, TP.HCM', '0912345013', 'kiet.doan@hotmail.com')
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000014', 'kh14', N'Lý Thảo Ngọc', N'Thân thiết', N'Phú Nhuận, TP.HCM', '0912345014', 'ngoc.ly@gmail.com')
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000015', 'kh15', N'Nguyễn Bá Thắng', N'Thường', N'Quận 12, TP.HCM', '0912345015', 'thang.nguyen@gmail.com')
-    
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000016', 'kh16', N'Phan Thị Cẩm', N'Thường', N'Củ Chi, TP.HCM', '0912345016', 'cam.phan@gmail.com')
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000017', 'kh17', N'Trịnh Xuân Bách', N'Thân thiết', N'Hóc Môn, TP.HCM', '0912345017', 'bach.trinh@yahoo.com')
     INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000018', 'kh18', N'Đinh Thị Mười', N'Thường', N'Bình Chánh, TP.HCM', '0912345018', 'muoi.dinh@gmail.com')
@@ -193,7 +169,6 @@ SELECT * FROM dual;
 -- Trạng thái: 35 Đã nhập kho, 3 Chờ nhập kho, 2 Chờ kiểm duyệt
 -- ====================================================================================
 INSERT ALL
-    -- Lô hàng nhập thành công (Đã nhập kho)
     INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000001', 'NCC00001', 'NV000003', TO_DATE('05/01/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
     INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000002', 'NCC00002', 'NV000004', TO_DATE('10/01/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
     INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000003', 'NCC00003', 'NV000005', TO_DATE('12/01/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
@@ -229,7 +204,6 @@ INSERT ALL
     INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000033', 'NCC00014', 'NV000003', TO_DATE('12/04/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
     INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000034', 'NCC00015', 'NV000004', TO_DATE('15/04/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
     INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000035', 'NCC00016', 'NV000005', TO_DATE('18/04/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    -- Lô hàng đang xử lý
     INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000036', 'NCC00018', 'NV000006', TO_DATE('24/04/2026', 'DD/MM/YYYY'), N'Chờ nhập kho')
     INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000037', 'NCC00019', 'NV000003', TO_DATE('25/04/2026', 'DD/MM/YYYY'), N'Chờ nhập kho')
     INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000038', 'NCC00020', 'NV000004', TO_DATE('26/04/2026', 'DD/MM/YYYY'), N'Chờ nhập kho')
