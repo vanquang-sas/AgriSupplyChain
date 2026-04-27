@@ -11,6 +11,8 @@ public class DonHangDTO {
     private double phiVanChuyen;
     private double tongTien;
     private String trangThaiDH;
+    private double tongTienHang; 
+    private String phuongThucTT;
 
     public DonHangDTO() {}
 
@@ -20,6 +22,19 @@ public class DonHangDTO {
         this.tongTien = tongTien; this.trangThaiDH = trangThaiDH;
     }
 
+    public DonHangDTO(String maDH, String maKH, String maNV, String diaChiGiaoHang,
+                  Date tgDat, Date tgGiaoDK, double phiVanChuyen,
+                  double tongTienHang, double tongTien,
+                  String trangThaiDH, String phuongThucTT) {
+        this.maDH = maDH; this.maKH = maKH; this.maNV = maNV;
+        this.diaChiGiaoHang = diaChiGiaoHang;
+        this.tgDat = tgDat; this.tgGiaoDK = tgGiaoDK;
+        this.phiVanChuyen = phiVanChuyen;
+        this.tongTienHang = tongTienHang;
+        this.tongTien = tongTien;
+        this.trangThaiDH = trangThaiDH;
+        this.phuongThucTT = phuongThucTT;
+    }
     public double getPhiVanChuyen() { return phiVanChuyen; }
     public void setPhiVanChuyen(double phiVanChuyen) { this.phiVanChuyen = phiVanChuyen; }
     
@@ -39,4 +54,9 @@ public class DonHangDTO {
     public void setTongTien(double tongTien) { this.tongTien = tongTien; }
     public String getTrangThaiDH() { return trangThaiDH; }
     public void setTrangThaiDH(String trangThaiDH) { this.trangThaiDH = trangThaiDH; }
+
+    public double getTongTienHang() { return tongTienHang; }
+    public void setTongTienHang(double tongTienHang) { this.tongTienHang = tongTienHang; }
+    public String getPhuongThucTT() { return phuongThucTT; }
+    public void setPhuongThucTT(String phuongThucTT) { this.phuongThucTT = phuongThucTT; }
 }
