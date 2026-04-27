@@ -294,21 +294,17 @@ INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0046', 'LH0
 INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0047', 'LH000040', 'SP000024', 400); 
 
 -- ====================================================================================
--- 10. TONKHO (Dữ liệu cho 35 Lô hàng đầu tiên đã nhập kho)
--- Lưu ý: Khởi tạo đầy đủ số lượng. Khi có Đơn hàng, Trigger XUATKHO sẽ tự động trừ đi.
+-- 10. TONKHO 
 -- ====================================================================================
 INSERT ALL
     INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri) VALUES ('TK000001', 'KHO00001', 'CTLH0001', 500, 500, TO_DATE('06/01/2026', 'DD/MM/YYYY'), TO_DATE('06/06/2026', 'DD/MM/YYYY'), N'Kệ A1')
     INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri) VALUES ('TK000002', 'KHO00001', 'CTLH0002', 300, 300, TO_DATE('06/01/2026', 'DD/MM/YYYY'), TO_DATE('06/06/2026', 'DD/MM/YYYY'), N'Kệ A2')
     INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri) VALUES ('TK000003', 'KHO00001', 'CTLH0003', 200, 200, TO_DATE('06/01/2026', 'DD/MM/YYYY'), TO_DATE('06/06/2026', 'DD/MM/YYYY'), N'Kệ A3')
     INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri) VALUES ('TK000004', 'KHO00001', 'CTLH0004', 400, 400, TO_DATE('06/01/2026', 'DD/MM/YYYY'), TO_DATE('06/06/2026', 'DD/MM/YYYY'), N'Kệ A4')
-    
     INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri) VALUES ('TK000005', 'KHO00002', 'CTLH0005', 200, 200, TO_DATE('11/01/2026', 'DD/MM/YYYY'), TO_DATE('11/07/2026', 'DD/MM/YYYY'), N'Kệ L1')
     INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri) VALUES ('TK000006', 'KHO00002', 'CTLH0006', 300, 300, TO_DATE('11/01/2026', 'DD/MM/YYYY'), TO_DATE('11/07/2026', 'DD/MM/YYYY'), N'Kệ L2')
     INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri) VALUES ('TK000007', 'KHO00003', 'CTLH0007', 150, 150, TO_DATE('13/01/2026', 'DD/MM/YYYY'), TO_DATE('13/12/2026', 'DD/MM/YYYY'), N'Kệ D1')
     INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri) VALUES ('TK000008', 'KHO00003', 'CTLH0008', 100, 100, TO_DATE('13/01/2026', 'DD/MM/YYYY'), TO_DATE('13/12/2026', 'DD/MM/YYYY'), N'Kệ D2')
-    
-    -- Ánh xạ Kho tương ứng với Loại SP (Mát -> 1, Lạnh -> 2, Đông -> 3)
     INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri) VALUES ('TK000009', 'KHO00001', 'CTLH0009', 250, 250, TO_DATE('16/01/2026', 'DD/MM/YYYY'), TO_DATE('16/06/2026', 'DD/MM/YYYY'), N'Kệ A5')
     INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri) VALUES ('TK000010', 'KHO00001', 'CTLH0010', 100, 100, TO_DATE('16/01/2026', 'DD/MM/YYYY'), TO_DATE('16/06/2026', 'DD/MM/YYYY'), N'Kệ A6')
     INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri) VALUES ('TK000011', 'KHO00001', 'CTLH0011', 400, 400, TO_DATE('21/01/2026', 'DD/MM/YYYY'), TO_DATE('21/08/2026', 'DD/MM/YYYY'), N'Kệ A7')
@@ -346,98 +342,49 @@ INSERT ALL
 SELECT 1 FROM dual;
 
 -- ====================================================================================
--- 11. DONHANG (40 Đơn hàng)
--- 32 Hoàn thành (80%), 4 Chờ giao hàng, 2 Chờ xử lý, 2 Đã huỷ
--- Lưu ý: TongTienHang, GiamGia, TongTien sẽ do Trigger tự động điền khi thêm CHITIETDONHANG
+-- 11. DONHANG 
 -- ====================================================================================
 INSERT ALL
-    -- Hoàn thành (Đã giao)
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000001', 'KH000001', 'NV000011', TO_DATE('10/02/2026','DD/MM/YYYY'), TO_DATE('12/02/2026','DD/MM/YYYY'), TO_DATE('12/02/2026','DD/MM/YYYY'), N'Quận 1, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000002', 'KH000002', 'NV000012', TO_DATE('15/02/2026','DD/MM/YYYY'), TO_DATE('16/02/2026','DD/MM/YYYY'), TO_DATE('16/02/2026','DD/MM/YYYY'), N'Quận 3, TP.HCM', 40000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000003', 'KH000003', 'NV000013', TO_DATE('18/02/2026','DD/MM/YYYY'), TO_DATE('20/02/2026','DD/MM/YYYY'), TO_DATE('20/02/2026','DD/MM/YYYY'), N'Thủ Đức, TP.HCM', 50000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000004', 'KH000004', 'NV000014', TO_DATE('20/02/2026','DD/MM/YYYY'), TO_DATE('21/02/2026','DD/MM/YYYY'), TO_DATE('21/02/2026','DD/MM/YYYY'), N'Bình Thạnh, TP.HCM', 35000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000005', 'KH000005', 'NV000015', TO_DATE('25/02/2026','DD/MM/YYYY'), TO_DATE('27/02/2026','DD/MM/YYYY'), TO_DATE('27/02/2026','DD/MM/YYYY'), N'Gò Vấp, TP.HCM', 45000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000006', 'KH000006', 'NV000011', TO_DATE('01/03/2026','DD/MM/YYYY'), TO_DATE('02/03/2026','DD/MM/YYYY'), TO_DATE('02/03/2026','DD/MM/YYYY'), N'Tân Bình, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000007', 'KH000007', 'NV000012', TO_DATE('05/03/2026','DD/MM/YYYY'), TO_DATE('06/03/2026','DD/MM/YYYY'), TO_DATE('07/03/2026','DD/MM/YYYY'), N'Quận 7, TP.HCM', 60000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000008', 'KH000008', 'NV000013', TO_DATE('08/03/2026','DD/MM/YYYY'), TO_DATE('09/03/2026','DD/MM/YYYY'), TO_DATE('09/03/2026','DD/MM/YYYY'), N'Quận 10, TP.HCM', 25000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000009', 'KH000009', 'NV000014', TO_DATE('10/03/2026','DD/MM/YYYY'), TO_DATE('11/03/2026','DD/MM/YYYY'), TO_DATE('11/03/2026','DD/MM/YYYY'), N'Quận 4, TP.HCM', 30000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000010', 'KH000010', 'NV000015', TO_DATE('12/03/2026','DD/MM/YYYY'), TO_DATE('14/03/2026','DD/MM/YYYY'), TO_DATE('14/03/2026','DD/MM/YYYY'), N'Quận 5, TP.HCM', 35000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000011', 'KH000011', 'NV000011', TO_DATE('15/03/2026','DD/MM/YYYY'), TO_DATE('16/03/2026','DD/MM/YYYY'), TO_DATE('16/03/2026','DD/MM/YYYY'), N'Quận 8, TP.HCM', 40000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000012', 'KH000012', 'NV000012', TO_DATE('18/03/2026','DD/MM/YYYY'), TO_DATE('19/03/2026','DD/MM/YYYY'), TO_DATE('19/03/2026','DD/MM/YYYY'), N'Quận 2, TP.HCM', 45000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000013', 'KH000013', 'NV000013', TO_DATE('20/03/2026','DD/MM/YYYY'), TO_DATE('22/03/2026','DD/MM/YYYY'), TO_DATE('22/03/2026','DD/MM/YYYY'), N'Bình Tân, TP.HCM', 50000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000014', 'KH000014', 'NV000014', TO_DATE('22/03/2026','DD/MM/YYYY'), TO_DATE('23/03/2026','DD/MM/YYYY'), TO_DATE('23/03/2026','DD/MM/YYYY'), N'Phú Nhuận, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000015', 'KH000015', 'NV000015', TO_DATE('25/03/2026','DD/MM/YYYY'), TO_DATE('26/03/2026','DD/MM/YYYY'), TO_DATE('26/03/2026','DD/MM/YYYY'), N'Quận 12, TP.HCM', 55000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000016', 'KH000016', 'NV000011', TO_DATE('28/03/2026','DD/MM/YYYY'), TO_DATE('29/03/2026','DD/MM/YYYY'), TO_DATE('30/03/2026','DD/MM/YYYY'), N'Củ Chi, TP.HCM', 80000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000017', 'KH000017', 'NV000012', TO_DATE('30/03/2026','DD/MM/YYYY'), TO_DATE('01/04/2026','DD/MM/YYYY'), TO_DATE('01/04/2026','DD/MM/YYYY'), N'Hóc Môn, TP.HCM', 70000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000018', 'KH000018', 'NV000013', TO_DATE('02/04/2026','DD/MM/YYYY'), TO_DATE('03/04/2026','DD/MM/YYYY'), TO_DATE('03/04/2026','DD/MM/YYYY'), N'Bình Chánh, TP.HCM', 75000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000019', 'KH000019', 'NV000014', TO_DATE('05/04/2026','DD/MM/YYYY'), TO_DATE('06/04/2026','DD/MM/YYYY'), TO_DATE('06/04/2026','DD/MM/YYYY'), N'Quận 11, TP.HCM', 35000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000020', 'KH000020', 'NV000015', TO_DATE('08/04/2026','DD/MM/YYYY'), TO_DATE('09/04/2026','DD/MM/YYYY'), TO_DATE('09/04/2026','DD/MM/YYYY'), N'Quận 6, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000021', 'KH000001', 'NV000011', TO_DATE('10/04/2026','DD/MM/YYYY'), TO_DATE('11/04/2026','DD/MM/YYYY'), TO_DATE('11/04/2026','DD/MM/YYYY'), N'Quận 1, TP.HCM', 30000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000022', 'KH000002', 'NV000012', TO_DATE('12/04/2026','DD/MM/YYYY'), TO_DATE('13/04/2026','DD/MM/YYYY'), TO_DATE('13/04/2026','DD/MM/YYYY'), N'Quận 3, TP.HCM', 40000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000023', 'KH000003', 'NV000013', TO_DATE('14/04/2026','DD/MM/YYYY'), TO_DATE('15/04/2026','DD/MM/YYYY'), TO_DATE('15/04/2026','DD/MM/YYYY'), N'Thủ Đức, TP.HCM', 50000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000024', 'KH000004', 'NV000014', TO_DATE('15/04/2026','DD/MM/YYYY'), TO_DATE('16/04/2026','DD/MM/YYYY'), TO_DATE('16/04/2026','DD/MM/YYYY'), N'Bình Thạnh, TP.HCM', 35000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000025', 'KH000005', 'NV000015', TO_DATE('16/04/2026','DD/MM/YYYY'), TO_DATE('17/04/2026','DD/MM/YYYY'), TO_DATE('17/04/2026','DD/MM/YYYY'), N'Gò Vấp, TP.HCM', 45000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000026', 'KH000006', 'NV000011', TO_DATE('18/04/2026','DD/MM/YYYY'), TO_DATE('19/04/2026','DD/MM/YYYY'), TO_DATE('19/04/2026','DD/MM/YYYY'), N'Tân Bình, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000027', 'KH000007', 'NV000012', TO_DATE('19/04/2026','DD/MM/YYYY'), TO_DATE('20/04/2026','DD/MM/YYYY'), TO_DATE('20/04/2026','DD/MM/YYYY'), N'Quận 7, TP.HCM', 60000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000028', 'KH000008', 'NV000013', TO_DATE('20/04/2026','DD/MM/YYYY'), TO_DATE('21/04/2026','DD/MM/YYYY'), TO_DATE('21/04/2026','DD/MM/YYYY'), N'Quận 10, TP.HCM', 25000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000029', 'KH000009', 'NV000014', TO_DATE('21/04/2026','DD/MM/YYYY'), TO_DATE('22/04/2026','DD/MM/YYYY'), TO_DATE('22/04/2026','DD/MM/YYYY'), N'Quận 4, TP.HCM', 30000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000030', 'KH000010', 'NV000015', TO_DATE('22/04/2026','DD/MM/YYYY'), TO_DATE('23/04/2026','DD/MM/YYYY'), TO_DATE('23/04/2026','DD/MM/YYYY'), N'Quận 5, TP.HCM', 35000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000031', 'KH000011', 'NV000011', TO_DATE('23/04/2026','DD/MM/YYYY'), TO_DATE('24/04/2026','DD/MM/YYYY'), TO_DATE('24/04/2026','DD/MM/YYYY'), N'Quận 8, TP.HCM', 40000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000032', 'KH000012', 'NV000012', TO_DATE('24/04/2026','DD/MM/YYYY'), TO_DATE('25/04/2026','DD/MM/YYYY'), TO_DATE('25/04/2026','DD/MM/YYYY'), N'Quận 2, TP.HCM', 45000, N'Hoàn thành', 1, 'COD')
-
-    -- Chờ giao hàng (Hàng đã rời kho nhưng nhân viên chưa báo hoàn thành)
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000033', 'KH000013', 'NV000013', TO_DATE('25/04/2026','DD/MM/YYYY'), TO_DATE('27/04/2026','DD/MM/YYYY'), N'Bình Tân, TP.HCM', 50000, N'Chờ giao hàng', 0, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000034', 'KH000014', 'NV000014', TO_DATE('25/04/2026','DD/MM/YYYY'), TO_DATE('27/04/2026','DD/MM/YYYY'), N'Phú Nhuận, TP.HCM', 30000, N'Chờ giao hàng', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000035', 'KH000015', 'NV000015', TO_DATE('26/04/2026','DD/MM/YYYY'), TO_DATE('28/04/2026','DD/MM/YYYY'), N'Quận 12, TP.HCM', 55000, N'Chờ giao hàng', 0, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000036', 'KH000016', 'NV000011', TO_DATE('26/04/2026','DD/MM/YYYY'), TO_DATE('28/04/2026','DD/MM/YYYY'), N'Củ Chi, TP.HCM', 80000, N'Chờ giao hàng', 1, 'Ví điện tử')
-
-    -- Chờ xử lý (Mới đặt, kho chưa xuất hàng)
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000037', 'KH000017', NULL, TO_DATE('27/04/2026','DD/MM/YYYY'), TO_DATE('29/04/2026','DD/MM/YYYY'), N'Hóc Môn, TP.HCM', 70000, N'Chờ xử lý', 0, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000038', 'KH000018', NULL, TO_DATE('27/04/2026','DD/MM/YYYY'), TO_DATE('29/04/2026','DD/MM/YYYY'), N'Bình Chánh, TP.HCM', 75000, N'Chờ xử lý', 1, 'Chuyển khoản')
-
-    -- Đã huỷ (Bị khách huỷ)
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, LyDoHuy, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000039', 'KH000019', NULL, TO_DATE('20/04/2026','DD/MM/YYYY'), TO_DATE('22/04/2026','DD/MM/YYYY'), N'Quận 11, TP.HCM', N'Khách hàng thay đổi ý định', 35000, N'Đã huỷ', 0, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, LyDoHuy, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) 
-        VALUES ('DH000040', 'KH000020', NULL, TO_DATE('22/04/2026','DD/MM/YYYY'), TO_DATE('24/04/2026','DD/MM/YYYY'), N'Quận 6, TP.HCM', N'Khách phát hiện đặt nhầm hàng', 30000, N'Đã huỷ', 0, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000001', 'KH000001', 'NV000011', TO_DATE('10/02/2026','DD/MM/YYYY'), TO_DATE('12/02/2026','DD/MM/YYYY'), TO_DATE('12/02/2026','DD/MM/YYYY'), N'Quận 1, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000002', 'KH000002', 'NV000012', TO_DATE('15/02/2026','DD/MM/YYYY'), TO_DATE('16/02/2026','DD/MM/YYYY'), TO_DATE('16/02/2026','DD/MM/YYYY'), N'Quận 3, TP.HCM', 40000, N'Hoàn thành', 1, 'Chuyển khoản')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000003', 'KH000003', 'NV000013', TO_DATE('18/02/2026','DD/MM/YYYY'), TO_DATE('20/02/2026','DD/MM/YYYY'), TO_DATE('20/02/2026','DD/MM/YYYY'), N'Thủ Đức, TP.HCM', 50000, N'Hoàn thành', 1, 'Ví điện tử')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000004', 'KH000004', 'NV000014', TO_DATE('20/02/2026','DD/MM/YYYY'), TO_DATE('21/02/2026','DD/MM/YYYY'), TO_DATE('21/02/2026','DD/MM/YYYY'), N'Bình Thạnh, TP.HCM', 35000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000005', 'KH000005', 'NV000015', TO_DATE('25/02/2026','DD/MM/YYYY'), TO_DATE('27/02/2026','DD/MM/YYYY'), TO_DATE('27/02/2026','DD/MM/YYYY'), N'Gò Vấp, TP.HCM', 45000, N'Hoàn thành', 1, 'Chuyển khoản')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000006', 'KH000006', 'NV000011', TO_DATE('01/03/2026','DD/MM/YYYY'), TO_DATE('02/03/2026','DD/MM/YYYY'), TO_DATE('02/03/2026','DD/MM/YYYY'), N'Tân Bình, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000007', 'KH000007', 'NV000012', TO_DATE('05/03/2026','DD/MM/YYYY'), TO_DATE('06/03/2026','DD/MM/YYYY'), TO_DATE('07/03/2026','DD/MM/YYYY'), N'Quận 7, TP.HCM', 60000, N'Hoàn thành', 1, 'Ví điện tử')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000008', 'KH000008', 'NV000013', TO_DATE('08/03/2026','DD/MM/YYYY'), TO_DATE('09/03/2026','DD/MM/YYYY'), TO_DATE('09/03/2026','DD/MM/YYYY'), N'Quận 10, TP.HCM', 25000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000009', 'KH000009', 'NV000014', TO_DATE('10/03/2026','DD/MM/YYYY'), TO_DATE('11/03/2026','DD/MM/YYYY'), TO_DATE('11/03/2026','DD/MM/YYYY'), N'Quận 4, TP.HCM', 30000, N'Hoàn thành', 1, 'Chuyển khoản')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000010', 'KH000010', 'NV000015', TO_DATE('12/03/2026','DD/MM/YYYY'), TO_DATE('14/03/2026','DD/MM/YYYY'), TO_DATE('14/03/2026','DD/MM/YYYY'), N'Quận 5, TP.HCM', 35000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000011', 'KH000011', 'NV000011', TO_DATE('15/03/2026','DD/MM/YYYY'), TO_DATE('16/03/2026','DD/MM/YYYY'), TO_DATE('16/03/2026','DD/MM/YYYY'), N'Quận 8, TP.HCM', 40000, N'Hoàn thành', 1, 'Ví điện tử')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000012', 'KH000012', 'NV000012', TO_DATE('18/03/2026','DD/MM/YYYY'), TO_DATE('19/03/2026','DD/MM/YYYY'), TO_DATE('19/03/2026','DD/MM/YYYY'), N'Quận 2, TP.HCM', 45000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000013', 'KH000013', 'NV000013', TO_DATE('20/03/2026','DD/MM/YYYY'), TO_DATE('22/03/2026','DD/MM/YYYY'), TO_DATE('22/03/2026','DD/MM/YYYY'), N'Bình Tân, TP.HCM', 50000, N'Hoàn thành', 1, 'Chuyển khoản')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000014', 'KH000014', 'NV000014', TO_DATE('22/03/2026','DD/MM/YYYY'), TO_DATE('23/03/2026','DD/MM/YYYY'), TO_DATE('23/03/2026','DD/MM/YYYY'), N'Phú Nhuận, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000015', 'KH000015', 'NV000015', TO_DATE('25/03/2026','DD/MM/YYYY'), TO_DATE('26/03/2026','DD/MM/YYYY'), TO_DATE('26/03/2026','DD/MM/YYYY'), N'Quận 12, TP.HCM', 55000, N'Hoàn thành', 1, 'Ví điện tử')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000016', 'KH000016', 'NV000011', TO_DATE('28/03/2026','DD/MM/YYYY'), TO_DATE('29/03/2026','DD/MM/YYYY'), TO_DATE('30/03/2026','DD/MM/YYYY'), N'Củ Chi, TP.HCM', 80000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000017', 'KH000017', 'NV000012', TO_DATE('30/03/2026','DD/MM/YYYY'), TO_DATE('01/04/2026','DD/MM/YYYY'), TO_DATE('01/04/2026','DD/MM/YYYY'), N'Hóc Môn, TP.HCM', 70000, N'Hoàn thành', 1, 'Chuyển khoản')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000018', 'KH000018', 'NV000013', TO_DATE('02/04/2026','DD/MM/YYYY'), TO_DATE('03/04/2026','DD/MM/YYYY'), TO_DATE('03/04/2026','DD/MM/YYYY'), N'Bình Chánh, TP.HCM', 75000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000019', 'KH000019', 'NV000014', TO_DATE('05/04/2026','DD/MM/YYYY'), TO_DATE('06/04/2026','DD/MM/YYYY'), TO_DATE('06/04/2026','DD/MM/YYYY'), N'Quận 11, TP.HCM', 35000, N'Hoàn thành', 1, 'Ví điện tử')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000020', 'KH000020', 'NV000015', TO_DATE('08/04/2026','DD/MM/YYYY'), TO_DATE('09/04/2026','DD/MM/YYYY'), TO_DATE('09/04/2026','DD/MM/YYYY'), N'Quận 6, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000021', 'KH000001', 'NV000011', TO_DATE('10/04/2026','DD/MM/YYYY'), TO_DATE('11/04/2026','DD/MM/YYYY'), TO_DATE('11/04/2026','DD/MM/YYYY'), N'Quận 1, TP.HCM', 30000, N'Hoàn thành', 1, 'Chuyển khoản')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000022', 'KH000002', 'NV000012', TO_DATE('12/04/2026','DD/MM/YYYY'), TO_DATE('13/04/2026','DD/MM/YYYY'), TO_DATE('13/04/2026','DD/MM/YYYY'), N'Quận 3, TP.HCM', 40000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000023', 'KH000003', 'NV000013', TO_DATE('14/04/2026','DD/MM/YYYY'), TO_DATE('15/04/2026','DD/MM/YYYY'), TO_DATE('15/04/2026','DD/MM/YYYY'), N'Thủ Đức, TP.HCM', 50000, N'Hoàn thành', 1, 'Ví điện tử')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000024', 'KH000004', 'NV000014', TO_DATE('15/04/2026','DD/MM/YYYY'), TO_DATE('16/04/2026','DD/MM/YYYY'), TO_DATE('16/04/2026','DD/MM/YYYY'), N'Bình Thạnh, TP.HCM', 35000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000025', 'KH000005', 'NV000015', TO_DATE('16/04/2026','DD/MM/YYYY'), TO_DATE('17/04/2026','DD/MM/YYYY'), TO_DATE('17/04/2026','DD/MM/YYYY'), N'Gò Vấp, TP.HCM', 45000, N'Hoàn thành', 1, 'Chuyển khoản')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000026', 'KH000006', 'NV000011', TO_DATE('18/04/2026','DD/MM/YYYY'), TO_DATE('19/04/2026','DD/MM/YYYY'), TO_DATE('19/04/2026','DD/MM/YYYY'), N'Tân Bình, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000027', 'KH000007', 'NV000012', TO_DATE('19/04/2026','DD/MM/YYYY'), TO_DATE('20/04/2026','DD/MM/YYYY'), TO_DATE('20/04/2026','DD/MM/YYYY'), N'Quận 7, TP.HCM', 60000, N'Hoàn thành', 1, 'Ví điện tử')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000028', 'KH000008', 'NV000013', TO_DATE('20/04/2026','DD/MM/YYYY'), TO_DATE('21/04/2026','DD/MM/YYYY'), TO_DATE('21/04/2026','DD/MM/YYYY'), N'Quận 10, TP.HCM', 25000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000029', 'KH000009', 'NV000014', TO_DATE('21/04/2026','DD/MM/YYYY'), TO_DATE('22/04/2026','DD/MM/YYYY'), TO_DATE('22/04/2026','DD/MM/YYYY'), N'Quận 4, TP.HCM', 30000, N'Hoàn thành', 1, 'Chuyển khoản')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000030', 'KH000010', 'NV000015', TO_DATE('22/04/2026','DD/MM/YYYY'), TO_DATE('23/04/2026','DD/MM/YYYY'), TO_DATE('23/04/2026','DD/MM/YYYY'), N'Quận 5, TP.HCM', 35000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000031', 'KH000011', 'NV000011', TO_DATE('23/04/2026','DD/MM/YYYY'), TO_DATE('24/04/2026','DD/MM/YYYY'), TO_DATE('24/04/2026','DD/MM/YYYY'), N'Quận 8, TP.HCM', 40000, N'Hoàn thành', 1, 'Ví điện tử')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000032', 'KH000012', 'NV000012', TO_DATE('24/04/2026','DD/MM/YYYY'), TO_DATE('25/04/2026','DD/MM/YYYY'), TO_DATE('25/04/2026','DD/MM/YYYY'), N'Quận 2, TP.HCM', 45000, N'Hoàn thành', 1, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000033', 'KH000013', 'NV000013', TO_DATE('25/04/2026','DD/MM/YYYY'), TO_DATE('27/04/2026','DD/MM/YYYY'), N'Bình Tân, TP.HCM', 50000, N'Chờ giao hàng', 0, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000034', 'KH000014', 'NV000014', TO_DATE('25/04/2026','DD/MM/YYYY'), TO_DATE('27/04/2026','DD/MM/YYYY'), N'Phú Nhuận, TP.HCM', 30000, N'Chờ giao hàng', 1, 'Chuyển khoản')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000035', 'KH000015', 'NV000015', TO_DATE('26/04/2026','DD/MM/YYYY'), TO_DATE('28/04/2026','DD/MM/YYYY'), N'Quận 12, TP.HCM', 55000, N'Chờ giao hàng', 0, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000036', 'KH000016', 'NV000011', TO_DATE('26/04/2026','DD/MM/YYYY'), TO_DATE('28/04/2026','DD/MM/YYYY'), N'Củ Chi, TP.HCM', 80000, N'Chờ giao hàng', 1, 'Ví điện tử')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000037', 'KH000017', NULL, TO_DATE('27/04/2026','DD/MM/YYYY'), TO_DATE('29/04/2026','DD/MM/YYYY'), N'Hóc Môn, TP.HCM', 70000, N'Chờ xử lý', 0, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000038', 'KH000018', NULL, TO_DATE('27/04/2026','DD/MM/YYYY'), TO_DATE('29/04/2026','DD/MM/YYYY'), N'Bình Chánh, TP.HCM', 75000, N'Chờ xử lý', 1, 'Chuyển khoản')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, LyDoHuy, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000039', 'KH000019', NULL, TO_DATE('20/04/2026','DD/MM/YYYY'), TO_DATE('22/04/2026','DD/MM/YYYY'), N'Quận 11, TP.HCM', N'Khách hàng thay đổi ý định', 35000, N'Đã huỷ', 0, 'COD')
+    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, LyDoHuy, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000040', 'KH000020', NULL, TO_DATE('22/04/2026','DD/MM/YYYY'), TO_DATE('24/04/2026','DD/MM/YYYY'), N'Quận 6, TP.HCM', N'Khách phát hiện đặt nhầm hàng', 30000, N'Đã huỷ', 0, 'COD')
 SELECT 1 FROM dual;
 
 -- ====================================================================================
@@ -494,8 +441,7 @@ INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0045', 'DH
 INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0046', 'DH000040', 'SP000005', 15);
 
 -- ====================================================================================
--- 13. XUATKHO (Cho 36 đơn hàng đầu tiên: 32 Hoàn thành + 4 Chờ giao)
--- BƯỚC 1: INSERT ở dạng 'Tạm giữ' để Trigger tự trừ cột SLKhaDung trong Kho
+-- 13. XUATKHO 
 -- ====================================================================================
 INSERT ALL
     INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000001', 'CTDH0001', 'TK000001', 'NV000007', 15, SYSDATE, N'Tạm giữ')
@@ -504,7 +450,6 @@ INSERT ALL
     INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000004', 'CTDH0004', 'TK000007', 'NV000007', 5, SYSDATE, N'Tạm giữ')
     INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000005', 'CTDH0005', 'TK000005', 'NV000007', 10, SYSDATE, N'Tạm giữ')
     INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000006', 'CTDH0006', 'TK000011', 'NV000007', 5, SYSDATE, N'Tạm giữ')
-
     INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000007', 'CTDH0007', 'TK000008', 'NV000008', 8, SYSDATE, N'Tạm giữ')
     INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000008', 'CTDH0008', 'TK000014', 'NV000008', 12, SYSDATE, N'Tạm giữ')
     INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000009', 'CTDH0009', 'TK000009', 'NV000009', 30, SYSDATE, N'Tạm giữ')
@@ -543,8 +488,6 @@ INSERT ALL
     INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000042', 'CTDH0042', 'TK000042', 'NV000010', 30, SYSDATE, N'Tạm giữ')
 SELECT 1 FROM dual;
 
--- BƯỚC 2: Cập nhật sang trạng thái 'Đã xuất' 
--- Thao tác này kích hoạt Trigger TRG_XK_CAPNHAT_TONKHO trừ tiếp vào SLConLai trong Kho thực tế
+-- Đổi trạng thái xuất kho
 UPDATE XUATKHO SET TrangThaiXK = N'Đã xuất' WHERE TrangThaiXK = N'Tạm giữ';
 COMMIT;
-
