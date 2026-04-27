@@ -1,0 +1,30 @@
+SQL> 
+SQL> PROMPT --- DANG CHAY FILE 1: TAO BANG VA CONSTRAINT ---
+> @@01_Tables.sql;
+--- DANG CHAY FILE 1: TAO BANG VA CONSTRAINT -- @@01_Tables.sql
+SQL> 
+SQL> PROMPT --- DANG CHAY FILE 2: TAO SEQUENCE ---
+> @@02_Sequences.sql;
+--- DANG CHAY FILE 2: TAO SEQUENCE -- @@02_Sequences.sql
+SQL> 
+SQL> PROMPT --- DANG CHAY FILE 3: TAO FUNCTION ---
+> @@03_Functions.sql;
+--- DANG CHAY FILE 3: TAO FUNCTION -- @@03_Functions.sql
+SQL> 
+SQL> PROMPT --- DANG CHAY FILE 4: TAO TRIGGER ---
+> @@04_Triggers.sql;
+--- DANG CHAY FILE 4: TAO TRIGGER -- @@04_Triggers.sql
+SQL> 
+SQL> PROMPT --- DANG CHAY FILE 5: TAO PROCEDURE ---
+> @@05_Procedures.sql;
+--- DANG CHAY FILE 5: TAO PROCEDURE -- @@05_Procedures.sql
+SQL> 
+SQL> PROMPT --- DANG CHAY FILE 6: THEM DU LIEU CAN THIET ---
+> @@06_InsertData.sql;
+--- DANG CHAY FILE 6: THEM DU LIEU CAN THIET -- @@06_InsertData.sql
+SQL> 
+SQL> PROMPT --- DANG CHAY FILE 7: THEM DU LIEU MAU ---
+> @@07_InsertDemoData.sql;
+--- DANG CHAY FILE 7: THEM DU LIEU MAU -- @@07_InsertDemoData.sql
+SQL> 
+SQL> SPOOL OFF;
