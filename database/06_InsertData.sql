@@ -13,12 +13,16 @@ INSERT ALL
     INSERT INTO THAMSO(TenTS, GiaTri, MoTa) VALUES ('GG_VIP', 0.05, 'Giảm giá cho khách hàng loại thường');
 SELECT * FROM dual;
 
--- 2. THONGBAO
-
 -- 3. TAIKHOAN
 INSERT ALL
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('quanly01', 'pass01', 0, 1);
     INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('quanly02', 'pass02', 0, 1);
 SELECT * FROM dual;
 
--- 4. KHACHHANG
+-- 5. NHANVIEN 
+INSERT ALL
+    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) 
+        VALUES ('NV000001', 'quanly01', N'Hồ Quân', N'Quản lý', '0901234567', 25000000)
+    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) 
+        VALUES ('NV000002', 'quanly02', N'Trần Hoành', N'Quản lý', '0901234568', 25000000)
+SELECT * FROM dual;
