@@ -21,6 +21,7 @@ public class DangKyGUI extends JFrame {
     private void initComponents() {
         setTitle("Đăng ký tài khoản - Agri-Supply-Chain");
         setSize(1200, 800);
+        setMinimumSize(new Dimension(1200, 800));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(true);
