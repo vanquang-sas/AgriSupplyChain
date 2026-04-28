@@ -12,8 +12,7 @@ public class TestMainKH {
                 // Khởi tạo và hiển thị cửa sổ đăng ký
                 DangKyGUI frame = new DangKyGUI();
                 frame.setVisible(true);
-                
-                // Bạn có thể thêm tiêu đề riêng cho bản test nếu muốn
+
                 frame.setTitle("Test Hệ Thống: Đăng ký Khách hàng");
             }
         });
