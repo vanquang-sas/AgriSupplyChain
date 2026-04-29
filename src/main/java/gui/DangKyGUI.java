@@ -2,8 +2,6 @@ package gui;
 
 import bus.KhachHangBUS;
 import util.AppColor;   
-import raven.modal.ModalDialog;
-import raven.modal.component.SimpleModalBorder;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -20,8 +18,8 @@ public class DangKyGUI extends JFrame {
 
     private void initComponents() {
         setTitle("Đăng ký tài khoản - Agri-Supply-Chain");
-        setSize(1200, 800);
-        setMinimumSize(new Dimension(1200, 800));
+        setSize(1200, 750);
+        setMinimumSize(new Dimension(1100, 650));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(true);
@@ -31,7 +29,7 @@ public class DangKyGUI extends JFrame {
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weighty = 1.0;
 
-        // --- PANEL TRÁI (Logo và hình ảnh) ---
+        // --- PANEL TRÁI (Logo và hình ảnh - chiếm 60%) ---
         JPanel leftPanel = new JPanel(new GridBagLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -42,36 +40,27 @@ public class DangKyGUI extends JFrame {
                 java.net.URL imgURL = getClass().getResource("/images/Background_DangKy.jpg");
                 if (imgURL != null) {
                     Image bgImage = new ImageIcon(imgURL).getImage();
-                    int imgW = bgImage.getWidth(null);
-                    int imgH = bgImage.getHeight(null);
                     int panelW = getWidth();
                     int panelH = getHeight();
-
-                    // Logic Center-Crop: Giữ tỷ lệ, lấp đầy panel và overlap phần thừa
-                    double scale = Math.max((double) panelW / imgW, (double) panelH / imgH);
-                    int w = (int) (imgW * scale);
-                    int h = (int) (imgH * scale);
-                    int x = (panelW - w) / 2;
-                    int y = (panelH - h) / 2;
-
-                    g2d.drawImage(bgImage, x, y, w, h, this);
+                    double scale = Math.max((double) panelW / bgImage.getWidth(null), (double) panelH / bgImage.getHeight(null));
+                    int w = (int) (bgImage.getWidth(null) * scale);
+                    int h = (int) (bgImage.getHeight(null) * scale);
+                    g2d.drawImage(bgImage, (panelW - w) / 2, (panelH - h) / 2, w, h, this);
                 } else {
                     g2d.setColor(AppColor.PRIMARY);
                     g2d.fillRect(0, 0, getWidth(), getHeight());
                 }
             }
         };
-        // Ép Layout tuân thủ tỷ lệ 6:4 bằng cách xóa bỏ kích thước ưu tiên mặc định
-        leftPanel.setPreferredSize(new Dimension(0, 0));
-        leftPanel.setMinimumSize(new Dimension(0, 0));
+        // FIX: Ép kích thước tự nhiên về 0 để ăn chia tỷ lệ 100% theo weightx
+        leftPanel.setPreferredSize(new Dimension(0, 0)); 
 
-        // Logo Container mờ (Translucent)
         JPanel logoContainer = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(255, 255, 255, 160)); // Độ mờ 160/255
+                g2.setColor(new Color(255, 255, 255, 160)); 
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
                 g2.dispose();
                 super.paintComponent(g);
@@ -79,7 +68,7 @@ public class DangKyGUI extends JFrame {
         };
         logoContainer.setOpaque(false);
         logoContainer.setLayout(new BoxLayout(logoContainer, BoxLayout.Y_AXIS));
-        logoContainer.setBorder(new EmptyBorder(30, 40, 30, 40));
+        logoContainer.setBorder(new EmptyBorder(20, 30, 20, 30));
 
         JLabel lblLogo = new JLabel();
         java.net.URL logoURL = getClass().getResource("/images/TestLogo.png");
@@ -99,25 +88,25 @@ public class DangKyGUI extends JFrame {
         leftPanel.add(logoContainer);
 
         gbc.gridx = 0;
-        gbc.weightx = 0.6;
+        gbc.weightx = 0.6; // 60%
         add(leftPanel, gbc);
 
-        // --- PANEL PHẢI (Form Đăng ký) ---
+        // --- PANEL PHẢI (Form Đăng ký - chiếm 40%) ---
         JPanel rightPanel = new JPanel(new GridBagLayout());
         rightPanel.setBackground(AppColor.SURFACE);
+        // FIX: Ép kích thước tự nhiên về 0 để ăn chia tỷ lệ 100% theo weightx
         rightPanel.setPreferredSize(new Dimension(0, 0));
-        rightPanel.setMinimumSize(new Dimension(0, 0));
 
         JPanel formWrapper = new JPanel();
         formWrapper.setOpaque(false);
         formWrapper.setLayout(new BoxLayout(formWrapper, BoxLayout.Y_AXIS));
-        formWrapper.setBorder(new EmptyBorder(0, 60, 0, 60)); // Lề hai bên để form cân đối
+        formWrapper.setBorder(new EmptyBorder(0, 50, 0, 50)); 
 
         JLabel lblTitle = new JLabel("ĐĂNG KÝ TÀI KHOẢN");
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 26)); 
         lblTitle.setForeground(AppColor.TEXT_PRIMARY);
         lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblTitle.setBorder(new EmptyBorder(0, 0, 40, 0));
+        lblTitle.setBorder(new EmptyBorder(0, 0, 20, 0)); 
 
         JPanel gridForm = new JPanel(new GridBagLayout());
         gridForm.setBackground(AppColor.SURFACE);
@@ -125,7 +114,6 @@ public class DangKyGUI extends JFrame {
         fGbc.fill = GridBagConstraints.HORIZONTAL;
         fGbc.weightx = 1.0;
 
-        // Sửa lỗi: Quản lý hàng (row) chặt chẽ để không mất tên Label
         int currentRow = 0;
         addFormField(gridForm, "Tên đăng nhập", txtUsername = createStyledTextField(), fGbc, currentRow); currentRow += 2;
         addFormField(gridForm, "Mật khẩu", txtPassword = new JPasswordField(), fGbc, currentRow); currentRow += 2;
@@ -142,40 +130,39 @@ public class DangKyGUI extends JFrame {
         btnDangKy.setBackground(AppColor.PRIMARY);
         btnDangKy.setForeground(AppColor.SURFACE);
         btnDangKy.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        btnDangKy.setPreferredSize(new Dimension(0, 50));
         btnDangKy.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnDangKy.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnDangKy.setMaximumSize(new Dimension(300, 50)); 
-        btnDangKy.setPreferredSize(new Dimension(300, 50));
+        btnDangKy.setMaximumSize(new Dimension(350, 45)); 
+        btnDangKy.setPreferredSize(new Dimension(350, 45));
         btnDangKy.addActionListener(e -> handleRegistration());
 
         formWrapper.add(lblTitle);
         formWrapper.add(gridForm);
-        formWrapper.add(Box.createRigidArea(new Dimension(0, 20)));
+        formWrapper.add(Box.createRigidArea(new Dimension(0, 15)));
         formWrapper.add(btnDangKy);
 
         GridBagConstraints wrapperGbc = new GridBagConstraints();
-        wrapperGbc.fill = GridBagConstraints.HORIZONTAL;
+        wrapperGbc.gridx = 0;
+        wrapperGbc.gridy = 0;
         wrapperGbc.weightx = 1.0;
+        wrapperGbc.fill = GridBagConstraints.HORIZONTAL;
         rightPanel.add(formWrapper, wrapperGbc);
 
         gbc.gridx = 1;
-        gbc.weightx = 0.4; 
+        gbc.weightx = 0.4; // 40%
         add(rightPanel, gbc);
     }
 
     private void addFormField(JPanel panel, String labelStr, JComponent field, GridBagConstraints gbc, int row) {
-        // Vẽ Label
         gbc.gridy = row;
-        gbc.insets = new Insets(0, 0, 5, 0); // Khoảng cách nhỏ dưới nhãn
+        gbc.insets = new Insets(0, 0, 2, 0); 
         JLabel label = new JLabel(labelStr);
         label.setFont(new Font("Segoe UI", Font.BOLD, 13));
         label.setForeground(AppColor.TEXT_SECONDARY);
         panel.add(label, gbc);
 
-        // Vẽ Input Field
         gbc.gridy = row + 1;
-        gbc.insets = new Insets(0, 0, 10, 0); // Khoảng cách giữa các nhóm form
+        gbc.insets = new Insets(0, 0, 8, 0); 
         panel.add(field, gbc);
     }
 
@@ -190,7 +177,7 @@ public class DangKyGUI extends JFrame {
         tf.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         tf.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(AppColor.BORDER),
-            BorderFactory.createEmptyBorder(10, 15, 10, 15)
+            BorderFactory.createEmptyBorder(7, 15, 7, 15)
         ));
     }
 
@@ -200,10 +187,54 @@ public class DangKyGUI extends JFrame {
                         new String(txtConfirmPassword.getPassword()), txtTen.getText(), 
                         txtSDT.getText(), txtEmail.getText(), txtDiaChi.getText());
 
-        boolean isOk = ketQua.contains("thành công");
-        ModalDialog.showModal(this, new SimpleModalBorder(new JLabel(ketQua), isOk ? "Thành công" : "Thông báo", 
-                SimpleModalBorder.YES_OPTION, (controller, action) -> {
-                    if (isOk && action == SimpleModalBorder.YES_OPTION) this.dispose();
-                }));
+        showCustomAlert(ketQua, ketQua.contains("thành công"));
+    }
+
+    private void showCustomAlert(String message, boolean isSuccess) {
+        JDialog dialog = new JDialog(this, true);
+        dialog.setUndecorated(true);
+        dialog.setSize(420, 220);
+        dialog.setLocationRelativeTo(this);
+        
+        JPanel contentPane = new JPanel(new BorderLayout());
+        contentPane.setBackground(AppColor.SURFACE);
+        Color statusColor = isSuccess ? AppColor.PRIMARY_ACTIVE : new Color(220, 53, 69);
+        contentPane.setBorder(BorderFactory.createLineBorder(statusColor, 2));
+
+        JLabel lblTitle = new JLabel(isSuccess ? "THÀNH CÔNG" : "THÔNG BÁO");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        lblTitle.setForeground(statusColor);
+        lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
+        lblTitle.setBorder(new EmptyBorder(20, 0, 10, 0));
+
+        JLabel lblMessage = new JLabel("<html><div style='text-align: center; padding: 0 10px;'>" + message + "</div></html>");
+        lblMessage.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        lblMessage.setForeground(AppColor.TEXT_PRIMARY);
+        lblMessage.setHorizontalAlignment(SwingConstants.CENTER);
+        lblMessage.setBorder(new EmptyBorder(0, 20, 20, 20));
+
+        JButton btnOK = new JButton("ĐÓNG");
+        btnOK.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnOK.setBackground(statusColor);
+        btnOK.setForeground(AppColor.SURFACE);
+        btnOK.setFocusPainted(false);
+        btnOK.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnOK.setPreferredSize(new Dimension(120, 40));
+        btnOK.addActionListener(e -> {
+            dialog.dispose();
+            if (isSuccess) this.dispose();
+        });
+        
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(AppColor.SURFACE);
+        bottomPanel.setBorder(new EmptyBorder(0, 0, 20, 0));
+        bottomPanel.add(btnOK);
+
+        contentPane.add(lblTitle, BorderLayout.NORTH);
+        contentPane.add(lblMessage, BorderLayout.CENTER);
+        contentPane.add(bottomPanel, BorderLayout.SOUTH);
+
+        dialog.setContentPane(contentPane);
+        dialog.setVisible(true);
     }
 }
