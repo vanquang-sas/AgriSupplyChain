@@ -1,29 +1,48 @@
 package bus;
 
-import dao.nhapkhoDAO;
+import dao.NhapKhoDAO;
 import dto.TonKhoDTO;
+import java.util.ArrayList;
 
-public class nhapkhoBUS {
-    private nhapkhoDAO dao = new nhapkhoDAO();
+public class NhapKhoBUS {
+    private NhapKhoDAO dao = new NhapKhoDAO();
+
+    public ArrayList<Object[]> getDanhSachNhapKho() {
+        return dao.getDanhSachNhapKho();
+    }
 
     public String xacNhanNhapKho(TonKhoDTO dto, String tenSP) {
-        if (dto.getMaKho() == null || dto.getMaKho().equals("Chọn kho...")) {
-            return "Vui lòng thiết lập Kho cho sản phẩm " + tenSP;
+        if (dto.getMaKho() == null) {
+            return "Vui lòng chọn kho cho " + tenSP;
         }
-        
-        if (dto.getViTri() == null || dto.getViTri().equals("Chọn vị trí...")) {
-            return "Vui lòng thiết lập Vị trí cho sản phẩm " + tenSP;
+
+        if (dto.getViTri() == null) {
+            return "Vui lòng chọn vị trí cho " + tenSP;
         }
-        
+
         if (dto.getTgHetHan() == null) {
-            return "Vui lòng chọn ngày hết hạn cho sản phẩm " + tenSP;
+            return "Vui lòng chọn ngày hết hạn";
         }
 
         try {
             dao.xacNhanViTri(dto);
             return "SUCCESS";
         } catch (Exception e) {
-            return e.getMessage();
+            String msg = e.getMessage();
+        
+            if (msg.contains("ORA-20028")) {
+                return "Lỗi quy cách: " + tenSP + " yêu cầu loại kho bảo quản khác!";
+            } 
+            if (msg.contains("ORA-20026")) {
+                return "Lỗi: Lô hàng " + tenSP + " không ở trạng thái chờ nhập kho!";
+            }
+            if (msg.contains("ORA-20027")) {
+                return "Lỗi: Sản phẩm này đã được cất vào kho rồi (Trùng mã)!";
+            }
+            if (msg.contains("CK_TGHETHAN")) {
+            return "Lỗi: Ngày hết hạn không đạt yêu cầu (phải sau ngày hiện tại)!";
+            }
+            return "Lỗi hệ thống Database: " + msg;
         }
     }
 }

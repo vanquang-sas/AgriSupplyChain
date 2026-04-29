@@ -4,18 +4,25 @@
 
 -- 1. THAMSO
 INSERT ALL
-    INSERT INTO THAMSO(TenTS, GiaTri, MoTa) VALUES ('MIN_TONKHO', 10, 'Số lượng tồn kho tối thiểu');
-    INSERT INTO THAMSO(TenTS, GiaTri, MoTa) VALUES ('MAX_TG_THANHTOAN', 24, 'Thời gian tối đa cho phép chờ thanh toán, nếu không sẽ huỷ đơn hàng');
-    INSERT INTO THAMSO(TenTS, GiaTri, MoTa) VALUES ('DON_GIA_VANCHUYEN', 20000, 'Đơn giá vận chuyển 1 km');
-    INSERT INTO THAMSO(TenTS, GiaTri, MoTa) VALUES ('THUE_VAT', 0.05, 'Thuế VAT áp dụng cho khách hàng hộ kinh doanh');
+    INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000001', 'MIN_TONKHO', 10, 'Số lượng tồn kho tối thiểu')
+    INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000002', 'CANHBAO_HETHAN', 7, 'Số ngày trước khi hết hạn sẽ hiện cảnh báo')
+    INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000003', 'MAX_TG_THANHTOAN', 24, 'Thời gian tối đa cho phép chờ thanh toán, nếu không sẽ huỷ đơn hàng')
+    INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000004', 'DON_GIA_VANCHUYEN', 20000, 'Đơn giá vận chuyển 1 km')
+    INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000005', 'GG_THUONG', 0.00, 'Giảm giá cho khách hàng loại thường')
+    INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000006', 'GG_THANTHIET', 0.02, 'Giảm giá cho khách hàng loại thường')
+    INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000007', 'GG_VIP', 0.05, 'Giảm giá cho khách hàng loại thường')
 SELECT * FROM dual;
-
--- 2. THONGBAO
 
 -- 3. TAIKHOAN
 INSERT ALL
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('quanly01', 'pass01', 0, 1);
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('quanly02', 'pass02', 0, 1);
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('quanly01', 'pass01', 0, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('quanly02', 'pass02', 0, 1)
 SELECT * FROM dual;
 
--- 4. KHACHHANG
+-- 5. NHANVIEN 
+INSERT ALL
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) 
+        VALUES ('NV000001', 'quanly01', N'Hồ Quân', N'Quản lý', '0901234567', 25000000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) 
+        VALUES ('NV000002', 'quanly02', N'Trần Hoành', N'Quản lý', '0901234568', 25000000)
+SELECT * FROM dual;
