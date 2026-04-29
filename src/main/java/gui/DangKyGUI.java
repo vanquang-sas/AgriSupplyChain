@@ -222,7 +222,11 @@ public class DangKyGUI extends JFrame {
         btnOK.setPreferredSize(new Dimension(120, 40));
         btnOK.addActionListener(e -> {
             dialog.dispose();
-            if (isSuccess) this.dispose();
+            if (isSuccess) {
+                this.dispose();
+                // Mở UI đăng nhập sau khi đăng kí thành công
+                // new DangNhapGUI().setVisible(true);
+            }
         });
         
         JPanel bottomPanel = new JPanel();
