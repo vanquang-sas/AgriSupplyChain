@@ -184,6 +184,37 @@ BEGIN
 END;
 /
 
+-- Procedure Lấy danh sách Loại Sản Phẩm
+CREATE OR REPLACE PROCEDURE SP_LAY_DS_LSP (
+    p_Cursor OUT SYS_REFCURSOR
+) IS
+BEGIN
+    OPEN p_Cursor FOR
+        SELECT MaLSP, TenLSP, MoTa
+        FROM LOAISANPHAM
+        ORDER BY MaLSP DESC;
+END;
+/
+
+-- Procedure Xóa Loại Sản Phẩm (Kèm bẫy lỗi khóa ngoại)
+CREATE OR REPLACE PROCEDURE SP_XOA_LSP (
+    p_MaLSP IN VARCHAR2
+) IS
+BEGIN
+    DELETE FROM LOAISANPHAM WHERE MaLSP = p_MaLSP;
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        -- Lỗi ORA-02292: Đang có dữ liệu con (Sản phẩm) tham chiếu đến
+        IF SQLCODE = -2292 THEN
+            RAISE_APPLICATION_ERROR(-20040, 'Không thể xóa vì đang có sản phẩm thuộc loại này!');
+        ELSE
+            RAISE;
+        END IF;
+END;
+/
+
 -- ================================= Bảng SANPHAM =================================
 CREATE OR REPLACE PROCEDURE SP_THEM_SP (
     p_TenSP IN NVARCHAR2, p_MaLSP IN VARCHAR2, p_ChatLuong IN NVARCHAR2,
