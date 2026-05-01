@@ -4,14 +4,28 @@
  */
 package bus;
 
+import util.DBConnection;
 import dao.TonKhoDAO;
-import dto.TonKhoDTO;
 import java.util.ArrayList;
 
 public class TonKhoBUS {
     private TonKhoDAO tonKhoDAO = new TonKhoDAO();
 
-    public ArrayList<TonKhoDTO> getAllTonKho() {
-        return tonKhoDAO.selectAll();
+    public TonKhoBUS() {
+        // Constructor rỗng
     }
+
+    // Hàm lấy danh sách hiển thị
+    public ArrayList<Object[]> getDanhSachTonKho() {
+        return tonKhoDAO.getDanhSachTonKho();
+    }
+    
+    public boolean capNhatSoLuong(String maTonKho, double soLuongMoi) {
+        return tonKhoDAO.capNhatSoLuong(maTonKho, soLuongMoi);
+    }
+
+    public boolean xoaTonKho(String maTonKho) {
+        return tonKhoDAO.xoaTonKho(maTonKho);
+    }
+    
 }
