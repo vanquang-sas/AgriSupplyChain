@@ -1,167 +1,196 @@
 -- ====================================================================================
 --                           PHẦN 7: Thêm dữ liệu cho demo
 -- ====================================================================================
+-- Vô hiệu hoá khoá ngoại -> Xoá dữ liệu cũ -> Kích hoạt lại khoá ngoại -> Thêm dữ liệu mới
+BEGIN
+    -- Disable tất cả FK
+    FOR c IN (
+        SELECT table_name, constraint_name
+        FROM user_constraints
+        WHERE constraint_type = 'R'
+    ) LOOP
+        EXECUTE IMMEDIATE 'ALTER TABLE ' || c.table_name ||
+                          ' DISABLE CONSTRAINT ' || c.constraint_name;
+    END LOOP;
 
+    -- Xoá dữ liệu tất cả bảng
+    FOR t IN (
+        SELECT table_name FROM user_tables
+    ) LOOP
+        EXECUTE IMMEDIATE 'DELETE FROM ' || t.table_name;
+    END LOOP;
+
+    -- Enable lại FK
+    FOR c IN (
+        SELECT table_name, constraint_name
+        FROM user_constraints
+        WHERE constraint_type = 'R'
+    ) LOOP
+        EXECUTE IMMEDIATE 'ALTER TABLE ' || c.table_name ||
+                          ' ENABLE CONSTRAINT ' || c.constraint_name;
+    END LOOP;
+END;
+/
 -- -------------------------------------------------------------------------
 -- 1. KHO (3 Kho theo đúng 3 loại quy định)
 -- -------------------------------------------------------------------------
 INSERT ALL
-    INSERT INTO KHO(MaKho, TenKho, LoaiKho, DiaChi, MoTa) VALUES ('KHO00001', N'Kho Mát Bình Dương', N'Mát', N'Dĩ An, Bình Dương', N'Kho nhiệt độ 15-20 độ C')
-    INSERT INTO KHO(MaKho, TenKho, LoaiKho, DiaChi, MoTa) VALUES ('KHO00002', N'Kho Lạnh Thủ Đức', N'Lạnh', N'Thủ Đức, TP.HCM', N'Kho nhiệt độ 0-5 độ C')
-    INSERT INTO KHO(MaKho, TenKho, LoaiKho, DiaChi, MoTa) VALUES ('KHO00003', N'Kho Đông Quận 7', N'Đông', N'Quận 7, TP.HCM', N'Kho nhiệt độ âm 18 độ C')
+    INTO KHO(MaKho, TenKho, LoaiKho, DiaChi, MoTa) VALUES ('KHO00001', N'Kho Mát Bình Dương', N'Mát', N'Dĩ An, Bình Dương', N'Kho nhiệt độ 15-20 độ C')
+    INTO KHO(MaKho, TenKho, LoaiKho, DiaChi, MoTa) VALUES ('KHO00002', N'Kho Lạnh Thủ Đức', N'Lạnh', N'Thủ Đức, TP.HCM', N'Kho nhiệt độ 0-5 độ C')
+    INTO KHO(MaKho, TenKho, LoaiKho, DiaChi, MoTa) VALUES ('KHO00003', N'Kho Đông Quận 7', N'Đông', N'Quận 7, TP.HCM', N'Kho nhiệt độ âm 18 độ C')
 SELECT * FROM dual;
 
 -- -------------------------------------------------------------------------
 -- 2. LOAISANPHAM (5 Loại nông/thủy sản)
 -- -------------------------------------------------------------------------
 INSERT ALL
-    INSERT INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00001', N'Thịt các loại', N'Thịt gia súc, gia cầm cần bảo quản đông')
-    INSERT INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00002', N'Thủy hải sản', N'Hải sản tươi sống và sơ chế bảo quản lạnh/đông')
-    INSERT INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00003', N'Rau củ quả', N'Rau củ tươi thu hoạch trong ngày')
-    INSERT INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00004', N'Trái cây', N'Trái cây nội địa và nhập khẩu')
-    INSERT INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00005', N'Ngũ cốc & Hạt', N'Các loại hạt sấy khô và ngũ cốc')
+    INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00001', N'Thịt các loại', N'Thịt gia súc, gia cầm cần bảo quản đông')
+    INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00002', N'Thủy hải sản', N'Hải sản tươi sống và sơ chế bảo quản lạnh/đông')
+    INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00003', N'Rau củ quả', N'Rau củ tươi thu hoạch trong ngày')
+    INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00004', N'Trái cây', N'Trái cây nội địa và nhập khẩu')
+    INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00005', N'Ngũ cốc và hạt', N'Các loại hạt sấy khô và ngũ cốc')
 SELECT * FROM dual;
 
 -- -------------------------------------------------------------------------
 -- 3. SANPHAM (Mỗi loại 5 sản phẩm -> 25 SP)
 -- -------------------------------------------------------------------------
 INSERT ALL
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000001', N'Thịt heo Iberico', 'LSP00001', N'Loại 1', 150000, 200000, 'Kg', N'Đông')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000002', N'Thịt bò Kobe', 'LSP00001', N'Loại 1', 1500000, 2200000, 'Kg', N'Đông')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000003', N'Thịt gà ta thả vườn', 'LSP00001', N'Loại 2', 90000, 130000, 'Kg', N'Lạnh')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000004', N'Đùi cừu Úc', 'LSP00001', N'Loại 1', 300000, 420000, 'Kg', N'Đông')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000005', N'Thịt vịt xiêm', 'LSP00001', N'Loại 2', 80000, 110000, 'Kg', N'Lạnh')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000006', N'Cá hồi NaUy nguyên con', 'LSP00002', N'Loại 1', 350000, 500000, 'Kg', N'Lạnh')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000007', N'Mực ống Trường Sa', 'LSP00002', N'Loại 1', 250000, 320000, 'Kg', N'Đông')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000008', N'Tôm sú Cà Mau', 'LSP00002', N'Loại 2', 200000, 280000, 'Kg', N'Đông')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000009', N'Cua thịt Năm Căn', 'LSP00002', N'Loại 1', 400000, 550000, 'Kg', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000010', N'Bạch tuộc sữa', 'LSP00002', N'Loại 3', 120000, 160000, 'Kg', N'Đông')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000011', N'Cải bắp Đà Lạt', 'LSP00003', N'Loại 1', 15000, 25000, 'Kg', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000012', N'Cà chua Cherry', 'LSP00003', N'Loại 1', 40000, 60000, 'Kg', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000013', N'Súp lơ xanh', 'LSP00003', N'Loại 2', 20000, 35000, 'Kg', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000014', N'Cà rốt Baby', 'LSP00003', N'Loại 1', 30000, 50000, 'Kg', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000015', N'Khoai tây mầm', 'LSP00003', N'Loại 3', 10000, 18000, 'Kg', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000016', N'Táo Envy Mỹ', 'LSP00004', N'Loại 1', 180000, 250000, 'Kg', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000017', N'Nho mẫu đơn Hàn Quốc', 'LSP00004', N'Loại 1', 500000, 750000, 'Chùm', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000018', N'Dâu tây Mộc Châu', 'LSP00004', N'Loại 2', 120000, 180000, 'Hộp', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000019', N'Dưa lưới Taki', 'LSP00004', N'Loại 1', 60000, 95000, 'Kg', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000020', N'Bơ sáp Đắk Lắk', 'LSP00004', N'Loại 2', 35000, 55000, 'Kg', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000021', N'Hạt điều rang củi', 'LSP00005', N'Loại 1', 250000, 350000, 'Kg', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000022', N'Hạt macca Úc', 'LSP00005', N'Loại 1', 300000, 420000, 'Kg', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000023', N'Đậu phộng sấy', 'LSP00005', N'Loại 3', 50000, 80000, 'Kg', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000024', N'Hạt dẻ cười Mỹ', 'LSP00005', N'Loại 1', 280000, 400000, 'Kg', N'Mát')
-    INSERT INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000025', N'Gạo ST25', 'LSP00005', N'Loại 1', 30000, 45000, 'Kg', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000001', N'Thịt heo Iberico', 'LSP00001', N'Loại 1', 150000, 200000, 'Kg', N'Đông')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000002', N'Thịt bò Kobe', 'LSP00001', N'Loại 1', 1500000, 2200000, 'Kg', N'Đông')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000003', N'Thịt gà ta thả vườn', 'LSP00001', N'Loại 2', 90000, 130000, 'Kg', N'Lạnh')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000004', N'Đùi cừu Úc', 'LSP00001', N'Loại 1', 300000, 420000, 'Kg', N'Đông')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000005', N'Thịt vịt xiêm', 'LSP00001', N'Loại 2', 80000, 110000, 'Kg', N'Lạnh')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000006', N'Cá hồi NaUy nguyên con', 'LSP00002', N'Loại 1', 350000, 500000, 'Kg', N'Lạnh')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000007', N'Mực ống Trường Sa', 'LSP00002', N'Loại 1', 250000, 320000, 'Kg', N'Đông')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000008', N'Tôm sú Cà Mau', 'LSP00002', N'Loại 2', 200000, 280000, 'Kg', N'Đông')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000009', N'Cua thịt Năm Căn', 'LSP00002', N'Loại 1', 400000, 550000, 'Kg', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000010', N'Bạch tuộc sữa', 'LSP00002', N'Loại 3', 120000, 160000, 'Kg', N'Đông')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000011', N'Cải bắp Đà Lạt', 'LSP00003', N'Loại 1', 15000, 25000, 'Kg', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000012', N'Cà chua Cherry', 'LSP00003', N'Loại 1', 40000, 60000, 'Kg', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000013', N'Súp lơ xanh', 'LSP00003', N'Loại 2', 20000, 35000, 'Kg', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000014', N'Cà rốt Baby', 'LSP00003', N'Loại 1', 30000, 50000, 'Kg', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000015', N'Khoai tây mầm', 'LSP00003', N'Loại 3', 10000, 18000, 'Kg', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000016', N'Táo Envy Mỹ', 'LSP00004', N'Loại 1', 180000, 250000, 'Kg', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000017', N'Nho mẫu đơn Hàn Quốc', 'LSP00004', N'Loại 1', 500000, 750000, 'Chùm', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000018', N'Dâu tây Mộc Châu', 'LSP00004', N'Loại 2', 120000, 180000, 'Hộp', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000019', N'Dưa lưới Taki', 'LSP00004', N'Loại 1', 60000, 95000, 'Kg', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000020', N'Bơ sáp Đắk Lắk', 'LSP00004', N'Loại 2', 35000, 55000, 'Kg', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000021', N'Hạt điều rang củi', 'LSP00005', N'Loại 1', 250000, 350000, 'Kg', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000022', N'Hạt macca Úc', 'LSP00005', N'Loại 1', 300000, 420000, 'Kg', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000023', N'Đậu phộng sấy', 'LSP00005', N'Loại 3', 50000, 80000, 'Kg', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000024', N'Hạt dẻ cười Mỹ', 'LSP00005', N'Loại 1', 280000, 400000, 'Kg', N'Mát')
+    INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan) VALUES ('SP000025', N'Gạo ST25', 'LSP00005', N'Loại 1', 30000, 45000, 'Kg', N'Mát')
 SELECT * FROM dual;
 
 -- -------------------------------------------------------------------------
 -- 4. NHACUNGCAP (20 NCC)
 -- -------------------------------------------------------------------------
 INSERT ALL
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00001', N'HTX Rau sạch Đà Lạt', N'Phường 8, Đà Lạt, Lâm Đồng', '0901000001', 'dalat@rau.vn', 'VietGAP', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00002', N'Vựa hải sản Vân Đồn', N'Vân Đồn, Quảng Ninh', '0901000002', 'vandon@seafood.vn', 'ISO 9001', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00003', N'Công ty CP Chăn nuôi C.P', N'Biên Hòa, Đồng Nai', '0901000003', 'contact@cp.vn', 'GlobalGAP', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00004', N'Trang trại bò Úc MeatDeli', N'Củ Chi, TP.HCM', '0901000004', 'info@meatdeli.vn', 'HACCP', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00005', N'Vườn cây ăn trái Tiền Giang', N'Cái Bè, Tiền Giang', '0901000005', 'fruit@tiengiang.vn', 'VietGAP', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00006', N'Công ty TNHH Macca Đắk Nông', N'Gia Nghĩa, Đắk Nông', '0901000006', 'macca@daknong.vn', 'Organic', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00007', N'HTX Gạo Ông Cua', N'Trần Đề, Sóc Trăng', '0901000007', 'st25@ongcua.vn', 'VietGAP', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00008', N'Tập đoàn Vissan', N'Bình Thạnh, TP.HCM', '0901000008', 'sales@vissan.vn', 'ISO 22000', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00009', N'Hải sản sạch Nha Trang', N'Nha Trang, Khánh Hòa', '0901000009', 'nhatrang@seafood.vn', 'HACCP', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00010', N'Nhập khẩu trái cây Klever Fruit', N'Đống Đa, Hà Nội', '0901000010', 'import@klever.vn', 'GlobalGAP', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00011', N'Trang trại heo sạch BaF', N'Bến Cát, Bình Dương', '0901000011', 'sale@baf.vn', 'VietGAP', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00012', N'Nông sản sấy Vinamit', N'Bến Cát, Bình Dương', '0901000012', 'contact@vinamit.vn', 'ISO 9001', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00013', N'HTX Nông nghiệp Cần Thơ', N'Ninh Kiều, Cần Thơ', '0901000013', 'agri@cantho.vn', 'VietGAP', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00014', N'Vựa tôm Cà Mau Minh Phú', N'Cà Mau', '0901000014', 'shrimp@minhphu.vn', 'BAP', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00015', N'Nông trại Mộc Châu', N'Mộc Châu, Sơn La', '0901000015', 'farm@mocchau.vn', 'GlobalGAP', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00016', N'Hạt điều Bình Phước', N'Đồng Xoài, Bình Phước', '0901000016', 'cashew@binhphuoc.vn', 'ISO 22000', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00017', N'Công ty rau quả xuất khẩu', N'Hải Phòng', '0901000017', 'export@veg.vn', 'HACCP', 0) -- NCC đang ngừng hợp tác
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00018', N'Hải sản nhập khẩu Đại Dương', N'Quận 1, TP.HCM', '0901000018', 'ocean@import.vn', 'ISO 9001', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00019', N'Trại nấm bào ngư Xanh', N'Hóc Môn, TP.HCM', '0901000019', 'mushroom@xanh.vn', 'VietGAP', 1)
-    INSERT INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00020', N'Nhà vườn sầu riêng Dona', N'Long Khánh, Đồng Nai', '0901000020', 'dona@fruit.vn', 'GlobalGAP', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00001', N'HTX Rau sạch Đà Lạt', N'Phường 8, Đà Lạt, Lâm Đồng', '0901000001', 'dalat@rau.vn', 'VietGAP', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00002', N'Vựa hải sản Vân Đồn', N'Vân Đồn, Quảng Ninh', '0901000002', 'vandon@seafood.vn', 'ISO 9001', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00003', N'Công ty CP Chăn nuôi C.P', N'Biên Hòa, Đồng Nai', '0901000003', 'contact@cp.vn', 'GlobalGAP', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00004', N'Trang trại bò Úc MeatDeli', N'Củ Chi, TP.HCM', '0901000004', 'info@meatdeli.vn', 'HACCP', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00005', N'Vườn cây ăn trái Tiền Giang', N'Cái Bè, Tiền Giang', '0901000005', 'fruit@tiengiang.vn', 'VietGAP', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00006', N'Công ty TNHH Macca Đắk Nông', N'Gia Nghĩa, Đắk Nông', '0901000006', 'macca@daknong.vn', 'Organic', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00007', N'HTX Gạo Ông Cua', N'Trần Đề, Sóc Trăng', '0901000007', 'st25@ongcua.vn', 'VietGAP', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00008', N'Tập đoàn Vissan', N'Bình Thạnh, TP.HCM', '0901000008', 'sales@vissan.vn', 'ISO 22000', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00009', N'Hải sản sạch Nha Trang', N'Nha Trang, Khánh Hòa', '0901000009', 'nhatrang@seafood.vn', 'HACCP', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00010', N'Nhập khẩu trái cây Klever Fruit', N'Đống Đa, Hà Nội', '0901000010', 'import@klever.vn', 'GlobalGAP', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00011', N'Trang trại heo sạch BaF', N'Bến Cát, Bình Dương', '0901000011', 'sale@baf.vn', 'VietGAP', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00012', N'Nông sản sấy Vinamit', N'Bến Cát, Bình Dương', '0901000012', 'contact@vinamit.vn', 'ISO 9001', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00013', N'HTX Nông nghiệp Cần Thơ', N'Ninh Kiều, Cần Thơ', '0901000013', 'agri@cantho.vn', 'VietGAP', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00014', N'Vựa tôm Cà Mau Minh Phú', N'Cà Mau', '0901000014', 'shrimp@minhphu.vn', 'BAP', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00015', N'Nông trại Mộc Châu', N'Mộc Châu, Sơn La', '0901000015', 'farm@mocchau.vn', 'GlobalGAP', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00016', N'Hạt điều Bình Phước', N'Đồng Xoài, Bình Phước', '0901000016', 'cashew@binhphuoc.vn', 'ISO 22000', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00017', N'Công ty rau quả xuất khẩu', N'Hải Phòng', '0901000017', 'export@veg.vn', 'HACCP', 0) -- NCC đang ngừng hợp tác
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00018', N'Hải sản nhập khẩu Đại Dương', N'Quận 1, TP.HCM', '0901000018', 'ocean@import.vn', 'ISO 9001', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00019', N'Trại nấm bào ngư Xanh', N'Hóc Môn, TP.HCM', '0901000019', 'mushroom@xanh.vn', 'VietGAP', 1)
+    INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00020', N'Nhà vườn sầu riêng Dona', N'Long Khánh, Đồng Nai', '0901000020', 'dona@fruit.vn', 'GlobalGAP', 1)
 SELECT * FROM dual;
 
 -- -------------------------------------------------------------------------
--- 5. TAIKHOAN (Tạo 13 TK Nhân viên & 20 TK Khách hàng)
+-- 5. TAIKHOAN (Tạo 13 TK Nhân viên và 20 TK Khách hàng)
 -- Ghi chú: LoaiTK (1: Nhân viên, 2: Khách hàng)
 -- -------------------------------------------------------------------------
 INSERT ALL
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvtm01', '123456', 1, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvtm02', '123456', 1, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvtm03', '123456', 1, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvtm04', '123456', 1, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvkho01', '123456', 1, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvkho02', '123456', 1, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvkho03', '123456', 1, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvkho04', '123456', 1, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh01', '123456', 1, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh02', '123456', 1, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh03', '123456', 1, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh04', '123456', 1, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh05', '123456', 1, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh01', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh02', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh03', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh04', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh05', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh06', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh07', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh08', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh09', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh10', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh11', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh12', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh13', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh14', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh15', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh16', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh17', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh18', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh19', 'passkh', 2, 1)
-    INSERT INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh20', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvtm01', '123456', 1, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvtm02', '123456', 1, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvtm03', '123456', 1, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvtm04', '123456', 1, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvkho01', '123456', 1, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvkho02', '123456', 1, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvkho03', '123456', 1, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvkho04', '123456', 1, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh01', '123456', 1, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh02', '123456', 1, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh03', '123456', 1, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh04', '123456', 1, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('nvgh05', '123456', 1, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh01', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh02', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh03', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh04', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh05', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh06', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh07', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh08', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh09', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh10', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh11', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh12', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh13', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh14', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh15', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh16', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh17', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh18', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh19', 'passkh', 2, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('kh20', 'passkh', 2, 1)
 SELECT * FROM dual;
 
 -- -------------------------------------------------------------------------
 -- 6. NHANVIEN (13 Nhân viên mới - Nối tiếp 2 quản lý ở file 06)
 -- -------------------------------------------------------------------------
 INSERT ALL
-    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000003', 'nvtm01', N'Trần Hữu Trọng', N'NV thu mua', '0981112221', 12000000)
-    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000004', 'nvtm02', N'Phạm Tấn Tài', N'NV thu mua', '0981112222', 12500000)
-    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000005', 'nvtm03', N'Lê Tú Anh', N'NV thu mua', '0981112223', 11000000)
-    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000006', 'nvtm04', N'Đinh Hoàng Hải', N'NV thu mua', '0981112224', 13000000)
-    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000007', 'nvkho01', N'Nguyễn Hữu Quyết', N'NV kho', '0982223331', 10000000)
-    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000008', 'nvkho02', N'Lâm Tiến Đạt', N'NV kho', '0982223332', 9500000)
-    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000009', 'nvkho03', N'Phan Công Minh', N'NV kho', '0982223333', 10500000)
-    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000010', 'nvkho04', N'Bùi Trọng Đạo', N'NV kho', '0982223334', 11000000)
-    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000011', 'nvgh01', N'Võ Thanh Hùng', N'NV giao hàng', '0983334441', 8000000)
-    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000012', 'nvgh02', N'Đỗ Quốc Cường', N'NV giao hàng', '0983334442', 8500000)
-    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000013', 'nvgh03', N'Lê Thanh Sang', N'NV giao hàng', '0983334443', 9000000)
-    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000014', 'nvgh04', N'Nguyễn Văn Tuấn', N'NV giao hàng', '0983334444', 8000000)
-    INSERT INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000015', 'nvgh05', N'Trần Đình Bảo', N'NV giao hàng', '0983334445', 8500000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000003', 'nvtm01', N'Trần Hữu Trọng', N'NV thu mua', '0981112221', 12000000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000004', 'nvtm02', N'Phạm Tấn Tài', N'NV thu mua', '0981112222', 12500000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000005', 'nvtm03', N'Lê Tú Anh', N'NV thu mua', '0981112223', 11000000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000006', 'nvtm04', N'Đinh Hoàng Hải', N'NV thu mua', '0981112224', 13000000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000007', 'nvkho01', N'Nguyễn Hữu Quyết', N'NV kho', '0982223331', 10000000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000008', 'nvkho02', N'Lâm Tiến Đạt', N'NV kho', '0982223332', 9500000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000009', 'nvkho03', N'Phan Công Minh', N'NV kho', '0982223333', 10500000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000010', 'nvkho04', N'Bùi Trọng Đạo', N'NV kho', '0982223334', 11000000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000011', 'nvgh01', N'Võ Thanh Hùng', N'NV giao hàng', '0983334441', 8000000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000012', 'nvgh02', N'Đỗ Quốc Cường', N'NV giao hàng', '0983334442', 8500000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000013', 'nvgh03', N'Lê Thanh Sang', N'NV giao hàng', '0983334443', 9000000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000014', 'nvgh04', N'Nguyễn Văn Tuấn', N'NV giao hàng', '0983334444', 8000000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) VALUES ('NV000015', 'nvgh05', N'Trần Đình Bảo', N'NV giao hàng', '0983334445', 8500000)
 SELECT * FROM dual;
 
 -- -------------------------------------------------------------------------
 -- 7. KHACHHANG (20 Khách hàng)
 -- -------------------------------------------------------------------------
 INSERT ALL
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000001', 'kh01', N'Nguyễn Thu Trà', N'VIP', N'Quận 1, TP.HCM', '0912345001', 'tra.nguyen@gmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000002', 'kh02', N'Trần Bích Lập', N'Thường', N'Quận 3, TP.HCM', '0912345002', 'lap.tran@gmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000003', 'kh03', N'Lê Hoàng Nam', N'Thân thiết', N'Thủ Đức, TP.HCM', '0912345003', 'nam.le@yahoo.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000004', 'kh04', N'Phạm Quang Dũng', N'Thường', N'Bình Thạnh, TP.HCM', '0912345004', 'dung.pham@gmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000005', 'kh05', N'Võ Thị Yến', N'Thường', N'Gò Vấp, TP.HCM', '0912345005', 'yen.vo@hotmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000006', 'kh06', N'Đặng Thái Sơn', N'VIP', N'Tân Bình, TP.HCM', '0912345006', 'son.dang@gmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000007', 'kh07', N'Bùi Thúy Hạnh', N'Thường', N'Quận 7, TP.HCM', '0912345007', 'hanh.bui@gmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000008', 'kh08', N'Đỗ Hữu Nghĩa', N'Thân thiết', N'Quận 10, TP.HCM', '0912345008', 'nghia.do@gmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000009', 'kh09', N'Hồ Thanh Thảo', N'Thường', N'Quận 4, TP.HCM', '0912345009', 'thao.ho@yahoo.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000010', 'kh10', N'Dương Quốc Vượng', N'Thân thiết', N'Quận 5, TP.HCM', '0912345010', 'vuong.duong@gmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000011', 'kh11', N'Vũ Đức Cảnh', N'Thường', N'Quận 8, TP.HCM', '0912345011', 'canh.vu@gmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000012', 'kh12', N'Ngô Nhật Cường', N'VIP', N'Quận 2, TP.HCM', '0912345012', 'cuong.ngo@gmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000013', 'kh13', N'Đoàn Tuấn Kiệt', N'Thường', N'Bình Tân, TP.HCM', '0912345013', 'kiet.doan@hotmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000014', 'kh14', N'Lý Thảo Ngọc', N'Thân thiết', N'Phú Nhuận, TP.HCM', '0912345014', 'ngoc.ly@gmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000015', 'kh15', N'Nguyễn Bá Thắng', N'Thường', N'Quận 12, TP.HCM', '0912345015', 'thang.nguyen@gmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000016', 'kh16', N'Phan Thị Cẩm', N'Thường', N'Củ Chi, TP.HCM', '0912345016', 'cam.phan@gmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000017', 'kh17', N'Trịnh Xuân Bách', N'Thân thiết', N'Hóc Môn, TP.HCM', '0912345017', 'bach.trinh@yahoo.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000018', 'kh18', N'Đinh Thị Mười', N'Thường', N'Bình Chánh, TP.HCM', '0912345018', 'muoi.dinh@gmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000019', 'kh19', N'Lâm Ánh Tuyết', N'VIP', N'Quận 11, TP.HCM', '0912345019', 'tuyet.lam@gmail.com')
-    INSERT INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000020', 'kh20', N'Tạ Văn Thông', N'Thường', N'Quận 6, TP.HCM', '0912345020', 'thong.ta@hotmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000001', 'kh01', N'Nguyễn Thu Trà', N'VIP', N'Quận 1, TP.HCM', '0912345001', 'tra.nguyen@gmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000002', 'kh02', N'Trần Bích Lập', N'Thường', N'Quận 3, TP.HCM', '0912345002', 'lap.tran@gmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000003', 'kh03', N'Lê Hoàng Nam', N'Thân thiết', N'Thủ Đức, TP.HCM', '0912345003', 'nam.le@yahoo.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000004', 'kh04', N'Phạm Quang Dũng', N'Thường', N'Bình Thạnh, TP.HCM', '0912345004', 'dung.pham@gmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000005', 'kh05', N'Võ Thị Yến', N'Thường', N'Gò Vấp, TP.HCM', '0912345005', 'yen.vo@hotmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000006', 'kh06', N'Đặng Thái Sơn', N'VIP', N'Tân Bình, TP.HCM', '0912345006', 'son.dang@gmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000007', 'kh07', N'Bùi Thúy Hạnh', N'Thường', N'Quận 7, TP.HCM', '0912345007', 'hanh.bui@gmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000008', 'kh08', N'Đỗ Hữu Nghĩa', N'Thân thiết', N'Quận 10, TP.HCM', '0912345008', 'nghia.do@gmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000009', 'kh09', N'Hồ Thanh Thảo', N'Thường', N'Quận 4, TP.HCM', '0912345009', 'thao.ho@yahoo.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000010', 'kh10', N'Dương Quốc Vượng', N'Thân thiết', N'Quận 5, TP.HCM', '0912345010', 'vuong.duong@gmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000011', 'kh11', N'Vũ Đức Cảnh', N'Thường', N'Quận 8, TP.HCM', '0912345011', 'canh.vu@gmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000012', 'kh12', N'Ngô Nhật Cường', N'VIP', N'Quận 2, TP.HCM', '0912345012', 'cuong.ngo@gmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000013', 'kh13', N'Đoàn Tuấn Kiệt', N'Thường', N'Bình Tân, TP.HCM', '0912345013', 'kiet.doan@hotmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000014', 'kh14', N'Lý Thảo Ngọc', N'Thân thiết', N'Phú Nhuận, TP.HCM', '0912345014', 'ngoc.ly@gmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000015', 'kh15', N'Nguyễn Bá Thắng', N'Thường', N'Quận 12, TP.HCM', '0912345015', 'thang.nguyen@gmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000016', 'kh16', N'Phan Thị Cẩm', N'Thường', N'Củ Chi, TP.HCM', '0912345016', 'cam.phan@gmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000017', 'kh17', N'Trịnh Xuân Bách', N'Thân thiết', N'Hóc Môn, TP.HCM', '0912345017', 'bach.trinh@yahoo.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000018', 'kh18', N'Đinh Thị Mười', N'Thường', N'Bình Chánh, TP.HCM', '0912345018', 'muoi.dinh@gmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000019', 'kh19', N'Lâm Ánh Tuyết', N'VIP', N'Quận 11, TP.HCM', '0912345019', 'tuyet.lam@gmail.com')
+    INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH, DiaChi, SDT, Email) VALUES ('KH000020', 'kh20', N'Tạ Văn Thông', N'Thường', N'Quận 6, TP.HCM', '0912345020', 'thong.ta@hotmail.com')
 SELECT * FROM dual;
 
 -- ====================================================================================

@@ -231,7 +231,7 @@ FOR EACH ROW
 DECLARE
     v_SLConLai NUMBER;
     v_SLKhaDung NUMBER;
-    v_MaTonKho_Check VARCHAR2;
+    v_MaTonKho_Check VARCHAR2(10);
 BEGIN
     -- Lấy mã tồn kho tuỳ theo thao tác
     IF DELETING THEN v_MaTonKho_Check := :OLD.MaTonKho;
