@@ -1,6 +1,21 @@
 -- ====================================================================================
 --              PHẦN 1: TẠO BẢNG VÀ CONSTRAINT
 -- ====================================================================================
+-- Script xoá toàn bộ bảng cũ
+-- BEGIN
+--     FOR t IN (
+--         SELECT table_name 
+--         FROM user_tables
+--     ) LOOP
+--         BEGIN
+--             EXECUTE IMMEDIATE 'DROP TABLE ' || t.table_name || ' CASCADE CONSTRAINTS';
+--         EXCEPTION
+--             WHEN OTHERS THEN
+--                 DBMS_OUTPUT.PUT_LINE('Lỗi khi drop ' || t.table_name || ': ' || SQLERRM);
+--         END;
+--     END LOOP;
+-- END;
+-- /
 
 -- 1. Bảng THAMSO
 CREATE TABLE THAMSO (
@@ -141,21 +156,6 @@ CREATE TABLE TONKHO (
     CONSTRAINT CK_TGHetHan CHECK (TGHetHan >= TGNhapKho)
 );
 
--- 14. Bảng DONHANG
--- CREATE TABLE DONHANG (
---     MaDH VARCHAR2(10) PRIMARY KEY,
---     MaKH VARCHAR2(10),
---     MaNV VARCHAR2(10),
---     TGDat DATE DEFAULT SYSDATE,
---     TGGiaoDK DATE,
---     DiaChiGiaoHang NVARCHAR2(255),
---     PhiVanChuyen NUMBER(12,2) CHECK (PhiVanChuyen >= 0),
---     TongTien NUMBER(12,2) DEFAULT 0 CHECK (TongTien >= 0),
---     TrangThaiDH NVARCHAR2(50) DEFAULT 'Đã đặt' CHECK (TrangThaiDH IN ('Đã đặt', 'Chờ thanh toán', 'Đã thanh toán', 'Chờ giao hàng', 'Hoàn thành', 'Đã huỷ')),
---     CONSTRAINT FK_DH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
---     CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV),
---     CONSTRAINT CK_TGGiaoDK CHECK (TGGiaoDK >= TGDat)
--- );
 -- =======================================================================================================
 -- 14. Bảng DONHANG
 CREATE TABLE DONHANG (
@@ -163,25 +163,21 @@ CREATE TABLE DONHANG (
     MaKH VARCHAR2(10),
     MaNV VARCHAR2(10),
     TGDat DATE DEFAULT SYSDATE,
-    TGGiaoYC DATE CHECK (TGGiaoYC >= TGDat),
-    TGGiaoTT DATE CHECK (TGGiaoTT >= TGGiaoYC),
+    TGGiaoYC DATE, 
+    TGGiaoTT DATE, 
     DiaChiGiaoHang NVARCHAR2(255),
-    LyDoHuy NVARCHAR2(500),     -- Lý do huỷ đơn hàng (nếu có)
-
+    LyDoHuy NVARCHAR2(500),
     PhiVanChuyen NUMBER(12,2) CHECK (PhiVanChuyen >= 0),
-    TongTienHang NUMBER(12,2) DEFAULT 0 CHECK (TongTienHang >= 0),  -- Tổng tiền trước giảm giá
-    GiamGia NUMBER(12,2) DEFAULT 0 CHECK (GiamGia >= 0),            -- Số tiền được giảm dựa trên LoaiKH
+    TongTienHang NUMBER(12,2) DEFAULT 0 CHECK (TongTienHang >= 0),
+    GiamGia NUMBER(12,2) DEFAULT 0 CHECK (GiamGia >= 0),
     TongTien NUMBER(12,2) DEFAULT 0 CHECK (TongTien >= 0),
-
-    TrangThaiDH NVARCHAR2(50) DEFAULT 'Đã đặt' 
-    CHECK (TrangThaiDH IN ('Đã đặt', 'Chờ xử lý', 'Chờ giao hàng', 'Hoàn thành', 'Đã huỷ')),
-
+    TrangThaiDH NVARCHAR2(50) DEFAULT 'Đã đặt' CHECK (TrangThaiDH IN ('Đã đặt', 'Chờ xử lý', 'Chờ giao hàng', 'Hoàn thành', 'Đã huỷ')),
     TrangThaiTT NUMBER(1) DEFAULT 0 CHECK (TrangThaiTT IN (0, 1)),
-    PhuongThucTT NVARCHAR2(50) DEFAULT 'COD' 
-    CHECK (PhuongThucTT IN ('COD', 'Chuyển khoản', 'Ví điện tử')),
-
+    PhuongThucTT NVARCHAR2(50) DEFAULT 'COD' CHECK (PhuongThucTT IN ('COD', 'Chuyển khoản', 'Ví điện tử')),
     CONSTRAINT FK_DH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
-    CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
+    CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV),
+    CONSTRAINT CK_TGGiaoYC CHECK (TGGiaoYC >= TGDat),
+    CONSTRAINT CK_TGGiaoTT CHECK (TGGiaoTT >= TGGiaoYC)
 );
 -- =======================================================================================================
 

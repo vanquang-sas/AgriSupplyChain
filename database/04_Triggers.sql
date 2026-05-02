@@ -231,7 +231,7 @@ FOR EACH ROW
 DECLARE
     v_SLConLai NUMBER;
     v_SLKhaDung NUMBER;
-    v_MaTonKho_Check VARCHAR2;
+    v_MaTonKho_Check VARCHAR2(10);
 BEGIN
     -- Lấy mã tồn kho tuỳ theo thao tác
     IF DELETING THEN v_MaTonKho_Check := :OLD.MaTonKho;
@@ -306,9 +306,9 @@ DECLARE
     v_MaTB VARCHAR2(10);
     v_TenSP NVARCHAR2(100);
 BEGIN
-    -- 1. Lấy quy định số ngày cảnh báo từ bảng THAMSO (Giả sử mã tham số là 'TS_HSD')
+    -- 1. Lấy quy định số ngày cảnh báo từ bảng THAMSO
     BEGIN
-        SELECT GiaTri INTO v_SoNgayHSD FROM THAMSO WHERE MaTS = 'TS_HSD';
+        SELECT GiaTri INTO v_SoNgayHSD FROM THAMSO WHERE TenTS = 'CANHBAO_HETHAN';
     EXCEPTION 
         WHEN NO_DATA_FOUND THEN v_SoNgayHSD := 7; -- Mặc định là 7 ngày nếu không cấu hình
     END;
@@ -346,9 +346,9 @@ DECLARE
 BEGIN
     -- Chỉ kiểm tra khi số lượng bị giảm đi
     IF :NEW.SLConLai < :OLD.SLConLai THEN
-        -- 1. Lấy ngưỡng tồn kho tối thiểu từ THAMSO (Giả sử mã là 'TS_MIN')
+        -- 1. Lấy ngưỡng tồn kho tối thiểu từ THAMSO
         BEGIN
-            SELECT GiaTri INTO v_MinTonKho FROM THAMSO WHERE MaTS = 'TS_MIN';
+            SELECT GiaTri INTO v_MinTonKho FROM THAMSO WHERE TenTS = 'MIN_TONKHO';
         EXCEPTION 
             WHEN NO_DATA_FOUND THEN v_MinTonKho := 20; -- Mặc định
         END;

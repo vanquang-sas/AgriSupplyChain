@@ -13,7 +13,7 @@ IS
     v_PhiVanChuyen NUMBER := 0;
 BEGIN
     -- 1. Lấy đơn giá vận chuyển từ bảng THAMSO
-    SELECT GIA_TRI INTO v_DonGia
+    SELECT GiaTri INTO v_DonGia
     FROM THAMSO
     WHERE TenTS = 'DON_GIA_VANCHUYEN';
 
