@@ -4,9 +4,10 @@ import dto.TonKhoDTO;
 import util.DBConnection;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 
 public class NhapKhoDAO {
-
+   
     public void xacNhanViTri(TonKhoDTO dto) throws SQLException {
         String sql = "{call SP_XACNHAN_VITRI_CTLH(?, ?, ?, ?)}";
 
@@ -21,7 +22,7 @@ public class NhapKhoDAO {
             cs.execute();
         }
     }
-
+    //fill tren jtable
     public ArrayList<Object[]> getDanhSachNhapKho() {
         ArrayList<Object[]> list = new ArrayList<>();
 
@@ -30,7 +31,7 @@ public class NhapKhoDAO {
                 CTLH.MaCTLH,
                 SP.TenSP,
                 CTLH.SoLuong,
-                K.MaKho,
+                ' ' as MaKho,
                 SP.BaoQuan,
                 ' ' as ViTri,
                 ' ' AS NgayHetHan,
@@ -38,7 +39,6 @@ public class NhapKhoDAO {
             FROM CHITIETLOHANG CTLH
             JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
             JOIN LOHANG LH ON CTLH.MaLH = LH.MaLH
-            JOIN KHO K ON SP.BaoQuan = K.LoaiKho
             WHERE LH.TrangThaiLH = 'Chờ nhập kho'
         """;
 
@@ -64,6 +64,22 @@ public class NhapKhoDAO {
             e.printStackTrace();
         }
 
+        return list;
+    }
+    
+    //lay danh sach kho
+    public List<String> getAllMaKho() throws Exception {
+        List<String> list = new ArrayList<>();
+        String sql = "SELECT MaKho FROM KHO ORDER BY MaKho ASC";
+        
+        try (java.sql.Connection con = util.DBConnection.getConnection();
+             java.sql.PreparedStatement ps = con.prepareStatement(sql);
+             java.sql.ResultSet rs = ps.executeQuery()) {
+            
+            while (rs.next()) {
+                list.add(rs.getString("MaKho"));
+            }
+        }
         return list;
     }
 }

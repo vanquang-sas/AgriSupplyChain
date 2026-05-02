@@ -3,20 +3,26 @@ package bus;
 import dao.NhapKhoDAO;
 import dto.TonKhoDTO;
 import java.util.ArrayList;
+import java.util.List;
 
 public class NhapKhoBUS {
     private NhapKhoDAO dao = new NhapKhoDAO();
+    
+    public List<String> getAllMaKho() throws Exception {
+        dao.NhapKhoDAO dao = new dao.NhapKhoDAO(); 
+        return dao.getAllMaKho();
+    }
 
     public ArrayList<Object[]> getDanhSachNhapKho() {
         return dao.getDanhSachNhapKho();
     }
 
     public String xacNhanNhapKho(TonKhoDTO dto, String tenSP) {
-        if (dto.getMaKho() == null) {
+        if (dto.getMaKho() == null|| dto.getMaKho().trim().isEmpty()) {
             return "Vui lòng chọn kho cho " + tenSP;
         }
 
-        if (dto.getViTri() == null) {
+        if (dto.getViTri() == null|| dto.getViTri().trim().isEmpty()) {
             return "Vui lòng chọn vị trí cho " + tenSP;
         }
 
