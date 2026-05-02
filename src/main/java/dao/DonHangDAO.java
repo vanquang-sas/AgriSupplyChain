@@ -1,14 +1,14 @@
 package dao;
 
-import dto.DonHangDTO;
-import util.DBConnection;
-
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import dto.DonHangDTO;
+import util.DBConnection;
 
 
 public class DonHangDAO {
@@ -49,7 +49,7 @@ public class DonHangDAO {
                 // Map dữ liệu từ ResultSet
                 donHangDTO.setMaDH(rs.getString("MaDH"));
                 donHangDTO.setMaKH(rs.getString("MaKH"));
-                donHangDTO.setTgDat(rs.getDate("TGDat"));
+                donHangDTO.setTgDat(rs.getTimestamp("TGDat"));
                 donHangDTO.setTongTien(rs.getDouble("TongTien"));
                 donHangDTO.setTrangThaiDH(rs.getString("TrangThaiDH"));
                 donHangDTO.setTrangThaiTT(rs.getInt("TrangThaiTT"));
@@ -93,24 +93,25 @@ public class DonHangDAO {
                 throw new Exception("Không thể kết nối tới Database!");
             }
 
-            // 2. Chuẩn bị lệnh gọi Procedure
-            String sql = "{ call SP_XOA_DH(?) }";
+            // 2. Chuẩn bị lệnh gọi Procedure SP_HUY_DH (Cần 2 tham số: MaDH và LyDoHuy)
+            String sql = "{ call SP_HUY_DH(?, ?) }";
             cstmt = conn.prepareCall(sql);
 
             // 3. Đặt giá trị tham số đầu vào
             cstmt.setString(1, maDH);
+            cstmt.setString(2, "Khách hàng huỷ đơn từ Lịch sử"); // Truyền lý do huỷ mặc định
 
             // 4. Thực thi Procedure
             cstmt.execute();
 
-            System.out.println("✓ Xóa đơn hàng [" + maDH + "] thành công");
+            System.out.println("Hủy đơn hàng [" + maDH + "] thành công");
 
         } catch (SQLException e) {
-            System.err.println("✗ Lỗi SQL khi gọi SP_XOA_DH:");
+            System.err.println("Lỗi SQL khi gọi SP_HUY_DH:");
             e.printStackTrace();
             
             // Nếu là lỗi từ Application_Error của Procedure, ném exception với message rõ ràng
-            throw new Exception("Lỗi khi xóa đơn hàng: " + e.getMessage(), e);
+            throw new Exception("Lỗi khi hủy đơn hàng: " + e.getMessage(), e);
 
         } finally {
             // 5. Đóng tài nguyên

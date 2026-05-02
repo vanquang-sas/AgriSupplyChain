@@ -1,9 +1,9 @@
 package bus;
 
+import java.util.List;
+
 import dao.DonHangDAO;
 import dto.DonHangDTO;
-
-import java.util.List;
 
 public class DonHangBUS {
     private DonHangDAO donHangDAO;
@@ -72,7 +72,7 @@ public class DonHangBUS {
         } catch (Exception e) {
             System.err.println("✗ BUS Error - huyDonHang:");
             // Nếu DAO trả về lỗi về điều kiện không thỏa, ném lại
-            if (e.getMessage().contains("không thể huỷ")) {
+            if (e.getMessage() != null && e.getMessage().toLowerCase().contains("không thể huỷ")) {
                 throw new IllegalStateException(e.getMessage());
             }
             throw new Exception("Lỗi khi hủy đơn hàng: " + e.getMessage(), e);
