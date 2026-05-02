@@ -29,3 +29,16 @@ EXCEPTION
         RETURN -1;
 END;
 /
+
+CREATE OR REPLACE FUNCTION FN_LAY_DS_KHACHHANG 
+RETURN SYS_REFCURSOR 
+IS
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    OPEN v_cursor FOR
+        SELECT KH.MaKH, KH.Username, KH.TenKH, KH.LoaiKH, KH.DiaChi, KH.SDT, KH.Email, TK.TrangThaiTK
+        FROM KHACHHANG KH
+        JOIN TAIKHOAN TK ON KH.Username = TK.Username;
+    RETURN v_cursor;
+END;
+/
