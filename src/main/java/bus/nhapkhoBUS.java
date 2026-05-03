@@ -43,7 +43,7 @@ public class NhapKhoBUS {
                 return "Lỗi: Lô hàng " + tenSP + " không ở trạng thái chờ nhập kho!";
             }
             if (msg.contains("ORA-20027")) {
-                return "Lỗi: Sản phẩm này đã được cất vào kho rồi (Trùng mã)!";
+                return "Lỗi: Sản phẩm này đã được cất vào kho rồi (trùng mã)!";
             }
             if (msg.contains("CK_TGHETHAN")) {
             return "Lỗi: Ngày hết hạn không đạt yêu cầu (phải sau ngày hiện tại)!";
