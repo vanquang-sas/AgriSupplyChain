@@ -628,3 +628,33 @@ BEGIN
     COMMIT;
 END;
 /
+
+-- Lấy danh sách đơn hàng của một khách hàng kèm chi tiết sản phẩm gom bằng LISTAGG
+CREATE OR REPLACE PROCEDURE SP_LAY_DS_DONHANG_BY_KH (
+    p_MaKH IN VARCHAR2,
+    p_Cursor OUT SYS_REFCURSOR
+) IS
+BEGIN
+    OPEN p_Cursor FOR
+    SELECT 
+        DH.MaDH,
+        DH.MaKH,
+        DH.TGDat,
+        DH.TongTien,
+        DH.TrangThaiDH,
+        DH.TrangThaiTT,
+        -- Gom tất cả tên sản phẩm cùng số lượng thành một chuỗi (có chống overflow)
+        LISTAGG(CTDH.SoLuong || ' ' || SP.TenSP, ', ' ON OVERFLOW TRUNCATE) 
+            WITHIN GROUP (ORDER BY SP.TenSP) AS DanhSachSP
+    FROM DONHANG DH
+    LEFT JOIN CHITIETDONHANG CTDH ON DH.MaDH = CTDH.MaDH
+    LEFT JOIN SANPHAM SP ON CTDH.MaSP = SP.MaSP
+    WHERE DH.MaKH = p_MaKH
+    GROUP BY DH.MaDH, DH.MaKH, DH.TGDat, DH.TongTien, DH.TrangThaiDH, DH.TrangThaiTT
+    ORDER BY DH.TGDat DESC;
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20040, 'Lỗi khi lấy danh sách đơn hàng: ' || SQLERRM);
+END SP_LAY_DS_DONHANG_BY_KH;
+/

@@ -18,18 +18,21 @@ public class DonHangDTO {
     private String trangThaiDH;
     private int trangThaiTT;
     private String phuongThucTT;
+    private String danhSachSP; 
 
     public DonHangDTO() {}
 
     public DonHangDTO(String maDH, String maKH, String maNV, Date tgDat, Date tgGiaoYC, Date tgGiaoTT, 
                       String diaChiGiaoHang, String lyDoHuy, double phiVanChuyen, double tongTienHang, 
-                      double giamGia, double tongTien, String trangThaiDH, int trangThaiTT, String phuongThucTT) {
+                      double giamGia, double tongTien, String trangThaiDH, int trangThaiTT, 
+                      String phuongThucTT, String danhSachSP) {
         this.maDH = maDH; this.maKH = maKH; this.maNV = maNV;
         this.tgDat = tgDat; this.tgGiaoYC = tgGiaoYC; this.tgGiaoTT = tgGiaoTT;
         this.diaChiGiaoHang = diaChiGiaoHang; this.lyDoHuy = lyDoHuy;
         this.phiVanChuyen = phiVanChuyen; this.tongTienHang = tongTienHang;
         this.giamGia = giamGia; this.tongTien = tongTien;
-        this.trangThaiDH = trangThaiDH; this.trangThaiTT = trangThaiTT; this.phuongThucTT = phuongThucTT;
+        this.trangThaiDH = trangThaiDH; this.trangThaiTT = trangThaiTT; 
+        this.phuongThucTT = phuongThucTT; this.danhSachSP = danhSachSP;
     }
 
     public String getMaDH() { return maDH; }
@@ -71,9 +74,16 @@ public class DonHangDTO {
     public String getTrangThaiDH() { return trangThaiDH; }
     public void setTrangThaiDH(String trangThaiDH) { this.trangThaiDH = trangThaiDH; }
     
+
+
     public int getTrangThaiTT() { return trangThaiTT; }
     public void setTrangThaiTT(int trangThaiTT) { this.trangThaiTT = trangThaiTT; }
     
+    public String getDanhSachSP() { return danhSachSP; }
+    public void setDanhSachSP(String danhSachSP) { this.danhSachSP = danhSachSP; }
+
+    
     public String getPhuongThucTT() { return phuongThucTT; }
     public void setPhuongThucTT(String phuongThucTT) { this.phuongThucTT = phuongThucTT; }
+
 }
