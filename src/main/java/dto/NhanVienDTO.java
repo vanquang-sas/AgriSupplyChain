@@ -7,11 +7,13 @@ public class NhanVienDTO {
     private String chucVu;
     private String sdt;
     private double luong;
+    private int trangThaiTK; // 0: Bị khóa, 1: Hoạt động
 
     public NhanVienDTO() {}
 
-    public NhanVienDTO(String maNV, String username, String tenNV, String chucVu, String sdt, double luong) {
-        this.maNV = maNV; this.username = username; this.tenNV = tenNV; 
+    public NhanVienDTO(String maNV, String username, String tenNV,
+                       String chucVu, String sdt, double luong) {
+        this.maNV = maNV; this.username = username; this.tenNV = tenNV;
         this.chucVu = chucVu; this.sdt = sdt; this.luong = luong;
     }
 
@@ -27,4 +29,6 @@ public class NhanVienDTO {
     public void setSdt(String sdt) { this.sdt = sdt; }
     public double getLuong() { return luong; }
     public void setLuong(double luong) { this.luong = luong; }
+    public int getTrangThaiTK() { return trangThaiTK; }
+    public void setTrangThaiTK(int trangThaiTK) { this.trangThaiTK = trangThaiTK; }
 }

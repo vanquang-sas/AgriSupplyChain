@@ -29,7 +29,8 @@ public class IntegratedSearch extends JTextField {
 
         try {
             // Khuyến nghị dùng file SVG để icon không bị vỡ hạt khi phóng to màn hình
-            Icon searchIcon = new FlatSVGIcon("/icons/search.svg", 16, 16);
+            Icon searchIcon = new FlatSVGIcon("icons/search.svg", 16, 16, getClass().getClassLoader());
+
             this.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, searchIcon);
         } catch (Exception e) {
             System.err.println("Lưu ý: Chưa tìm thấy file icon/search.svg");
