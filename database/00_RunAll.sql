@@ -6,8 +6,8 @@ SET FEEDBACK ON;
 SET ECHO ON;
 SET SERVEROUTPUT ON;
 
--- Nhảy vào CSDL con (orclpdb)
-ALTER SESSION SET CONTAINER = orclpdb;
+-- Nhảy vào CSDL con (XEPDB1)
+ALTER SESSION SET CONTAINER = XEPDB1;
 
 PROMPT --- DON DEP USER CU ---
 -- Xóa user cũ và toàn bộ dữ liệu. Dùng BEGIN..END để bỏ qua lỗi nếu user chưa tồn tại.
@@ -34,7 +34,7 @@ GRANT UNLIMITED TABLESPACE TO AGRIAPP;
 
 PROMPT --- CHUYEN DOI KET NOI ---
 -- 4. Chuyển kết nối sang user vừa tạo để bắt đầu chạy script tạo bảng
-CONNECT AGRIAPP/123456@localhost:1521/orclpdb;
+CONNECT AGRIAPP/123456@localhost:1521/XEPDB1;
 
 -- ====================================================================================
 -- PHẦN 2: TẠO CẤU TRÚC DATABASE (TABLES, SEQUENCES, LOGIC)
