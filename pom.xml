@@ -16,7 +16,13 @@
     <maven.compiler.release>21</maven.compiler.release>
   </properties>
 
-  <dependencies>
+  <dependencies> 
+    <dependency>
+    <groupId>com.toedter</groupId>
+    <artifactId>jcalendar</artifactId>
+    <version>1.4</version>
+    </dependency>   
+    
     <dependency>
         <groupId>com.oracle.database.jdbc</groupId>
         <artifactId>ojdbc11</artifactId> 
