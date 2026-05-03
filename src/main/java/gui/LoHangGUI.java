@@ -105,7 +105,7 @@ public class LoHangGUI extends JFrame {
             model.addRow(new Object[]{
                     lh.getMaLH(),
                     lh.getMaNCC(),
-                    lh.getTrangThai()
+                    lh.getTrangThaiLH()
             });
         }
     }

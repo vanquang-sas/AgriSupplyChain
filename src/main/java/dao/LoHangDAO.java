@@ -48,9 +48,9 @@ public class LoHangDAO {
 
             while (rs.next()) {
                 LoHangDTO lh = new LoHangDTO();
-                lh.setMaLH(rs.getInt("MaLH"));
-                lh.setMaNCC(rs.getInt("MaNCC"));
-                lh.setTrangThai(rs.getString("TrangThai"));
+                lh.setMaLH(rs.getString("MaLH"));
+                lh.setMaNCC(rs.getString("MaNCC"));
+                lh.setTrangThaiLH(rs.getString("TrangThai"));
                 list.add(lh);
             }
 
