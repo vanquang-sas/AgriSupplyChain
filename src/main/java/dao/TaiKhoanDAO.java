@@ -1,5 +1,8 @@
 package dao;
 
+import dto.TaiKhoanDTO;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -32,5 +35,32 @@ public class TaiKhoanDAO {
             }
             return "SYSTEM_ERROR";
         }
+    }
+
+    public TaiKhoanDTO checkLogin(String username, String password) {
+        TaiKhoanDTO taiKhoan = null;
+        String sql = "SELECT * FROM TAIKHOAN WHERE USERNAME = ? AND PASSWORD = ?";
+        
+        try (Connection conn = DBConnection.getConnection();
+            PreparedStatement pst = conn.prepareStatement(sql)) {
+            
+            pst.setString(1, username);
+            pst.setString(2, password);
+            
+            try (ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    taiKhoan = new TaiKhoanDTO();
+                    taiKhoan.setUsername(rs.getString("USERNAME"));
+                    taiKhoan.setPassword(rs.getString("PASSWORD"));
+                    taiKhoan.setLoaiTK(rs.getInt("LOAITK"));
+                    taiKhoan.setTrangThaiTK(rs.getInt("TRANGTHAITK"));
+                    taiKhoan.setTgTao(rs.getDate("TGTAO"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return taiKhoan;
     }
 }
