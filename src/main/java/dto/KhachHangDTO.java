@@ -8,12 +8,14 @@ public class KhachHangDTO {
     private String diaChi;
     private String sdt;
     private String email;
+    private int trangThaiTK; // 0: Bị khóa, 1: Hoạt động
 
     public KhachHangDTO() {}
 
-    public KhachHangDTO(String maKH, String username, String tenKH, String loaiKH, String diaChi, String sdt, String email) {
-        this.maKH = maKH; this.username = username; this.tenKH = tenKH; this.loaiKH = loaiKH;
-        this.diaChi = diaChi; this.sdt = sdt; this.email = email;
+    public KhachHangDTO(String maKH, String username, String tenKH, String loaiKH,
+                        String diaChi, String sdt, String email) {
+        this.maKH = maKH; this.username = username; this.tenKH = tenKH;
+        this.loaiKH = loaiKH; this.diaChi = diaChi; this.sdt = sdt; this.email = email;
     }
 
     public String getMaKH() { return maKH; }
@@ -30,4 +32,6 @@ public class KhachHangDTO {
     public void setSdt(String sdt) { this.sdt = sdt; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+    public int getTrangThaiTK() { return trangThaiTK; }
+    public void setTrangThaiTK(int trangThaiTK) { this.trangThaiTK = trangThaiTK; }
 }

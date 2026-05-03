@@ -7,16 +7,17 @@ public class NhaCungCapDTO {
     private String sdt;
     private String email;
     private String chungNhanCL;
-    private int trangThaiHopTac;
+    private int trangThaiHopTac; // 0: Ngừng hợp tác, 1: Đang hợp tác
 
     public NhaCungCapDTO() {}
 
-    public NhaCungCapDTO(String maNCC, String tenNCC, String diaChi, String sdt, String email, String chungNhanCL, int trangThaiHopTac) {
-        this.maNCC = maNCC; this.tenNCC = tenNCC; this.diaChi = diaChi; this.sdt = sdt;
-        this.email = email; this.chungNhanCL = chungNhanCL; this.trangThaiHopTac = trangThaiHopTac;
+    public NhaCungCapDTO(String maNCC, String tenNCC, String diaChi, String sdt,
+                         String email, String chungNhanCL, int trangThaiHopTac) {
+        this.maNCC = maNCC; this.tenNCC = tenNCC; this.diaChi = diaChi;
+        this.sdt = sdt; this.email = email; this.chungNhanCL = chungNhanCL;
+        this.trangThaiHopTac = trangThaiHopTac;
     }
 
-    // Getters and Setters...
     public String getMaNCC() { return maNCC; }
     public void setMaNCC(String maNCC) { this.maNCC = maNCC; }
     public String getTenNCC() { return tenNCC; }

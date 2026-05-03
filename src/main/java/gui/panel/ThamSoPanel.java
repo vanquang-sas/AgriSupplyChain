@@ -8,7 +8,6 @@ import raven.modal.component.SimpleModalBorder;
 import util.AppColor;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.text.NumberFormat;
 import java.util.List;
