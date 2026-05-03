@@ -29,7 +29,7 @@ public class GiaoHangDao {
                 dh.setMaNV(rs.getString("MaNV"));
                 dh.setDiaChiGiaoHang(rs.getString("DiaChiGiaoHang"));
                 dh.setTgDat(rs.getDate("TGDat"));
-                dh.setTgGiaoDK(rs.getDate("TGGiaoYC"));
+                dh.setTgGiaoYC(rs.getDate("TGGiaoYC"));
                 dh.setPhiVanChuyen(rs.getDouble("PhiVanChuyen"));
                 dh.setTongTien(rs.getDouble("TongTien"));
                 dh.setTrangThaiDH(rs.getString("TrangThaiDH"));
@@ -122,7 +122,7 @@ public class GiaoHangDao {
                 dh.setMaNV(rs.getString("MaNV"));
                 dh.setDiaChiGiaoHang(rs.getString("DiaChiGiaoHang"));
                 dh.setTgDat(rs.getDate("TGDat"));
-                dh.setTgGiaoDK(rs.getDate("TGGiaoYC"));
+                dh.setTgGiaoYC(rs.getDate("TGGiaoYC"));
                 dh.setPhiVanChuyen(rs.getDouble("PhiVanChuyen"));
                 dh.setTongTien(rs.getDouble("TongTien"));
                 dh.setTrangThaiDH(rs.getString("TrangThaiDH"));
