@@ -224,8 +224,7 @@ public class DangKyGUI extends JFrame {
             dialog.dispose();
             if (isSuccess) {
                 this.dispose();
-                // Mở UI đăng nhập sau khi đăng kí thành công
-                // new DangNhapGUI().setVisible(true);
+                new DangNhapGUI().setVisible(true);
             }
         });
         

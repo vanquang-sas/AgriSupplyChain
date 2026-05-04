@@ -7,13 +7,13 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-public class LoginGUI extends JFrame {
+public class DangNhapGUI extends JFrame {
     private JTextField txtUsername;
     private JPasswordField txtPassword;
     private JButton btnLogin;
     private TaiKhoanBUS taiKhoanBUS;
 
-    public LoginGUI() {
+    public DangNhapGUI() {
         taiKhoanBUS = new TaiKhoanBUS();
         initComponents();
     }
@@ -226,7 +226,7 @@ public class LoginGUI extends JFrame {
             dialog.dispose();
             if (isSuccess) {
                 this.dispose();
-                new MainGUI().setVisible(true);
+                new MainFrame().setVisible(true);
             }
         });
 

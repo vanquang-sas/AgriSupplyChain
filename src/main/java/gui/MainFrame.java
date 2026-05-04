@@ -1,11 +1,8 @@
 package gui;
 
-import gui.panel.KhachHangPanel;
-import gui.panel.KhoPanel;
-import gui.panel.NhaCungCapPanel;
-import gui.panel.NhanVienPanel;
-import gui.panel.ThamSoPanel;
+import gui.panel.*;
 import util.AppColor;
+import util.Session;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,33 +12,15 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * MainFrame - Khung giao diện chính của hệ thống.
- *
- * Cấu trúc:
- *   ┌─────────────┬──────────────────────────────────┐
- *   │   SIDEBAR   │           CONTENT AREA           │
- *   │  (260px)    │         (CardLayout)              │
- *   │  - Logo     │  - Trang chủ                     │
- *   │  - Menu     │  - Khách hàng / NV / NCC         │
- *   │  - Footer   │  - Kho / Tham số / ...           │
- *   └─────────────┴──────────────────────────────────┘
- *
- * Cách thêm Panel mới:
- *   1. Tạo instance: XxxPanel pnlXxx = new XxxPanel();
- *   2. Thêm vào card: contentPanel.add(pnlXxx, "Xxx");
- *   3. Thêm nút menu: createMenuButton("...", "Xxx");
- */
 public class MainFrame extends JFrame {
 
     private JPanel sidebarPanel;
     private JPanel contentPanel;
     private CardLayout cardLayout;
 
-    // Danh sách nút menu để quản lý trạng thái active
     private final List<JButton> menuButtons = new ArrayList<>();
 
-    // Giữ reference các Panel đã khởi tạo (lazy nếu muốn sau)
+    // Giữ reference các Panel 
     private KhachHangPanel  pnlKhachHang;
     private NhanVienPanel   pnlNhanVien;
     private NhaCungCapPanel pnlNhaCungCap;
@@ -52,9 +31,6 @@ public class MainFrame extends JFrame {
         initComponents();
     }
 
-    // ================================================================
-    //  KHỞI TẠO GIAO DIỆN
-    // ================================================================
     private void initComponents() {
         setTitle("AgriSupplyChain – Hệ thống Quản lý Chuỗi cung ứng Nông sản");
         setSize(1366, 768);
@@ -63,15 +39,15 @@ public class MainFrame extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
+        buildContentArea(); // Nên khởi tạo Content trước để Menu có đích đến
         buildSidebar();
-        buildContentArea();
 
         add(sidebarPanel, BorderLayout.WEST);
         add(contentPanel, BorderLayout.CENTER);
     }
 
     // ================================================================
-    //  SIDEBAR
+    //  SIDEBAR & PHÂN QUYỀN
     // ================================================================
     private void buildSidebar() {
         sidebarPanel = new JPanel(new BorderLayout());
@@ -86,7 +62,6 @@ public class MainFrame extends JFrame {
         JPanel logoInner = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 16));
         logoInner.setBackground(AppColor.PRIMARY_ACTIVE);
 
-        // Icon hộp
         JLabel iconLogo = new JLabel("⬡");
         iconLogo.setFont(new Font("Segoe UI Emoji", Font.BOLD, 26));
         iconLogo.setForeground(Color.WHITE);
@@ -94,17 +69,23 @@ public class MainFrame extends JFrame {
         JPanel logoText = new JPanel(new GridLayout(2, 1, 0, 1));
         logoText.setBackground(AppColor.PRIMARY_ACTIVE);
 
-        JLabel lblAppName = new JLabel("Admin Panel");
+        JLabel lblAppName = new JLabel("Agri Supply");
         lblAppName.setFont(new Font("Segoe UI", Font.BOLD, 15));
         lblAppName.setForeground(Color.WHITE);
 
-        JLabel lblSubName = new JLabel("AgriSupplyChain");
+        // Lấy Role Name để hiển thị dưới Logo
+        String roleName = "Khách Hàng";
+        int roleId = Session.isLogged() ? Session.currentUser.getLoaiTK() : 4;
+        if (roleId == 1) roleName = "Quản Trị Viên (Admin)";
+        else if (roleId == 2) roleName = "Nhân Viên Thu Mua/Giao Hàng";
+        else if (roleId == 3) roleName = "Nhân Viên Kho";
+
+        JLabel lblSubName = new JLabel(roleName);
         lblSubName.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        lblSubName.setForeground(new Color(187, 247, 208)); // xanh nhạt
+        lblSubName.setForeground(new Color(187, 247, 208));
 
         logoText.add(lblAppName);
         logoText.add(lblSubName);
-
         logoInner.add(iconLogo);
         logoInner.add(logoText);
         logoPanel.add(logoInner, BorderLayout.CENTER);
@@ -115,93 +96,126 @@ public class MainFrame extends JFrame {
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
         menuPanel.setBorder(new EmptyBorder(12, 0, 12, 0));
 
-        // --- Nhóm: Tổng quan ---
-        menuPanel.add(buildSectionLabel("TỔNG QUAN"));
-        JButton btnTrangChu = createMenuButton("🏠", "Trang chủ",         "TrangChu");
-
-        // --- Nhóm: Quản trị Nhân sự ---
-        menuPanel.add(Box.createRigidArea(new Dimension(0, 6)));
-        menuPanel.add(buildSectionLabel("NHÂN SỰ & ĐỐI TÁC"));
-        JButton btnKhachHang  = createMenuButton("👥", "Quản lý Khách hàng",   "KhachHang");
-        JButton btnNhanVien   = createMenuButton("👤", "Quản lý Nhân viên",    "NhanVien");
+        // KHỞI TẠO CÁC NÚT (Nhưng chưa Add vào Menu)
+        JButton btnTrangChu   = createMenuButton("🏠", "Trang chủ", "TrangChu");
+        JButton btnKhachHang  = createMenuButton("👥", "Quản lý Khách hàng", "KhachHang");
+        JButton btnNhanVien   = createMenuButton("👤", "Quản lý Nhân viên", "NhanVien");
         JButton btnNhaCungCap = createMenuButton("🏢", "Quản lý Nhà cung cấp", "NhaCungCap");
+        JButton btnKho        = createMenuButton("🏭", "Quản lý Kho", "Kho");
+        JButton btnThamSo     = createMenuButton("⚙",  "Cấu hình Tham số", "ThamSo");
+        JButton btnSanPham    = createMenuButton("📦", "Quản lý Sản phẩm", "SanPham");
+        JButton btnThongKe    = createMenuButton("📊", "Báo cáo Thống kê", "ThongKe");
 
-        // --- Nhóm: Kho bãi & Hệ thống ---
-        menuPanel.add(Box.createRigidArea(new Dimension(0, 6)));
-        menuPanel.add(buildSectionLabel("KHO BÃI & HỆ THỐNG"));
-        JButton btnKho    = createMenuButton("🏭", "Quản lý Kho",          "Kho");
-        JButton btnThamSo = createMenuButton("⚙",  "Cấu hình Tham số",    "ThamSo");
+        JButton btnCuaHang    = createMenuButton("🛒", "Cửa hàng Nông sản", "TrangChu"); // Map tạm
+        JButton btnDonCuaToi  = createMenuButton("📜", "Đơn hàng của tôi", "TrangChu");  // Map tạm
 
-        // --- Nhóm: Sản phẩm & Báo cáo (placeholder) ---
-        menuPanel.add(Box.createRigidArea(new Dimension(0, 6)));
-        menuPanel.add(buildSectionLabel("SẢN PHẨM & BÁO CÁO"));
-        JButton btnSanPham  = createMenuButton("📦", "Quản lý Sản phẩm",   "SanPham");
-        JButton btnThongKe  = createMenuButton("📊", "Báo cáo Thống kê",   "ThongKe");
+        JButton defaultActiveBtn = null;
 
-        // Thêm tất cả nút vào menu
-        for (JButton b : new JButton[]{
-                btnTrangChu,
-                btnKhachHang, btnNhanVien, btnNhaCungCap,
-                btnKho, btnThamSo,
-                btnSanPham, btnThongKe}) {
-            menuPanel.add(b);
-            menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+        // ============================================
+        // LOGIC PHÂN QUYỀN ADD NÚT THEO ROLE
+        // ============================================
+        if (roleId == 1) { // 1. ADMIN - QUẢN LÝ (Thấy tất cả)
+            menuPanel.add(buildSectionLabel("TỔNG QUAN"));
+            menuPanel.add(btnTrangChu); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+            
+            menuPanel.add(buildSectionLabel("NHÂN SỰ & ĐỐI TÁC"));
+            menuPanel.add(btnKhachHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+            menuPanel.add(btnNhanVien); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+            menuPanel.add(btnNhaCungCap); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+
+            menuPanel.add(buildSectionLabel("KHO BÃI & HỆ THỐNG"));
+            menuPanel.add(btnKho); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+            menuPanel.add(btnThamSo); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+
+            menuPanel.add(buildSectionLabel("SẢN PHẨM & BÁO CÁO"));
+            menuPanel.add(btnSanPham); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+            menuPanel.add(btnThongKe); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+            
+            defaultActiveBtn = btnTrangChu;
+
+        } else if (roleId == 3) { // 3. NHÂN VIÊN KHO
+            menuPanel.add(buildSectionLabel("QUẢN LÝ KHO BÃI"));
+            menuPanel.add(btnKho); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+            
+            // Bạn có thể tạo thêm Nhập Kho / Xuất Kho Panel và add vào đây
+            // menuPanel.add(btnNhapKho); ...
+            
+            defaultActiveBtn = btnKho;
+
+        } else if (roleId == 2) { // 2. NHÂN VIÊN THU MUA & GIAO HÀNG
+            menuPanel.add(buildSectionLabel("ĐỐI TÁC & SẢN PHẨM"));
+            menuPanel.add(btnNhaCungCap); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+            menuPanel.add(btnSanPham); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+            // Thêm Lô Hàng / Giao Hàng sau
+            
+            defaultActiveBtn = btnNhaCungCap;
+
+        } else { // 4. KHÁCH HÀNG
+            menuPanel.add(buildSectionLabel("MUA SẮM"));
+            menuPanel.add(btnCuaHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+            menuPanel.add(btnDonCuaToi); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+            
+            defaultActiveBtn = btnCuaHang;
         }
 
-        // ---------- FOOTER (user info + đăng xuất) ----------
+        // ---------- FOOTER ----------
         JPanel footerPanel = buildFooter();
 
         sidebarPanel.add(logoPanel,  BorderLayout.NORTH);
         sidebarPanel.add(menuPanel,  BorderLayout.CENTER);
         sidebarPanel.add(footerPanel, BorderLayout.SOUTH);
 
-        // Mặc định active Trang chủ
-        setActiveMenu(btnTrangChu);
+        // Mặc định active nút đầu tiên tùy vào role
+        if (defaultActiveBtn != null) {
+            setActiveMenu(defaultActiveBtn);
+            // Click ảo để render màn hình đầu tiên
+            for(ActionListener a : defaultActiveBtn.getActionListeners()) {
+                a.actionPerformed(new java.awt.event.ActionEvent(this, java.awt.event.ActionEvent.ACTION_PERFORMED, null));
+            }
+        }
     }
 
-    // Label tiêu đề nhóm menu nhỏ
     private JLabel buildSectionLabel(String text) {
         JLabel lbl = new JLabel("  " + text);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
-        lbl.setForeground(new Color(187, 247, 208, 160)); // xanh nhạt mờ
-        lbl.setBorder(new EmptyBorder(6, 14, 4, 0));
-        lbl.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
+        lbl.setForeground(new Color(187, 247, 208, 160));
+        lbl.setBorder(new EmptyBorder(12, 14, 4, 0));
+        lbl.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         return lbl;
     }
 
-    // Footer dưới sidebar
     private JPanel buildFooter() {
         JPanel footer = new JPanel(new BorderLayout(10, 0));
         footer.setBackground(AppColor.PRIMARY_ACTIVE);
         footer.setBorder(new EmptyBorder(12, 16, 16, 16));
 
-        // Avatar chữ cái
-        JLabel avatar = new JLabel("Q");
+        // Lấy tên thật từ Session
+        String username = Session.isLogged() ? Session.currentUser.getUsername() : "Guest";
+        String firstChar = username.substring(0, 1).toUpperCase();
+
+        JLabel avatar = new JLabel(firstChar);
         avatar.setFont(new Font("Segoe UI", Font.BOLD, 16));
         avatar.setForeground(AppColor.PRIMARY);
         avatar.setOpaque(true);
         avatar.setBackground(Color.WHITE);
         avatar.setHorizontalAlignment(SwingConstants.CENTER);
         avatar.setPreferredSize(new Dimension(38, 38));
-        avatar.setBorder(BorderFactory.createLineBorder(
-                new Color(255, 255, 255, 80), 2, true));
+        avatar.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255, 80), 2, true));
 
-        // Tên & email
         JPanel userText = new JPanel(new GridLayout(2, 1, 0, 2));
         userText.setBackground(AppColor.PRIMARY_ACTIVE);
 
-        JLabel lblName = new JLabel("Quản trị viên");
+        JLabel lblName = new JLabel(username);
         lblName.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblName.setForeground(Color.WHITE);
 
-        JLabel lblEmail = new JLabel("admin@system.vn");
-        lblEmail.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        lblEmail.setForeground(new Color(187, 247, 208));
+        JLabel lblStatus = new JLabel("Đang trực tuyến");
+        lblStatus.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblStatus.setForeground(new Color(187, 247, 208));
 
         userText.add(lblName);
-        userText.add(lblEmail);
+        userText.add(lblStatus);
 
-        // Nút đăng xuất
         JButton btnLogout = new JButton("⏻ Đăng xuất");
         btnLogout.setBackground(new Color(255, 255, 255, 30));
         btnLogout.setForeground(Color.WHITE);
@@ -212,21 +226,19 @@ public class MainFrame extends JFrame {
         btnLogout.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(255, 255, 255, 60), 1, true),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)));
+        
         btnLogout.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) {
-                btnLogout.setBackground(new Color(220, 38, 38)); // đỏ hover
-            }
-            public void mouseExited(MouseEvent e) {
-                btnLogout.setBackground(new Color(255, 255, 255, 30));
-            }
+            public void mouseEntered(MouseEvent e) { btnLogout.setBackground(new Color(220, 38, 38)); }
+            public void mouseExited(MouseEvent e) { btnLogout.setBackground(new Color(255, 255, 255, 30)); }
         });
+        
         btnLogout.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(
-                    this, "Bạn có chắc muốn đăng xuất?",
-                    "Đăng xuất", JOptionPane.YES_NO_OPTION);
+            int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn đăng xuất?", "Đăng xuất", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
+                // Clear session
+                Session.currentUser = null; 
                 dispose();
-                // Nếu có LoginFrame thì mở tại đây: new LoginFrame().setVisible(true);
+                new LoginGUI().setVisible(true); // Trở về trang đăng nhập
             }
         });
 
@@ -237,29 +249,23 @@ public class MainFrame extends JFrame {
     }
 
     // ================================================================
-    //  CONTENT AREA (CardLayout)
+    //  CONTENT AREA 
     // ================================================================
     private void buildContentArea() {
         cardLayout    = new CardLayout();
         contentPanel  = new JPanel(cardLayout);
         contentPanel.setBackground(AppColor.BACKGROUND);
 
-        // --- Khởi tạo các Panel đã hoàn thiện ---
         pnlKhachHang  = new KhachHangPanel();
         pnlNhanVien   = new NhanVienPanel();
         pnlNhaCungCap = new NhaCungCapPanel();
         pnlKho        = new KhoPanel();
         pnlThamSo     = new ThamSoPanel();
 
-        // --- Placeholder cho các phần chưa code ---
-        JPanel pnlTrangChu = createPlaceholder("🏠", "Trang chủ",
-                "Dashboard tổng quan sẽ được hiển thị tại đây");
-        JPanel pnlSanPham  = createPlaceholder("📦", "Quản lý Sản phẩm",
-                "Module quản lý sản phẩm & lịch sử giá");
-        JPanel pnlThongKe  = createPlaceholder("📊", "Báo cáo Thống kê",
-                "Dashboard báo cáo doanh thu, tồn kho, top sản phẩm");
+        JPanel pnlTrangChu = createPlaceholder("🏠", "Trang chủ", "Dashboard tổng quan");
+        JPanel pnlSanPham  = createPlaceholder("📦", "Quản lý Sản phẩm", "Đang xây dựng...");
+        JPanel pnlThongKe  = createPlaceholder("📊", "Báo cáo Thống kê", "Đang xây dựng...");
 
-        // --- Đăng ký tất cả vào CardLayout ---
         contentPanel.add(pnlTrangChu,   "TrangChu");
         contentPanel.add(pnlSanPham,    "SanPham");
         contentPanel.add(pnlKhachHang,  "KhachHang");
@@ -270,11 +276,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(pnlThongKe,    "ThongKe");
     }
 
-    // ================================================================
-    //  HELPER: Tạo nút menu sidebar
-    // ================================================================
     private JButton createMenuButton(String icon, String label, String cardName) {
-        // Ghép icon + label
         JButton btn = new JButton(icon + "  " + label);
         btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         btn.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -307,21 +309,15 @@ public class MainFrame extends JFrame {
         return btn;
     }
 
-    // Đánh dấu nút menu đang được chọn
     private void setActiveMenu(JButton activeBtn) {
         for (JButton b : menuButtons) b.setBackground(AppColor.PRIMARY);
         activeBtn.setBackground(AppColor.PRIMARY_ACTIVE);
-        activeBtn.setFont(new Font("Segoe UI", Font.BOLD, 13)); // in đậm khi active
-        // Reset font các nút còn lại
+        activeBtn.setFont(new Font("Segoe UI", Font.BOLD, 13)); 
         for (JButton b : menuButtons) {
-            if (b != activeBtn)
-                b.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            if (b != activeBtn) b.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         }
     }
 
-    // ================================================================
-    //  HELPER: Tạo Placeholder Panel đẹp cho trang chưa code
-    // ================================================================
     private JPanel createPlaceholder(String icon, String title, String subtitle) {
         JPanel p = new JPanel(new GridBagLayout());
         p.setBackground(AppColor.BACKGROUND);
@@ -347,18 +343,11 @@ public class MainFrame extends JFrame {
         lblSub.setForeground(AppColor.TEXT_SECONDARY);
         lblSub.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel lblComingSoon = new JLabel("🚧  Đang phát triển...");
-        lblComingSoon.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblComingSoon.setForeground(AppColor.WARNING);
-        lblComingSoon.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblComingSoon.setBorder(BorderFactory.createEmptyBorder(12, 0, 0, 0));
-
         card.add(lblIcon);
         card.add(Box.createRigidArea(new Dimension(0, 14)));
         card.add(lblTitle);
         card.add(Box.createRigidArea(new Dimension(0, 8)));
         card.add(lblSub);
-        card.add(lblComingSoon);
 
         p.add(card);
         return p;
