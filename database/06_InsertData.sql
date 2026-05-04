@@ -15,14 +15,14 @@ SELECT * FROM dual;
 
 -- 3. TAIKHOAN
 INSERT ALL
-    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('quanly01', 'pass01', 0, 1)
-    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('quanly02', 'pass02', 0, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('quanly01', 'pa8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92ss01', 0, 1)
+    INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK) VALUES ('quanly02', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 0, 1)
 SELECT * FROM dual;
 
 -- 5. NHANVIEN 
 INSERT ALL
     INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) 
-        VALUES ('NV000001', 'quanly01', N'Hồ Quân', N'Quản lý', '0901234567', 25000000)
+        VALUES ('NV000001', 'quanly01', N'Nguyễn ABC', N'Quản lý', '0901234567', 25000000)
     INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) 
-        VALUES ('NV000002', 'quanly02', N'Trần Hoành', N'Quản lý', '0901234568', 25000000)
+        VALUES ('NV000002', 'quanly02', N'Nguyễn DEF', N'Quản lý', '0901234568', 25000000)
 SELECT * FROM dual;
