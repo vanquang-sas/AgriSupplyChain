@@ -1,142 +1,107 @@
 package bus;
 
 import dao.KhachHangDAO;
+import dao.TaiKhoanDAO;
 import dto.KhachHangDTO;
-
-import dao.TaiKhoanDAO; // Thêm Import TaiKhoanDAO
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import util.HashPass;
 
 import java.sql.SQLException;
 import java.util.List;
 
 public class KhachHangBUS {
-    private KhachHangDAO khDAO = new KhachHangDAO();
-    private TaiKhoanDAO tkDAO = new TaiKhoanDAO(); // Khởi tạo TaiKhoanDAO
+    private KhachHangDAO khDAO;
+    private TaiKhoanDAO tkDAO;
 
-    private String hashPassword(String password) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = md.digest(password.getBytes());
-            StringBuilder sb = new StringBuilder();
-            for (byte b : hashBytes) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Lỗi thuật toán mã hoá!", e);
-        }
+    public KhachHangBUS() {
+        khDAO = new KhachHangDAO();
+        tkDAO = new TaiKhoanDAO();
     }
 
-    public String dangKyKhachHang(String username, String password, String confirmPassword, String ten, String sdt, String email, String diaChi) {
-        // Validate dữ liệu cơ bản
-        if (username.trim().isEmpty() || password.isEmpty() || ten.trim().isEmpty()) {
-            return "Vui lòng nhập đầy đủ các thông tin bắt buộc!";
+    // ================= LOGIC DÀNH CHO TRANG ĐĂNG KÝ =================
+
+    public String dangKyKhachHang(String username, String password, String confirmPassword, 
+                                  String tenKH, String sdt, String email, String diaChi) {
+        if (username == null || username.trim().isEmpty() || 
+            password == null || password.trim().isEmpty() || 
+            tenKH == null || tenKH.trim().isEmpty() || 
+            sdt == null || sdt.trim().isEmpty()) {
+            return "Vui lòng nhập các thông tin bắt buộc!";
         }
+
         if (!password.equals(confirmPassword)) {
-            return "Mật khẩu xác nhận không khớp!";
+            return "Xác nhận mật khẩu không khớp!";
         }
-        if (!sdt.matches("^[0-9]{10,11}$")) {
-            return "Số điện thoại không hợp lệ!";
-        }
-        
-        String hashedPassword = hashPassword(password);
 
-        String result = tkDAO.dangKyTaiKhoan(username, hashedPassword, 2, ten, diaChi, sdt, email, "Thường");
+        if (!sdt.matches("^[0-9]{10,12}$")) {
+            return "Số điện thoại không hợp lệ (phải từ 10-12 số)!";
+        }
+
+        // ĐỒNG BỘ: Dùng class HashPass chung
+        String hashedPassword = HashPass.hashPassword(password);
+
+        // Gọi DAO đăng ký tài khoản (Role Khách Hàng mặc định = 4)
+        String result = tkDAO.dangKyTaiKhoan(username, hashedPassword, 4, diaChi, email, "Khách hàng", tenKH, sdt);
         
-        // Phân nhánh thông báo cho người dùng
-        if ("SUCCESS".equals(result)) {
+        if (result.equals("SUCCESS")) {
             return "Đăng ký tài khoản thành công!";
-        } else if ("DUPLICATE".equals(result)) {
-            return "Tên đăng nhập đã tồn tại! Vui lòng chọn tên khác.";
+        } else if (result.equals("DUPLICATE")) {
+            return "Tên đăng nhập đã tồn tại!";
         } else {
-            return "Hệ thống đang gặp sự cố! Vui lòng thử lại sau.";
+            return "Lỗi hệ thống! Vui lòng thử lại sau.";
         }
     }
 
-    public String capNhatHoSo(String maKH, String ten, String sdt, String email, String diaChi) {
-        if (ten.trim().isEmpty()) {
-            return "Tên không được để trống!";
-        }
-        if (!sdt.matches("^[0-9]{10,11}$")) {
-            return "Số điện thoại không hợp lệ!";
-        }
-        
-        boolean isSuccess = khDAO.capNhatHoSoKH(maKH, ten, diaChi, sdt, email);
-        return isSuccess ? "Cập nhật thành công!" : "Lỗi cập nhật hồ sơ!";
+    // ================= LOGIC DÀNH CHO PANEL QUẢN LÝ (CRUD) =================
+
+    public boolean capNhatHoSoKH(String maKH, String tenKH, String diaChi, String email, String sdt) {
+        return khDAO.capNhatHoSoKH(maKH, tenKH, diaChi, email, sdt);
     }
 
-    //-----------------------------------------------------------MERGE-----------------------------------------------------------
-    private final KhachHangDAO dao = new KhachHangDAO();
-    
     public List<KhachHangDTO> getAll() {
-        return dao.getAll();
+        return khDAO.getAll();
     }
 
     public List<KhachHangDTO> timKiem(String keyword) {
-        return dao.timKiem(keyword);
+        return khDAO.timKiem(keyword);
     }
 
     public KhachHangDTO getById(String maKH) {
-        return dao.getById(maKH);
+        return khDAO.getById(maKH);
     }
 
-    // Thêm mới: validate -> kiểm tra username trùng -> gọi DAO
-    public void them(KhachHangDTO kh, String password) throws IllegalArgumentException, SQLException {
+    public void them(KhachHangDTO kh, String password) throws SQLException, IllegalArgumentException {
         validate(kh);
-
-        if (kh.getUsername() == null || kh.getUsername().trim().isEmpty()) {
-            throw new IllegalArgumentException("Username không được để trống!");
+        if (khDAO.isUsernameExists(kh.getUsername())) {
+            throw new IllegalArgumentException("Username đã tồn tại!");
         }
-        if (password == null || password.trim().isEmpty()) {
-            throw new IllegalArgumentException("Mật khẩu không được để trống!");
-        }
-        if (dao.isUsernameExists(kh.getUsername())) {
-            throw new IllegalArgumentException("Username '" + kh.getUsername() + "' đã tồn tại!");
-        }
-
-        dao.them(kh, password);
+        
+        // KHI ADMIN THÊM KHÁCH HÀNG -> CŨNG PHẢI HASH MẬT KHẨU
+        String hashedPass = HashPass.hashPassword(password);
+        khDAO.them(kh, hashedPass);
     }
 
-    // Cập nhật: validate -> gọi DAO
-    public void capNhat(KhachHangDTO kh) throws IllegalArgumentException, SQLException {
+    public void capNhat(KhachHangDTO kh) throws SQLException, IllegalArgumentException {
         validate(kh);
-        dao.capNhat(kh);
+        khDAO.capNhat(kh);
     }
 
-    // Khóa tài khoản
     public void khoaTaiKhoan(String username) throws SQLException {
-        if (username == null || username.trim().isEmpty())
-            throw new IllegalArgumentException("Username không hợp lệ!");
-        dao.khoaTaiKhoan(username);
+        khDAO.khoaTaiKhoan(username);
     }
 
-    // Mở khóa tài khoản
     public void moKhoaTaiKhoan(String username) throws SQLException {
-        if (username == null || username.trim().isEmpty())
-            throw new IllegalArgumentException("Username không hợp lệ!");
-        dao.moKhoaTaiKhoan(username);
+        khDAO.moKhoaTaiKhoan(username);
     }
 
-    // ===================== VALIDATION =====================
-    private void validate(KhachHangDTO kh) throws IllegalArgumentException {
-        if (kh.getTenKH() == null || kh.getTenKH().trim().isEmpty())
+    private void validate(KhachHangDTO kh) {
+        if (kh.getTenKH() == null || kh.getTenKH().trim().isEmpty()) {
             throw new IllegalArgumentException("Tên khách hàng không được để trống!");
-
-        if (kh.getSdt() == null || kh.getSdt().trim().isEmpty())
-            throw new IllegalArgumentException("Số điện thoại không được để trống!");
-        if (!kh.getSdt().matches("\\d{10,12}"))
-            throw new IllegalArgumentException("Số điện thoại chỉ gồm 10–12 chữ số!");
-
-        if (kh.getEmail() != null && !kh.getEmail().trim().isEmpty()) {
-            if (!kh.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$"))
-                throw new IllegalArgumentException("Email không đúng định dạng!");
         }
-
-        if (kh.getDiaChi() == null || kh.getDiaChi().trim().isEmpty())
-            throw new IllegalArgumentException("Địa chỉ không được để trống!");
-
-        if (kh.getLoaiKH() == null || kh.getLoaiKH().trim().isEmpty())
-            throw new IllegalArgumentException("Loại khách hàng không được để trống!");
+        if (kh.getSdt() == null || !kh.getSdt().matches("\\d{10,12}")) {
+            throw new IllegalArgumentException("Số điện thoại chỉ chứa số và dài 10-12 ký tự!");
+        }
+        if (kh.getEmail() != null && !kh.getEmail().trim().isEmpty() && !kh.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            throw new IllegalArgumentException("Email không đúng định dạng!");
+        }
     }
 }

@@ -9,6 +9,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -238,7 +239,7 @@ public class MainFrame extends JFrame {
                 // Clear session
                 Session.currentUser = null; 
                 dispose();
-                new LoginGUI().setVisible(true); // Trở về trang đăng nhập
+                new AuthFrame().setVisible(true); // Trở về trang đăng nhập
             }
         });
 

@@ -1,9 +1,11 @@
 package test;
 
-import gui.khohang.XuatKhoPanel;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+
+import gui.panel.XuatKhoPanel;
+
 import java.awt.Color;
 
 public class TestXuatKho extends JFrame {

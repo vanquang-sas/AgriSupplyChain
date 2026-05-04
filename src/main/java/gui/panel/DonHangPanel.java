@@ -1,4 +1,4 @@
-package gui;
+package gui.panel;
 
 
 import bus.DonHangBUS;
@@ -17,7 +17,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
-public class DonHangGUI extends JPanel {
+public class DonHangPanel extends JPanel {
 
     private JTable table;
     private DefaultTableModel tableModel;
@@ -27,7 +27,7 @@ public class DonHangGUI extends JPanel {
     // Giả lập mã khách hàng đang đăng nhập trong hệ thống (Bạn có thể đổi sau khi ráp code Login)
     private String currentMaKH = "KH000017"; 
 
-    public DonHangGUI() {
+    public DonHangPanel() {
         donHangBUS = new DonHangBUS();
         initComponents();
         loadDataToTable();
@@ -347,7 +347,7 @@ public class DonHangGUI extends JPanel {
         frame.setLocationRelativeTo(null); // Hiện ra ở giữa màn hình
         
         // Gắn GUI của bạn vào cửa sổ và cho hiển thị lên
-        frame.add(new DonHangGUI());
+        frame.add(new DonHangPanel());
         frame.setVisible(true);
     }
 }

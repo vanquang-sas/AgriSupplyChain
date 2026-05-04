@@ -1,4 +1,4 @@
-package gui;
+package gui.panel;
 
 import bus.LoHangBUS;
 import dto.LoHangDTO;
@@ -8,13 +8,13 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-public class LoHangGUI extends JFrame {
+public class LoHangPanel extends JFrame {
 
     private JTextField txtMaNCC, txtMaLH, txtMaSP, txtSoLuong;
     private JTable table;
     private LoHangBUS loHangBUS = new LoHangBUS();
 
-    public LoHangGUI() {
+    public LoHangPanel() {
         setTitle("Quản lý Lô hàng");
         setSize(700, 500);
         setLocationRelativeTo(null);

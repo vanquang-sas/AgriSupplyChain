@@ -1,8 +1,4 @@
-package gui.khohang;
-
-import bus.XuatKhoBUS;
-import dto.XuatKhoDTO;
-import util.AppColor;
+package gui.panel;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -13,27 +9,23 @@ import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import util.AppColor;
 
-public class XuatKhoPanel extends JPanel {
+public class NhapKhoPanel extends JPanel {
 
     private static final java.util.logging.Logger logger =
-            java.util.logging.Logger.getLogger(XuatKhoPanel.class.getName());
+            java.util.logging.Logger.getLogger(NhapKhoPanel.class.getName());
 
     private static final Color PRIMARY_LIGHT = new Color(
             AppColor.PRIMARY.getRed(), AppColor.PRIMARY.getGreen(), AppColor.PRIMARY.getBlue(), 30);
     private static final Color WARNING_LIGHT = new Color(
             AppColor.WARNING.getRed(), AppColor.WARNING.getGreen(), AppColor.WARNING.getBlue(), 30);
 
-    private JTable tbXuat;
-    private JTable tbPending;
+    private JTable tbNhap;
     private JButton btnXacNhan;
-    private JButton btnCreateRequest;
-    private JButton btnRefreshPending;
     private JTextField txtSearch;
     private JLabel lblCount;
-    private JLabel lblPendingCount;
     private DefaultTableModel tableModel;
-    private DefaultTableModel pendingTableModel;
 
     private List<Object[]> allData = new ArrayList<>();
     private List<Object[]> filteredData = new ArrayList<>();
@@ -42,20 +34,14 @@ public class XuatKhoPanel extends JPanel {
     private JLabel lblPageIndicator;
     private JButton btnPrev, btnNext;
 
-    // Cột 0 đã được đổi thành MÃ ĐƠN HÀNG
     private static final String[] COL_NAMES = {
-        "MÃ ĐƠN HÀNG", "SẢN PHẨM", "SỐ LƯỢNG",
-        "NGÀY HẾT HẠN", "VỊ TRÍ", "NHÂN VIÊN", "TRẠNG THÁI"
+        "MÃ LÔ HÀNG", "SẢN PHẨM", "SỐ LƯỢNG",
+        "KHO", "LOẠI KHO", "VỊ TRÍ", "NGÀY HẾT HẠN", "TRẠNG THÁI"
     };
 
-    private static final String[] PENDING_COL_NAMES = {
-        "MÃ ĐƠN HÀNG", "KHÁCH HÀNG", "SỐ SP", "TỔNG SL", "TRẠNG THÁI"
-    };
-
-    public XuatKhoPanel() {
+    public NhapKhoPanel() {
         initUI();
         setupTable();
-        loadDataToPendingTable();
         loadDataToTable();
     }
 
@@ -69,38 +55,9 @@ public class XuatKhoPanel extends JPanel {
         card.setBorder(new LineBorder(AppColor.BORDER, 1, true));
 
         card.add(buildHeader(), BorderLayout.NORTH);
-        card.add(buildTabArea(), BorderLayout.CENTER);
+        card.add(buildTableArea(), BorderLayout.CENTER);
+        card.add(buildFooter(), BorderLayout.SOUTH);
         add(card, BorderLayout.CENTER);
-    }
-
-    private JTabbedPane buildTabArea() {
-        JTabbedPane tabs = new JTabbedPane();
-        tabs.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tabs.setBackground(AppColor.SURFACE);
-        tabs.setForeground(AppColor.TEXT_PRIMARY);
-        tabs.setBorder(BorderFactory.createEmptyBorder(0, 16, 16, 16));
-
-        tabs.addTab("Đơn hàng cần xuất", buildPendingTab());
-        tabs.addTab("Soạn hàng xuất kho", buildProcessTab());
-        return tabs;
-    }
-
-    private JPanel buildPendingTab() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setOpaque(false);
-        panel.add(buildPendingHeader(), BorderLayout.NORTH);
-        panel.add(buildPendingTableArea(), BorderLayout.CENTER);
-        panel.add(buildPendingFooter(), BorderLayout.SOUTH);
-        return panel;
-    }
-
-    private JPanel buildProcessTab() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setOpaque(false);
-        panel.add(buildProcessHeader(), BorderLayout.NORTH);
-        panel.add(buildTableArea(), BorderLayout.CENTER);
-        panel.add(buildFooter(), BorderLayout.SOUTH);
-        return panel;
     }
 
     private JPanel buildHeader() {
@@ -114,193 +71,32 @@ public class XuatKhoPanel extends JPanel {
         titleBlock.setLayout(new BoxLayout(titleBlock, BoxLayout.Y_AXIS));
         titleBlock.setOpaque(false);
 
-        JLabel title = new JLabel("Quản lý xuất kho");
+        JLabel title = new JLabel("Danh sách lô hàng nhập kho");
         title.setFont(new Font("Segoe UI", Font.BOLD, 18));
         title.setForeground(AppColor.TEXT_PRIMARY);
-
-        JLabel subtitle = new JLabel("Quản lý cả đơn hàng cần tạo yêu cầu và danh sách soạn hàng.");
-        subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        subtitle.setForeground(AppColor.TEXT_SECONDARY);
 
         titleBlock.add(title);
-        titleBlock.add(Box.createVerticalStrut(4));
-        titleBlock.add(subtitle);
         p.add(titleBlock, BorderLayout.WEST);
-
-        return p;
-    }
-
-    private JPanel buildPendingHeader() {
-        JPanel p = new JPanel(new BorderLayout(12, 0));
-        p.setOpaque(false);
-        p.setBorder(new CompoundBorder(
-                new MatteBorder(0, 0, 1, 0, AppColor.BORDER),
-                new EmptyBorder(18, 22, 16, 22)));
-
-        JLabel title = new JLabel("Đơn hàng cần tạo yêu cầu xuất kho");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        title.setForeground(AppColor.TEXT_PRIMARY);
-
-        JPanel ctrls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
-        ctrls.setOpaque(false);
-
-        btnRefreshPending = buildOutlineBtn("⟳", 40);
-        btnRefreshPending.addActionListener(e -> loadDataToPendingTable());
-        ctrls.add(btnRefreshPending);
-
-        btnCreateRequest = buildFillBtn("Tạo yêu cầu xuất kho", 180);
-        btnCreateRequest.addActionListener(this::onCreateRequest);
-        ctrls.add(btnCreateRequest);
-
-        p.add(title, BorderLayout.WEST);
-        p.add(ctrls, BorderLayout.EAST);
-        return p;
-    }
-
-    private JPanel buildProcessHeader() {
-        JPanel p = new JPanel(new BorderLayout(12, 0));
-        p.setOpaque(false);
-        p.setBorder(new CompoundBorder(
-                new MatteBorder(0, 0, 1, 0, AppColor.BORDER),
-                new EmptyBorder(18, 22, 16, 22)));
-
-        JLabel title = new JLabel("Danh sách đơn hàng xuất kho (Soạn hàng)");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        title.setForeground(AppColor.TEXT_PRIMARY);
 
         JPanel ctrls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         ctrls.setOpaque(false);
+        
         ctrls.add(buildSearchWrap());
-
+        
         JButton btnRefresh = buildOutlineBtn("⟳", 40);
         btnRefresh.addActionListener(e -> loadDataToTable());
         ctrls.add(btnRefresh);
 
-        btnXacNhan = buildFillBtn("✓ Xác nhận hoàn tất", 180);
+        btnXacNhan = buildFillBtn("✓ Xác nhận nhập kho", 180);
         btnXacNhan.addActionListener(this::onXacNhan);
         ctrls.add(btnXacNhan);
-
-        p.add(title, BorderLayout.WEST);
+        
         p.add(ctrls, BorderLayout.EAST);
         return p;
     }
 
-    private JScrollPane buildPendingTableArea() {
-        tbPending = new JTable();
-        styleStandardTable(tbPending);
-
-        pendingTableModel = new DefaultTableModel(PENDING_COL_NAMES, 0) {
-            @Override
-            public boolean isCellEditable(int row, int col) {
-                return false;
-            }
-        };
-        tbPending.setModel(pendingTableModel);
-
-        DefaultTableCellRenderer hr = new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
-                JLabel l = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, r, c);
-                l.setFont(new Font("Segoe UI", Font.BOLD, 11));
-                l.setForeground(AppColor.TEXT_SECONDARY);
-                l.setBackground(AppColor.BACKGROUND);
-                l.setBorder(new CompoundBorder(
-                        new MatteBorder(0, 0, 1, 0, AppColor.BORDER),
-                        new EmptyBorder(0, c == 0 ? 14 : 10, 0, 6)));
-                return l;
-            }
-        };
-        for (int i = 0; i < tbPending.getColumnCount(); i++) {
-            tbPending.getColumnModel().getColumn(i).setHeaderRenderer(hr);
-        }
-
-        int[] widths = {120, 180, 80, 100, 140};
-        for (int i = 0; i < widths.length; i++) {
-            tbPending.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
-        }
-
-        JScrollPane sp = new JScrollPane(tbPending);
-        sp.setBorder(BorderFactory.createEmptyBorder());
-        sp.getViewport().setBackground(AppColor.SURFACE);
-        return sp;
-    }
-
-    private JPanel buildPendingFooter() {
-        JPanel p = new JPanel(new BorderLayout());
-        p.setBackground(AppColor.SURFACE);
-        p.setBorder(new CompoundBorder(
-                new MatteBorder(1, 0, 0, 0, AppColor.BORDER),
-                new EmptyBorder(12, 22, 14, 22)));
-
-        lblPendingCount = new JLabel("Hiển thị 0 đơn hàng cần tạo yêu cầu");
-        lblPendingCount.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblPendingCount.setForeground(AppColor.TEXT_SECONDARY);
-        p.add(lblPendingCount, BorderLayout.WEST);
-        return p;
-    }
-
-    private void styleStandardTable(JTable table) {
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        table.setRowHeight(55);
-        table.setShowVerticalLines(false);
-        table.setShowHorizontalLines(true);
-        table.setGridColor(AppColor.BORDER);
-        table.setSelectionBackground(PRIMARY_LIGHT);
-        table.setSelectionForeground(AppColor.PRIMARY_ACTIVE);
-        table.setIntercellSpacing(new Dimension(0, 0));
-
-        JTableHeader th = table.getTableHeader();
-        th.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        th.setBackground(AppColor.BACKGROUND);
-        th.setForeground(AppColor.TEXT_SECONDARY);
-        th.setPreferredSize(new Dimension(0, 45));
-        th.setBorder(new MatteBorder(0, 0, 1, 0, AppColor.BORDER));
-        th.setReorderingAllowed(false);
-    }
-
-    private void loadDataToPendingTable() {
-        try {
-            ArrayList<Object[]> data = new XuatKhoBUS().getDanhSachDonHangChoXuat();
-            pendingTableModel.setRowCount(0);
-            for (Object[] row : data) {
-                pendingTableModel.addRow(row);
-            }
-            lblPendingCount.setText(String.format("Hiển thị %d đơn hàng cần tạo yêu cầu", data.size()));
-        } catch (Exception e) {
-            logger.warning("Lỗi tải danh sách đơn hàng cần xuất: " + e.getMessage());
-            JOptionPane.showMessageDialog(this,
-                    "Không thể tải danh sách đơn hàng cần xuất:\n" + e.getMessage(),
-                    "Lỗi kết nối", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private void onCreateRequest(ActionEvent e) {
-        int row = tbPending.getSelectedRow();
-        if (row == -1) {
-            JOptionPane.showMessageDialog(this,
-                    "Vui lòng chọn một đơn hàng trước khi tạo yêu cầu xuất kho.",
-                    "Thiếu thông tin", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        String maDH = tbPending.getValueAt(row, 0).toString();
-        String result = new XuatKhoBUS().yeuCauXuatKho(maDH);
-
-        if ("SUCCESS".equals(result)) {
-            JOptionPane.showMessageDialog(this,
-                    "Đã tạo yêu cầu xuất kho cho đơn hàng: " + maDH,
-                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
-            loadDataToPendingTable();
-            loadDataToTable();
-        } else {
-            JOptionPane.showMessageDialog(this,
-                    result,
-                    "Không thể tạo yêu cầu", JOptionPane.WARNING_MESSAGE);
-        }
-    }
-
     private JScrollPane buildTableArea() {
-        tbXuat = new JTable() {
+        tbNhap = new JTable() {
             @Override
             public Component prepareRenderer(TableCellRenderer r, int row, int col) {
                 Component c = super.prepareRenderer(r, row, col);
@@ -314,17 +110,17 @@ public class XuatKhoPanel extends JPanel {
                 return c;
             }
         };
-        tbXuat.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tbXuat.setRowHeight(55); 
-        tbXuat.setShowVerticalLines(false);
-        tbXuat.setShowHorizontalLines(true);
-        tbXuat.setGridColor(AppColor.BORDER);
-        tbXuat.setSelectionBackground(PRIMARY_LIGHT);
-        tbXuat.setSelectionForeground(AppColor.PRIMARY_ACTIVE);
-        tbXuat.setIntercellSpacing(new Dimension(0, 0));
-        tbXuat.setFocusable(false);
+        tbNhap.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tbNhap.setRowHeight(55); 
+        tbNhap.setShowVerticalLines(false);
+        tbNhap.setShowHorizontalLines(true);
+        tbNhap.setGridColor(AppColor.BORDER);
+        tbNhap.setSelectionBackground(PRIMARY_LIGHT);
+        tbNhap.setSelectionForeground(AppColor.PRIMARY_ACTIVE);
+        tbNhap.setIntercellSpacing(new Dimension(0, 0));
+        tbNhap.setFocusable(false);
 
-        JTableHeader th = tbXuat.getTableHeader();
+        JTableHeader th = tbNhap.getTableHeader();
         th.setFont(new Font("Segoe UI", Font.BOLD, 11));
         th.setBackground(AppColor.BACKGROUND);
         th.setForeground(AppColor.TEXT_SECONDARY);
@@ -332,7 +128,7 @@ public class XuatKhoPanel extends JPanel {
         th.setBorder(new MatteBorder(0, 0, 1, 0, AppColor.BORDER));
         th.setReorderingAllowed(false);
 
-        JScrollPane sp = new JScrollPane(tbXuat);
+        JScrollPane sp = new JScrollPane(tbNhap);
         sp.setBorder(BorderFactory.createEmptyBorder());
         sp.getViewport().setBackground(AppColor.SURFACE);
         return sp;
@@ -348,7 +144,7 @@ public class XuatKhoPanel extends JPanel {
         JPanel leftInfo = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         leftInfo.setOpaque(false);
 
-        lblCount = new JLabel("Hiển thị 0 - 0 của 0 chi tiết xuất kho");
+        lblCount = new JLabel("Hiển thị 0 - 0 của 0 lô hàng");
         lblCount.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         lblCount.setForeground(AppColor.TEXT_SECONDARY);
         leftInfo.add(lblCount);
@@ -405,10 +201,10 @@ public class XuatKhoPanel extends JPanel {
         tableModel = new DefaultTableModel(COL_NAMES, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
-                return col == 5; // Chỉ cho phép sửa cột Nhân viên soạn hàng (Index 5)
+                return col == 3 || col == 5 || col == 6;
             }
         };
-        tbXuat.setModel(tableModel);
+        tbNhap.setModel(tableModel);
 
         DefaultTableCellRenderer readonlyRenderer = new DefaultTableCellRenderer() {
             @Override
@@ -421,7 +217,7 @@ public class XuatKhoPanel extends JPanel {
             }
         };
 
-        tbXuat.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
+        tbNhap.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
                 JLabel l = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, r, c);
@@ -432,7 +228,7 @@ public class XuatKhoPanel extends JPanel {
             }
         });
 
-        tbXuat.getColumnModel().getColumn(1).setCellRenderer(new DefaultTableCellRenderer() {
+        tbNhap.getColumnModel().getColumn(1).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
                 JLabel l = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, r, c);
@@ -442,28 +238,36 @@ public class XuatKhoPanel extends JPanel {
             }
         });
 
-        tbXuat.getColumnModel().getColumn(2).setCellRenderer(readonlyRenderer); // Số lượng
-        tbXuat.getColumnModel().getColumn(3).setCellRenderer(readonlyRenderer); // Ngày hết hạn
-        tbXuat.getColumnModel().getColumn(4).setCellRenderer(readonlyRenderer); // Vị trí
+        tbNhap.getColumnModel().getColumn(2).setCellRenderer(readonlyRenderer);
 
-        java.util.Vector<String> nvList = new java.util.Vector<>();
-        nvList.add("");
+        java.util.Vector<String> khoList = new java.util.Vector<>();
+        khoList.add("");
         try {
-            nvList.addAll(new XuatKhoBUS().getAllMaNhanVien());
+            khoList.addAll(new bus.NhapKhoBUS().getAllMaKho());
         } catch (Exception e) {
-            logger.warning("Lỗi tải danh sách nhân viên: " + e.getMessage());
+            logger.warning("Lỗi tải mã kho: " + e.getMessage());
         }
 
-        JComboBox<String> cbNV = new JComboBox<>(nvList);
-        styleCombo(cbNV);
-        tbXuat.getColumnModel().getColumn(5).setCellEditor(new DefaultCellEditor(cbNV));
-        tbXuat.getColumnModel().getColumn(5).setCellRenderer(new EditableComboRenderer("Chọn nhân viên..."));
+        JComboBox<String> cbKho = new JComboBox<>(khoList);
+        styleCombo(cbKho);
+        tbNhap.getColumnModel().getColumn(3).setCellEditor(new DefaultCellEditor(cbKho));
+        tbNhap.getColumnModel().getColumn(3).setCellRenderer(new EditableComboRenderer("Chọn kho..."));
 
-        tbXuat.getColumnModel().getColumn(6).setCellRenderer(new BadgeLabel());
+        tbNhap.getColumnModel().getColumn(4).setCellRenderer(new LoaiKhoBadgeRenderer());
 
-        int[] widths = {120, 200, 90, 100, 120, 150, 120};
+        JComboBox<String> cbViTri = new JComboBox<>(new String[]{"", "A", "B", "C"});
+        styleCombo(cbViTri);
+        tbNhap.getColumnModel().getColumn(5).setCellEditor(new DefaultCellEditor(cbViTri));
+        tbNhap.getColumnModel().getColumn(5).setCellRenderer(new EditableComboRenderer("Chọn vị trí..."));
+
+        tbNhap.getColumnModel().getColumn(6).setCellEditor(new com.toedter.calendar.JDateChooserCellEditor());
+        tbNhap.getColumnModel().getColumn(6).setCellRenderer(new EditableDateRenderer("Chọn ngày..."));
+
+        tbNhap.getColumnModel().getColumn(7).setCellRenderer(new BadgeLabel());
+
+        int[] widths = {115, 175, 80, 80, 95, 80, 125, 105};
         for (int i = 0; i < widths.length; i++)
-            tbXuat.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+            tbNhap.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
 
         DefaultTableCellRenderer hr = new DefaultTableCellRenderer() {
             @Override
@@ -478,19 +282,20 @@ public class XuatKhoPanel extends JPanel {
                 return l;
             }
         };
-        for (int i = 0; i < tbXuat.getColumnCount(); i++)
-            tbXuat.getColumnModel().getColumn(i).setHeaderRenderer(hr);
+        for (int i = 0; i < tbNhap.getColumnCount(); i++)
+            tbNhap.getColumnModel().getColumn(i).setHeaderRenderer(hr);
     }
 
     public void loadDataToTable() {
         try {
-            XuatKhoBUS bus = new XuatKhoBUS();
-            allData = bus.getDanhSachSoanHang();
+            bus.NhapKhoBUS bus = new bus.NhapKhoBUS();
+            allData = bus.getDanhSachNhapKho();
             
-            allData.removeIf(row -> row[6] != null && row[6].toString().toLowerCase().contains("đã"));
+            // Xóa ngay các đơn đã nhập ra khỏi danh sách nếu DB vô tình load lên
+            allData.removeIf(row -> row[7] != null && row[7].toString().toLowerCase().contains("đã"));
             
             if(txtSearch != null) {
-                txtSearch.setText("Tìm kiếm đơn hàng...");
+                txtSearch.setText("Tìm kiếm lô hàng...");
                 txtSearch.setForeground(AppColor.TEXT_SECONDARY);
             }
             
@@ -504,7 +309,7 @@ public class XuatKhoPanel extends JPanel {
     }
 
     private void renderTablePage() {
-        if (tbXuat.isEditing()) tbXuat.getCellEditor().stopCellEditing();
+        if (tbNhap.isEditing()) tbNhap.getCellEditor().stopCellEditing();
         tableModel.setRowCount(0);
 
         int totalItems = filteredData.size();
@@ -525,65 +330,90 @@ public class XuatKhoPanel extends JPanel {
         btnNext.setEnabled(currentPage < totalPages);
 
         if (totalItems == 0) {
-            lblCount.setText("Không tìm thấy dòng chi tiết nào");
+            lblCount.setText("Không tìm thấy lô hàng nào");
             lblPageIndicator.setText(" 0 ");
         } else {
-            lblCount.setText(String.format("Hiển thị %d - %d của %d dòng", 
+            lblCount.setText(String.format("Hiển thị %d - %d của %d lô hàng", 
                     (startIndex + 1), endIndex, totalItems));
         }
     }
 
     private void onXacNhan(ActionEvent e) {
-        if (tbXuat.isEditing()) tbXuat.getCellEditor().stopCellEditing();
+        if (tbNhap.isEditing()) tbNhap.getCellEditor().stopCellEditing();
 
-        int row = tbXuat.getSelectedRow();
+        int row = tbNhap.getSelectedRow();
         if (row == -1) {
-            warn("Vui lòng chọn một dòng để xác nhận xuất đơn hàng tương ứng!");
+            warn("Vui lòng chọn một lô hàng cần nhập kho!");
             return;
         }
 
-        String maDH = cell(row, 0); // Lấy MaDH
-        String maNV = cell(row, 5); 
+        String maCTLH = cell(row, 0);
+        String tenSP  = cell(row, 1);
+        String maKho  = cell(row, 3);
 
-        if (maNV.isEmpty() || maNV.equals("Chọn nhân viên...")) {
-            warn("Vui lòng chọn Nhân viên thực hiện cho Đơn hàng " + maDH + "!");
-            tbXuat.editCellAt(row, 5);
+        String viTri = cell(row, 5);
+        if (viTri.isEmpty()) {
+            warn("Vui lòng chọn Vị trí cho lô hàng " + maCTLH + "!");
+            tbNhap.editCellAt(row, 5);
             return;
         }
 
-        XuatKhoDTO dto = new XuatKhoDTO();
-        dto.setMaXK(maDH); // Truyền MaDH vào biến MaXK
-        dto.setMaNV(maNV);
+        Object objHH = tbNhap.getValueAt(row, 6);
+        if (objHH == null || objHH.toString().trim().isEmpty() || objHH.toString().equals("Chọn ngày...")) {
+            warn("Vui lòng chọn Ngày hết hạn cho lô hàng " + maCTLH + "!");
+            tbNhap.editCellAt(row, 6);
+            return;
+        }
+
+        java.util.Date ngayHH;
+        try {
+            if (objHH instanceof java.util.Date) {
+                ngayHH = (java.util.Date) objHH;
+            } else {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+                sdf.setLenient(false);
+                ngayHH = sdf.parse(objHH.toString().trim());
+            }
+        } catch (Exception ex) {
+            warn("Ngày hết hạn không hợp lệ! Định dạng: yyyy-MM-dd");
+            return;
+        }
+
+        dto.TonKhoDTO dto = new dto.TonKhoDTO();
+        dto.setMaCTLH(maCTLH);
+        dto.setMaKho(maKho);
+        dto.setViTri(viTri);
+        dto.setTgHetHan(ngayHH);
 
         try {
             btnXacNhan.setEnabled(false);
             btnXacNhan.setText("Đang xử lý...");
 
-            String result = new XuatKhoBUS().xacNhanSoanHang(dto);
+            String result = new bus.NhapKhoBUS().xacNhanNhapKho(dto, tenSP);
 
             if ("SUCCESS".equals(result)) {
                 JOptionPane.showMessageDialog(this,
-                        "Đã xác nhận xuất kho thành công toàn bộ Đơn hàng: " + maDH,
+                        "Nhập kho thành công!\nLô: " + maCTLH + "  |  SP: " + tenSP,
                         "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 
-                // Tự động xóa TẤT CẢ các dòng có chung Mã đơn hàng (Gom đơn)
-                allData.removeIf(item -> item[0] != null && item[0].toString().equals(maDH));
+                // Tự động xóa dòng vừa nhập thành công khỏi danh sách hiển thị
+                allData.removeIf(item -> item[0] != null && item[0].toString().equals(maCTLH));
                 filterTable(); 
             } else {
                 JOptionPane.showMessageDialog(this,
-                        result, "Không thể xác nhận", JOptionPane.WARNING_MESSAGE);
+                        result, "Không thể nhập kho", JOptionPane.WARNING_MESSAGE);
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "Lỗi hệ thống: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         } finally {
             btnXacNhan.setEnabled(true);
-            btnXacNhan.setText("✓ Xác nhận hoàn tất");
+            btnXacNhan.setText("✓ Xác nhận nhập kho");
         }
     }
 
     private String cell(int row, int col) {
-        Object o = tbXuat.getValueAt(row, col);
+        Object o = tbNhap.getValueAt(row, col);
         return o == null ? "" : o.toString().trim();
     }
 
@@ -603,7 +433,7 @@ public class XuatKhoPanel extends JPanel {
         icon.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         w.add(icon, BorderLayout.WEST);
 
-        txtSearch = new JTextField("Tìm kiếm đơn hàng...");
+        txtSearch = new JTextField("Tìm kiếm lô hàng...");
         txtSearch.setBorder(BorderFactory.createEmptyBorder());
         txtSearch.setBackground(AppColor.BACKGROUND);
         txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -611,14 +441,14 @@ public class XuatKhoPanel extends JPanel {
 
         txtSearch.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent e) {
-                if (txtSearch.getText().equals("Tìm kiếm đơn hàng...")) {
+                if (txtSearch.getText().equals("Tìm kiếm lô hàng...")) {
                     txtSearch.setText("");
                     txtSearch.setForeground(AppColor.TEXT_PRIMARY);
                 }
             }
             public void focusLost(FocusEvent e) {
                 if (txtSearch.getText().isEmpty()) {
-                    txtSearch.setText("Tìm kiếm đơn hàng...");
+                    txtSearch.setText("Tìm kiếm lô hàng...");
                     txtSearch.setForeground(AppColor.TEXT_SECONDARY);
                 }
             }
@@ -637,7 +467,7 @@ public class XuatKhoPanel extends JPanel {
     private void filterTable() {
         String keyword = txtSearch.getText().trim().toLowerCase();
         
-        if (keyword.equals("tìm kiếm đơn hàng...") || keyword.isEmpty()) {
+        if (keyword.equals("tìm kiếm lô hàng...") || keyword.isEmpty()) {
             filteredData = new ArrayList<>(allData);
         } else {
             filteredData = allData.stream().filter(row -> {
@@ -708,6 +538,46 @@ public class XuatKhoPanel extends JPanel {
         cb.setBorder(new LineBorder(AppColor.BORDER, 1, true));
     }
 
+    private static class LoaiKhoBadgeRenderer extends JPanel implements TableCellRenderer {
+        private String txt = "";
+        LoaiKhoBadgeRenderer() { setOpaque(true); }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
+            txt = v == null ? "" : v.toString();
+            setBackground(sel ? t.getSelectionBackground() : (r % 2 == 0 ? AppColor.BACKGROUND : AppColor.SECONDARY_HOVER));
+            return this;
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (txt.isEmpty()) return;
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            Color bg, fg;
+            switch (txt.toLowerCase()) {
+                case "đông" -> { bg = new Color(0xE3F2FD); fg = new Color(0x0D47A1); }
+                case "lạnh" -> { bg = new Color(0xE0F7FA); fg = new Color(0x00695C); }
+                default      -> { bg = new Color(0xF9FBE7); fg = new Color(0x558B2F); }
+            }
+
+            g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+            FontMetrics fm = g2.getFontMetrics();
+            int tw = fm.stringWidth(txt);
+            int px = 10, py = 3;
+            int w = tw + px * 2, h = fm.getHeight() + py * 2;
+            int x = (getWidth() - w) / 2, y = (getHeight() - h) / 2;
+
+            g2.setColor(bg);
+            g2.fill(new RoundRectangle2D.Float(x, y, w, h, h, h));
+            g2.setColor(fg);
+            g2.drawString(txt, x + px, y + py + fm.getAscent());
+            g2.dispose();
+        }
+    }
+
     private static class EditableComboRenderer extends DefaultTableCellRenderer {
         private final String placeholder;
         EditableComboRenderer(String ph) { this.placeholder = ph; setOpaque(true); }
@@ -722,6 +592,27 @@ public class XuatKhoPanel extends JPanel {
                 l.setText(placeholder);
                 l.setForeground(AppColor.TEXT_SECONDARY);
             } else {
+                l.setForeground(AppColor.TEXT_PRIMARY);
+            }
+            return l;
+        }
+    }
+
+    private static class EditableDateRenderer extends DefaultTableCellRenderer {
+        private final String placeholder;
+        EditableDateRenderer(String ph) { this.placeholder = ph; setOpaque(true); }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
+            JLabel l = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, r, c);
+            l.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            l.setBorder(new EmptyBorder(0, 8, 0, 0));
+            String val = v == null ? "" : v.toString().trim();
+            if (val.isEmpty() || val.equals(" ")) {
+                l.setText(placeholder);
+                l.setForeground(AppColor.TEXT_SECONDARY);
+            } else {
+                l.setText(val);
                 l.setForeground(AppColor.TEXT_PRIMARY);
             }
             return l;

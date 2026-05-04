@@ -2,42 +2,38 @@ package bus;
 
 import dao.TaiKhoanDAO;
 import dto.TaiKhoanDTO;
+import util.HashPass;
 import util.Session;
 
 public class TaiKhoanBUS {
     private TaiKhoanDAO taiKhoanDAO;
 
     public TaiKhoanBUS() {
-        this.taiKhoanDAO = new TaiKhoanDAO();
+        taiKhoanDAO = new TaiKhoanDAO();
     }
 
-    /**
-     * Xử lý nghiệp vụ đăng nhập
-     * @param username Tên đăng nhập
-     * @param password Mật khẩu
-     * @return Thông báo lỗi, hoặc chuỗi "Thành công" nếu đăng nhập hợp lệ
-     */
     public String login(String username, String password) {
-        // Kiểm tra trống
         if (username == null || username.trim().isEmpty() || password == null || password.trim().isEmpty()) {
             return "Tài khoản và mật khẩu không được để trống!";
         }
 
-        // Gọi DAO lấy dữ liệu
-        TaiKhoanDTO dto = taiKhoanDAO.checkLogin(username, password);
+        // ĐỒNG BỘ: Mã hóa mật khẩu trước khi kiểm tra với database
+        String hashedPassword = HashPass.hashPassword(password);
 
-        // Kiểm tra đúng/sai mật khẩu
-        if (dto == null) {
-            return "Sai tên đăng nhập hoặc mật khẩu!";
+        // Chuyền mật khẩu ĐÃ HASH xuống DAO để kiểm tra
+        TaiKhoanDTO taiKhoan = taiKhoanDAO.checkLogin(username, hashedPassword);
+
+        if (taiKhoan == null) {
+            return "Sai tài khoản hoặc mật khẩu!";
         }
 
-        // Kiểm tra trạng thái tài khoản (Giả định 0 = Bị khóa, 1 = Hoạt động)
-        if (dto.getTrangThaiTK() == 0) {
+        // Kiểm tra trạng thái tài khoản (1 = Hoạt động, 0 = Bị khóa)
+        if (taiKhoan.getTrangThaiTK() == 0) {
             return "Tài khoản của bạn đã bị khóa!";
         }
 
-        // Nếu hợp lệ hết -> Lưu phiên đăng nhập
-        Session.currentUser = dto;
+        // Lưu thông tin người dùng vào Session toàn cục
+        Session.currentUser = taiKhoan;
         return "Thành công";
     }
 }

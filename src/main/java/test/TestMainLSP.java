@@ -1,7 +1,8 @@
 package test;
 
-import gui.LoaiSanPhamGUI;
 import javax.swing.*;
+
+import gui.panel.LoaiSanPhamPanel;
 
 public class TestMainLSP {
     public static void main(String[] args) {
@@ -13,7 +14,7 @@ public class TestMainLSP {
             frame.setLocationRelativeTo(null); // Căn giữa màn hình
             
             // Đưa Panel LoaiSanPhamGUI vào Frame
-            frame.add(new LoaiSanPhamGUI());
+            frame.add(new LoaiSanPhamPanel());
             frame.setVisible(true);
         });
     }

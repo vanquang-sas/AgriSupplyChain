@@ -2,69 +2,66 @@ package bus;
 
 import dao.NhanVienDAO;
 import dto.NhanVienDTO;
+import util.HashPass;
 
 import java.sql.SQLException;
 import java.util.List;
 
 public class NhanVienBUS {
-    private final NhanVienDAO dao = new NhanVienDAO();
+    private NhanVienDAO nvDAO;
+
+    public NhanVienBUS() {
+        nvDAO = new NhanVienDAO();
+    }
 
     public List<NhanVienDTO> getAll() {
-        return dao.getAll();
+        return nvDAO.getAll();
     }
 
     public List<NhanVienDTO> timKiem(String keyword) {
-        return dao.timKiem(keyword);
+        return nvDAO.timKiem(keyword);
     }
 
     public NhanVienDTO getById(String maNV) {
-        return dao.getById(maNV);
+        return nvDAO.getById(maNV);
     }
 
-    public void them(NhanVienDTO nv, String password) throws IllegalArgumentException, SQLException {
+    public void them(NhanVienDTO nv, String password) throws SQLException, IllegalArgumentException {
         validate(nv);
-
-        if (nv.getUsername() == null || nv.getUsername().trim().isEmpty())
-            throw new IllegalArgumentException("Username không được để trống!");
-        if (password == null || password.trim().isEmpty())
-            throw new IllegalArgumentException("Mật khẩu không được để trống!");
-        if (dao.isUsernameExists(nv.getUsername()))
-            throw new IllegalArgumentException("Username '" + nv.getUsername() + "' đã tồn tại!");
-
-        dao.them(nv, password);
+        if (nvDAO.isUsernameExists(nv.getUsername())) {
+            throw new IllegalArgumentException("Username đã tồn tại!");
+        }
+        
+        // KHI ADMIN THÊM NHÂN VIÊN -> MẬT KHẨU PHẢI ĐƯỢC HASH
+        String hashedPass = HashPass.hashPassword(password);
+        nvDAO.them(nv, hashedPass);
     }
 
-    public void capNhat(NhanVienDTO nv) throws IllegalArgumentException, SQLException {
+    public void capNhat(NhanVienDTO nv) throws SQLException, IllegalArgumentException {
         validate(nv);
-        dao.capNhat(nv);
+        nvDAO.capNhat(nv);
     }
 
     public void khoaTaiKhoan(String username) throws SQLException {
-        if (username == null || username.trim().isEmpty())
-            throw new IllegalArgumentException("Username không hợp lệ!");
-        dao.khoaTaiKhoan(username);
+        nvDAO.khoaTaiKhoan(username);
     }
 
     public void moKhoaTaiKhoan(String username) throws SQLException {
-        if (username == null || username.trim().isEmpty())
-            throw new IllegalArgumentException("Username không hợp lệ!");
-        dao.moKhoaTaiKhoan(username);
+        nvDAO.moKhoaTaiKhoan(username);
     }
 
-    // ===================== VALIDATION =====================
-    private void validate(NhanVienDTO nv) throws IllegalArgumentException {
-        if (nv.getTenNV() == null || nv.getTenNV().trim().isEmpty())
+    private void validate(NhanVienDTO nv) {
+        if (nv.getTenNV() == null || nv.getTenNV().trim().isEmpty()) {
             throw new IllegalArgumentException("Tên nhân viên không được để trống!");
-
-        if (nv.getSdt() == null || nv.getSdt().trim().isEmpty())
-            throw new IllegalArgumentException("Số điện thoại không được để trống!");
-        if (!nv.getSdt().matches("\\d{10,12}"))
-            throw new IllegalArgumentException("Số điện thoại chỉ gồm 10–12 chữ số!");
-
-        if (nv.getChucVu() == null || nv.getChucVu().trim().isEmpty())
+        }
+        if (nv.getSdt() == null || !nv.getSdt().matches("\\d{10,12}")) {
+            throw new IllegalArgumentException("Số điện thoại chỉ chứa số và dài 10-12 ký tự!");
+        }
+        if (nv.getChucVu() == null || nv.getChucVu().trim().isEmpty()) {
             throw new IllegalArgumentException("Chức vụ không được để trống!");
-
-        if (nv.getLuong() < 0)
-            throw new IllegalArgumentException("Lương không được âm!");
+        }
+        if (nv.getLuong() < 0) {
+            throw new IllegalArgumentException("Mức lương không hợp lệ!");
+        }
     }
 }

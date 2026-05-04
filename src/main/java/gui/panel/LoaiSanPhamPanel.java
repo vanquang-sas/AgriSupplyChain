@@ -1,4 +1,4 @@
-package gui;
+package gui.panel;
 
 import bus.LoaiSanPhamBUS;
 import dto.LoaiSanPhamDTO;
@@ -9,12 +9,12 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-public class LoaiSanPhamGUI extends JPanel {
+public class LoaiSanPhamPanel extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private LoaiSanPhamBUS bus;
 
-    public LoaiSanPhamGUI() {
+    public LoaiSanPhamPanel() {
         bus = new LoaiSanPhamBUS();
         initComponents();
         loadDataToTable();

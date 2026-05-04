@@ -5,7 +5,9 @@
 package test;
 
 import com.formdev.flatlaf.FlatLightLaf;
-import gui.TonKhoPanel;
+
+import gui.panel.TonKhoPanel;
+
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
