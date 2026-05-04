@@ -39,8 +39,8 @@ public class KhachHangBUS {
         // ĐỒNG BỘ: Dùng class HashPass chung
         String hashedPassword = HashPass.hashPassword(password);
 
-        // Gọi DAO đăng ký tài khoản (Role Khách Hàng mặc định = 4)
-        String result = tkDAO.dangKyTaiKhoan(username, hashedPassword, 4, diaChi, email, "Khách hàng", tenKH, sdt);
+        // Gọi DAO đăng ký tài khoản (Role Khách Hàng mặc định = 2)
+        String result = tkDAO.dangKyTaiKhoan(username, hashedPassword, 2, tenKH, diaChi, sdt, email, "Thường");
         
         if (result.equals("SUCCESS")) {
             return "Đăng ký tài khoản thành công!";

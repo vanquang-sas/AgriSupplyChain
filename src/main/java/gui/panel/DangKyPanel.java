@@ -15,6 +15,8 @@ public class DangKyPanel extends JPanel {
     private JTextField txtUsername, txtTen, txtSDT, txtEmail, txtDiaChi;
     private JPasswordField txtPassword, txtConfirmPassword;
 
+    public DangKyPanel() {}
+
     public DangKyPanel(AuthFrame parentFrame) {
         this.parentFrame = parentFrame;
         setLayout(new GridBagLayout());

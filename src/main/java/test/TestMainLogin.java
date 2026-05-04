@@ -1,6 +1,6 @@
 package test;
 
-import gui.DangNhapGUI;
+import gui.panel.DangNhapPanel;
 import javax.swing.SwingUtilities;
 
 public class TestMainLogin {
@@ -8,7 +8,7 @@ public class TestMainLogin {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new DangNhapGUI().setVisible(true);
+                new DangNhapPanel().setVisible(true);
             }
         });
     }

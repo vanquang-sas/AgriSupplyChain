@@ -6,14 +6,12 @@ import gui.component.IntegratedSearch;
 import gui.component.Pagination;
 import gui.component.ActionCellEditor;
 import gui.component.ActionCellRenderer;
-import gui.component.StatusBadgeRenderer;
 import gui.dialog.NhaCungCapForm;
 import raven.modal.ModalDialog;
 import raven.modal.component.SimpleModalBorder;
 import util.AppColor;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.SQLException;

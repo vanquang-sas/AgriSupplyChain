@@ -616,7 +616,7 @@ CREATE OR REPLACE PROCEDURE SP_DANGKY_TAIKHOAN (
     p_DiaChi IN NVARCHAR2,
     p_SDT IN VARCHAR2,
     p_Email IN NVARCHAR2,
-    p_LoaiKHoacChucVu IN NVARCHAR2, -- Nhận LoaiKH (Thường/VIP) hoặc ChucVu (Quản lý/NV kho...)
+    p_LoaiKHHoacChucVu IN NVARCHAR2, -- Nhận LoaiKH (Thường/VIP) hoặc ChucVu (Quản lý/NV kho...)
     p_Luong IN NUMBER         -- Chỉ dùng cho nhân viên, KH truyền NULL
 ) 
 IS
@@ -627,10 +627,10 @@ BEGIN
     -- 2. Phân nhánh thêm thông tin chi tiết
     IF p_LoaiTK = 2 THEN 
         -- Nếu là Khách hàng (Mặc định loại KH là 'Thường')
-        SP_THEM_KH(p_Username, p_Ten, NVL(p_LoaiKHoacChucVu, 'Thường'), p_DiaChi, p_SDT, p_Email);
+        SP_THEM_KH(p_Username, p_Ten, NVL(p_LoaiKHHoacChucVu, 'Thường'), p_DiaChi, p_SDT, p_Email);
     ELSIF p_LoaiTK IN (0, 1) THEN 
         -- Nếu là Quản lý hoặc Nhân viên
-        SP_THEM_NV(p_Username, p_Ten, p_LoaiKHoacChucVu, p_SDT, NVL(p_Luong, 0));
+        SP_THEM_NV(p_Username, p_Ten, p_LoaiKHHoacChucVu, p_SDT, NVL(p_Luong, 0));
     END IF;
 
     COMMIT;

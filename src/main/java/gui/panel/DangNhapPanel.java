@@ -17,6 +17,8 @@ public class DangNhapPanel extends JPanel {
     private JPasswordField txtPassword;
     private TaiKhoanBUS taiKhoanBUS;
 
+    public DangNhapPanel() {}
+
     public DangNhapPanel(AuthFrame parentFrame) {
         this.parentFrame = parentFrame;
         this.taiKhoanBUS = new TaiKhoanBUS();

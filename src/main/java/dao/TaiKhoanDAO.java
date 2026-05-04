@@ -10,7 +10,7 @@ import util.DBConnection;
 
 public class TaiKhoanDAO {
 
-    public String dangKyTaiKhoan(String username, String hashPassword, int loaiTK, String ten, String diaChi, String sdt, String email, String loaiHoacChucVu) {
+    public String dangKyTaiKhoan(String username, String hashPassword, int loaiTK, String ten, String diaChi, String sdt, String email, String loaiKHHoacChucVu) {
         String sql = "{call SP_DANGKY_TAIKHOAN(?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         try (Connection conn = DBConnection.getConnection();
             CallableStatement cs = conn.prepareCall(sql)) {
@@ -22,7 +22,7 @@ public class TaiKhoanDAO {
             cs.setString(5, diaChi);
             cs.setString(6, sdt);
             cs.setString(7, email);
-            cs.setString(8, loaiHoacChucVu);
+            cs.setString(8, loaiKHHoacChucVu);
             cs.setNull(9, java.sql.Types.NUMERIC); // Lương null cho Khách hàng
             
             cs.executeUpdate();
