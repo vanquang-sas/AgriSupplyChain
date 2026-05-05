@@ -2,9 +2,7 @@ package dao;
 
 import dto.KhachHangDTO;
 import util.DBConnection;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.*;
@@ -185,4 +183,18 @@ public class KhachHangDAO {
         return kh;
     }
 
+    public dto.KhachHangDTO getByUsername(String username) {
+        String sql = "SELECT KH.*, TK.TrangThaiTK FROM KHACHHANG KH LEFT JOIN TAIKHOAN TK ON KH.Username = TK.Username WHERE KH.Username = ?";
+        try (java.sql.Connection conn = util.DBConnection.getConnection();
+             java.sql.PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, username);
+            java.sql.ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                return mapRow(rs);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

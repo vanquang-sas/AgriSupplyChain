@@ -1,33 +1,23 @@
 package util;
-
 import dto.TaiKhoanDTO;
 
 public class Session {
-    // Lưu trữ tài khoản đang đăng nhập trong suốt phiên làm việc
     public static TaiKhoanDTO currentUser = null;
+    public static String tenNguoiDung = "Người dùng"; // Lưu tên (TenNV hoặc TenKH)
+    public static String chucVu = "Khách hàng";            // Lưu chức vụ hiển thị
 
-    /**
-     * Kiểm tra xem đã có người dùng đăng nhập chưa
-     */
     public static boolean isLogged() {
         return currentUser != null;
     }
 
-    /**
-     * Xóa thông tin khi đăng xuất
-     */
     public static void clear() {
         currentUser = null;
+        tenNguoiDung = "Người dùng";
+        chucVu = "Khách hàng";
     }
 
-    /**
-     * Kiểm tra quyền của người dùng hiện tại
-     * Giả định: 1 = Admin, 2 = ThuKho, 3 = BanHang...
-     */
     public static boolean hasRole(int roleLevel) {
-        if (currentUser == null) {
-            return false;
-        }
+        if (currentUser == null) return false;
         return currentUser.getLoaiTK() == roleLevel;
     }
 }

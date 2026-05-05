@@ -75,11 +75,8 @@ public class MainFrame extends JFrame {
         lblAppName.setForeground(Color.WHITE);
 
         // Lấy Role Name để hiển thị dưới Logo
-        String roleName = "Khách Hàng";
-        int roleId = Session.isLogged() ? Session.currentUser.getLoaiTK() : 4;
-        if (roleId == 1) roleName = "Quản Trị Viên (Admin)";
-        else if (roleId == 2) roleName = "Nhân Viên Thu Mua/Giao Hàng";
-        else if (roleId == 3) roleName = "Nhân Viên Kho";
+        int roleId = util.Session.isLogged() ? util.Session.currentUser.getLoaiTK() : 2;
+        String roleName = util.Session.chucVu != null ? util.Session.chucVu : "Khách Hàng";        
 
         JLabel lblSubName = new JLabel(roleName);
         lblSubName.setFont(new Font("Segoe UI", Font.PLAIN, 11));
@@ -115,7 +112,8 @@ public class MainFrame extends JFrame {
         // ============================================
         // LOGIC PHÂN QUYỀN ADD NÚT THEO ROLE
         // ============================================
-        if (roleId == 1) { // 1. ADMIN - QUẢN LÝ (Thấy tất cả)
+        if (roleId == 0) { 
+            // 0. ADMIN - QUẢN LÝ
             menuPanel.add(buildSectionLabel("TỔNG QUAN"));
             menuPanel.add(btnTrangChu); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
             
@@ -123,35 +121,36 @@ public class MainFrame extends JFrame {
             menuPanel.add(btnKhachHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
             menuPanel.add(btnNhanVien); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
             menuPanel.add(btnNhaCungCap); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
-
+            
             menuPanel.add(buildSectionLabel("KHO BÃI & HỆ THỐNG"));
             menuPanel.add(btnKho); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
             menuPanel.add(btnThamSo); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
-
+            
             menuPanel.add(buildSectionLabel("SẢN PHẨM & BÁO CÁO"));
             menuPanel.add(btnSanPham); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
             menuPanel.add(btnThongKe); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
             
             defaultActiveBtn = btnTrangChu;
 
-        } else if (roleId == 3) { // 3. NHÂN VIÊN KHO
-            menuPanel.add(buildSectionLabel("QUẢN LÝ KHO BÃI"));
-            menuPanel.add(btnKho); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+        } else if (roleId == 1) { 
+            // 1. NHÂN VIÊN (Kiểm tra thêm theo tên chức vụ để chia quyền chi tiết)
+            String cv = util.Session.chucVu != null ? util.Session.chucVu.toLowerCase() : "";
             
-            // Bạn có thể tạo thêm Nhập Kho / Xuất Kho Panel và add vào đây
-            // menuPanel.add(btnNhapKho); ...
-            
-            defaultActiveBtn = btnKho;
+            if (cv.contains("kho")) { // NHÂN VIÊN KHO
+                menuPanel.add(buildSectionLabel("QUẢN LÝ KHO BÃI"));
+                menuPanel.add(btnKho); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+                // Thêm nút Nhập/Xuất kho nếu có
+                defaultActiveBtn = btnKho;
+                
+            } else if (cv.contains("thu mua") || cv.contains("giao hàng")) { // NV THU MUA / GIAO HÀNG
+                menuPanel.add(buildSectionLabel("ĐỐI TÁC & SẢN PHẨM"));
+                menuPanel.add(btnNhaCungCap); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+                menuPanel.add(btnSanPham); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+                defaultActiveBtn = btnNhaCungCap;
+            }
 
-        } else if (roleId == 2) { // 2. NHÂN VIÊN THU MUA & GIAO HÀNG
-            menuPanel.add(buildSectionLabel("ĐỐI TÁC & SẢN PHẨM"));
-            menuPanel.add(btnNhaCungCap); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
-            menuPanel.add(btnSanPham); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
-            // Thêm Lô Hàng / Giao Hàng sau
-            
-            defaultActiveBtn = btnNhaCungCap;
-
-        } else { // 4. KHÁCH HÀNG
+        } else { 
+            // 2. KHÁCH HÀNG (Hoặc người chưa đăng nhập)
             menuPanel.add(buildSectionLabel("MUA SẮM"));
             menuPanel.add(btnCuaHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
             menuPanel.add(btnDonCuaToi); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));

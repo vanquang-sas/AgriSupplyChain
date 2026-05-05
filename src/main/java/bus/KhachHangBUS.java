@@ -104,4 +104,8 @@ public class KhachHangBUS {
             throw new IllegalArgumentException("Email không đúng định dạng!");
         }
     }
+
+    public dto.KhachHangDTO getByUsername(String username) {
+        return khDAO.getByUsername(username);
+    }
 }

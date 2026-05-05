@@ -125,10 +125,37 @@ public class DangNhapPanel extends JPanel {
         String user = txtUsername.getText();
         String pass = new String(txtPassword.getPassword());
         String result = taiKhoanBUS.login(user, pass);
-        
-        if (result.equals("Thành công")) {
-            parentFrame.dispose(); 
-            new MainFrame().setVisible(true); 
+
+        if (result.equals("SUCCESS")) {
+            // 1. Lấy thông tin tài khoản hiện tại
+            int loaiTK = util.Session.currentUser.getLoaiTK();
+            String username = util.Session.currentUser.getUsername();
+            
+            // 2. Phân loại và lấy thêm dữ liệu ghi vào Session
+            if (loaiTK == 0) {
+                util.Session.chucVu = "Quản lý (Admin)";
+                util.Session.tenNguoiDung = "Quản trị viên"; 
+            } 
+            else if (loaiTK == 1) {
+                bus.NhanVienBUS nvBus = new bus.NhanVienBUS();
+                dto.NhanVienDTO nv = nvBus.getByUsername(username);
+                if (nv != null) {
+                    util.Session.chucVu = nv.getChucVu(); // NV Kho, NV Thu mua,...
+                    util.Session.tenNguoiDung = nv.getTenNV();
+                }
+            } 
+            else if (loaiTK == 2) {
+                bus.KhachHangBUS khBus = new bus.KhachHangBUS();
+                dto.KhachHangDTO kh = khBus.getByUsername(username);
+                if (kh != null) {
+                    util.Session.chucVu = "Khách hàng";
+                    util.Session.tenNguoiDung = kh.getTenKH();
+                }
+            }
+
+            // 3. Chuyển sang MainFrame
+            parentFrame.dispose();
+            new gui.MainFrame().setVisible(true);
         } else {
             JOptionPane.showMessageDialog(this, result, "Lỗi đăng nhập", JOptionPane.ERROR_MESSAGE);
         }

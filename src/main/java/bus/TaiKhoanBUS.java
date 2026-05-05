@@ -34,6 +34,6 @@ public class TaiKhoanBUS {
 
         // Lưu thông tin người dùng vào Session toàn cục
         Session.currentUser = taiKhoan;
-        return "Thành công";
+        return "SUCCESS";
     }
 }

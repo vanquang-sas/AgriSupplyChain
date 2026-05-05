@@ -153,4 +153,19 @@ public class NhanVienDAO {
         nv.setTrangThaiTK(rs.getInt("TrangThaiTK"));
         return nv;
     }
+
+    public dto.NhanVienDTO getByUsername(String username) {
+        String sql = "SELECT NV.*, TK.TrangThaiTK FROM NHANVIEN NV LEFT JOIN TAIKHOAN TK ON NV.Username = TK.Username WHERE NV.Username = ?";
+        try (java.sql.Connection conn = util.DBConnection.getConnection();
+            java.sql.PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, username);
+            java.sql.ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                return mapRow(rs); // Dùng lại hàm mapRow của bạn
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

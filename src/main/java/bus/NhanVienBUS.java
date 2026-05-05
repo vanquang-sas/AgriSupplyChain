@@ -64,4 +64,8 @@ public class NhanVienBUS {
             throw new IllegalArgumentException("Mức lương không hợp lệ!");
         }
     }
+
+    public dto.NhanVienDTO getByUsername(String username) {
+        return nvDAO.getByUsername(username);
+    }
 }
