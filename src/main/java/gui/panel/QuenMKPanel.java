@@ -1,8 +1,11 @@
-package gui;
+package gui.panel;
 
 import util.AppColor;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+
+import gui.AuthFrame;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;

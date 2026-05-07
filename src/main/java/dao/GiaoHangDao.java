@@ -10,7 +10,7 @@ import java.util.List;
 import dto.DonHangDTO;
 import util.DBConnection;
 
-public class GiaoHangDao {
+public class GiaoHangDAO {
 
      // 1. Lấy danh sách đơn hàng chờ giao
     public List<DonHangDTO> getDanhSachChoGiao(){

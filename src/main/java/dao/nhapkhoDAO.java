@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NhapKhoDAO {
+    public NhapKhoDAO() {}
    
     public void xacNhanViTri(TonKhoDTO dto) throws SQLException {
         String sql = "{call SP_XACNHAN_VITRI_CTLH(?, ?, ?, ?)}";
