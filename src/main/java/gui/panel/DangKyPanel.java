@@ -48,6 +48,15 @@ public class DangKyPanel extends JPanel {
         txtEmail = createStyledTextField(); addFormField(gridForm, "Email", txtEmail, gbc, row); row += 2;
         txtDiaChi = createStyledTextField(); addFormField(gridForm, "Địa chỉ", txtDiaChi, gbc, row);
 
+        // Thêm mấy dòng này để đăng ký khi bấm Enter
+        txtUsername.addActionListener(e -> handleRegistration());
+        txtPassword.addActionListener(e -> handleRegistration());
+        txtConfirmPassword.addActionListener(e -> handleRegistration());
+        txtTen.addActionListener(e -> handleRegistration());
+        txtSDT.addActionListener(e -> handleRegistration());
+        txtEmail.addActionListener(e -> handleRegistration());
+        txtDiaChi.addActionListener(e -> handleRegistration());
+
         JButton btnDangKy = new JButton("ĐĂNG KÝ");
         btnDangKy.setBackground(AppColor.PRIMARY);
         btnDangKy.setForeground(AppColor.SURFACE);
