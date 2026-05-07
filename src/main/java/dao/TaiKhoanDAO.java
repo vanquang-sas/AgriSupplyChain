@@ -63,4 +63,54 @@ public class TaiKhoanDAO {
         
         return taiKhoan;
     }
+
+    public boolean xacThucThongTinQuenMK(String username, String emailOrPhone) {
+        // Kiểm tra xem username có thuộc nhân viên hoặc khách hàng và khớp số điện thoại/email không
+        String sql = "SELECT t.USERNAME " +
+                     "FROM TAIKHOAN t " +
+                     "LEFT JOIN NHANVIEN n ON t.USERNAME = n.USERNAME " +
+                     "LEFT JOIN KHACHHANG k ON t.USERNAME = k.USERNAME " +
+                     "WHERE t.USERNAME = ? AND (n.SDT = ? OR k.SDT = ? OR k.EMAIL = ?)";
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn == null) {
+                System.err.println("Lỗi TaiKhoanDAO: Không thể kết nối CSDL");
+                return false;
+            }
+            try (PreparedStatement pst = conn.prepareStatement(sql)) {
+                pst.setString(1, username);
+                pst.setString(2, emailOrPhone);
+                pst.setString(3, emailOrPhone);
+                pst.setString(4, emailOrPhone);
+                
+                try (ResultSet rs = pst.executeQuery()) {
+                    if (rs.next()) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi TaiKhoanDAO - xacThucThongTinQuenMK: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public boolean doiMatKhau(String username, String newHashedPassword) {
+        String sql = "UPDATE TAIKHOAN SET PASSWORD = ? WHERE USERNAME = ?";
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn == null) {
+                System.err.println("Lỗi TaiKhoanDAO: Không thể kết nối CSDL");
+                return false;
+            }
+            try (PreparedStatement pst = conn.prepareStatement(sql)) {
+                pst.setString(1, newHashedPassword);
+                pst.setString(2, username);
+                
+                int rowsUpdated = pst.executeUpdate();
+                return rowsUpdated > 0;
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi TaiKhoanDAO - doiMatKhau: " + e.getMessage());
+        }
+        return false;
+    }
 }
