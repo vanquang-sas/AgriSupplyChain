@@ -71,7 +71,7 @@ public class MainFrame extends JFrame {
         logoText.setBackground(AppColor.PRIMARY_ACTIVE);
 
         JLabel lblAppName = new JLabel("Agri Supply");
-        lblAppName.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        lblAppName.setFont(new Font("Segoe UI Emoji", Font.BOLD, 15));
         lblAppName.setForeground(Color.WHITE);
 
         // Lấy Role Name để hiển thị dưới Logo
@@ -79,7 +79,7 @@ public class MainFrame extends JFrame {
         String roleName = util.Session.chucVu != null ? util.Session.chucVu : "Khách Hàng";        
 
         JLabel lblSubName = new JLabel(roleName);
-        lblSubName.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblSubName.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 11));
         lblSubName.setForeground(new Color(187, 247, 208));
 
         logoText.add(lblAppName);
@@ -177,7 +177,7 @@ public class MainFrame extends JFrame {
 
     private JLabel buildSectionLabel(String text) {
         JLabel lbl = new JLabel("  " + text);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        lbl.setFont(new Font("Segoe UI Emoji", Font.BOLD, 10));
         lbl.setForeground(new Color(187, 247, 208, 160));
         lbl.setBorder(new EmptyBorder(12, 14, 4, 0));
         lbl.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
@@ -194,7 +194,7 @@ public class MainFrame extends JFrame {
         String firstChar = username.substring(0, 1).toUpperCase();
 
         JLabel avatar = new JLabel(firstChar);
-        avatar.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        avatar.setFont(new Font("Segoe UI Emoji", Font.BOLD, 16));
         avatar.setForeground(AppColor.PRIMARY);
         avatar.setOpaque(true);
         avatar.setBackground(Color.WHITE);
@@ -206,11 +206,11 @@ public class MainFrame extends JFrame {
         userText.setBackground(AppColor.PRIMARY_ACTIVE);
 
         JLabel lblName = new JLabel(username);
-        lblName.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblName.setFont(new Font("Segoe UI Emoji", Font.BOLD, 13));
         lblName.setForeground(Color.WHITE);
 
         JLabel lblStatus = new JLabel("Đang trực tuyến");
-        lblStatus.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblStatus.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 11));
         lblStatus.setForeground(new Color(187, 247, 208));
 
         userText.add(lblName);
@@ -219,7 +219,7 @@ public class MainFrame extends JFrame {
         JButton btnLogout = new JButton("⏻ Đăng xuất");
         btnLogout.setBackground(new Color(255, 255, 255, 30));
         btnLogout.setForeground(Color.WHITE);
-        btnLogout.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnLogout.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
         btnLogout.setFocusPainted(false);
         btnLogout.setBorderPainted(false);
         btnLogout.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -282,7 +282,7 @@ public class MainFrame extends JFrame {
         btn.setAlignmentX(Component.LEFT_ALIGNMENT);
         btn.setBackground(AppColor.PRIMARY);
         btn.setForeground(Color.WHITE);
-        btn.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        btn.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 13));
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setHorizontalAlignment(SwingConstants.LEFT);
@@ -312,9 +312,9 @@ public class MainFrame extends JFrame {
     private void setActiveMenu(JButton activeBtn) {
         for (JButton b : menuButtons) b.setBackground(AppColor.PRIMARY);
         activeBtn.setBackground(AppColor.PRIMARY_ACTIVE);
-        activeBtn.setFont(new Font("Segoe UI", Font.BOLD, 13)); 
+        activeBtn.setFont(new Font("Segoe UI Emoji", Font.BOLD, 13)); 
         for (JButton b : menuButtons) {
-            if (b != activeBtn) b.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            if (b != activeBtn) b.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 13));
         }
     }
 
@@ -334,12 +334,12 @@ public class MainFrame extends JFrame {
         lblIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel lblTitle = new JLabel(title);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTitle.setFont(new Font("Segoe UI Emoji", Font.BOLD, 22));
         lblTitle.setForeground(AppColor.TEXT_PRIMARY);
         lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel lblSub = new JLabel(subtitle);
-        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        lblSub.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 14));
         lblSub.setForeground(AppColor.TEXT_SECONDARY);
         lblSub.setAlignmentX(Component.CENTER_ALIGNMENT);
 
