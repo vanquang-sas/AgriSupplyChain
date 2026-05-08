@@ -113,7 +113,7 @@ public class GiaoHangDAO {
 
         String sql = """
             SELECT * FROM DONHANG
-            WHERE TRANGTHAIDH IN ('Hoàn thành', 'Giao thất bại')
+            WHERE TRANGTHAIDH IN ('Hoàn thành', 'Đã huỷ')
             ORDER BY TGDAT DESC
         """;
 
