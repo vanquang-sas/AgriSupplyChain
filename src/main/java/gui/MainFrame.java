@@ -52,23 +52,23 @@ public class MainFrame extends JFrame {
     // ================================================================
     private void buildSidebar() {
         sidebarPanel = new JPanel(new BorderLayout());
-        sidebarPanel.setBackground(AppColor.PRIMARY);
+        sidebarPanel.setBackground(AppColor.SIDEBAR_BG);
         sidebarPanel.setPreferredSize(new Dimension(260, 0));
 
         // ---------- LOGO / HEADER ----------
         JPanel logoPanel = new JPanel(new BorderLayout());
-        logoPanel.setBackground(AppColor.PRIMARY_ACTIVE);
+        logoPanel.setBackground(AppColor.SIDEBAR_ACTIVE);
         logoPanel.setBorder(new EmptyBorder(0, 0, 1, 0));
 
         JPanel logoInner = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 16));
-        logoInner.setBackground(AppColor.PRIMARY_ACTIVE);
+        logoInner.setBackground(AppColor.SIDEBAR_ACTIVE);
 
         JLabel iconLogo = new JLabel("⬡");
         iconLogo.setFont(new Font("Segoe UI Emoji", Font.BOLD, 26));
         iconLogo.setForeground(Color.WHITE);
 
         JPanel logoText = new JPanel(new GridLayout(2, 1, 0, 1));
-        logoText.setBackground(AppColor.PRIMARY_ACTIVE);
+        logoText.setBackground(AppColor.SIDEBAR_ACTIVE);
 
         JLabel lblAppName = new JLabel("Agri Supply");
         lblAppName.setFont(new Font("Segoe UI Emoji", Font.BOLD, 15));
@@ -90,7 +90,7 @@ public class MainFrame extends JFrame {
 
         // ---------- MENU ITEMS ----------
         JPanel menuPanel = new JPanel();
-        menuPanel.setBackground(AppColor.PRIMARY);
+        menuPanel.setBackground(AppColor.SIDEBAR_BG);
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
         menuPanel.setBorder(new EmptyBorder(12, 0, 12, 0));
 
