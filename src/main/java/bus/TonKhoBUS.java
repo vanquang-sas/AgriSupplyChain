@@ -4,7 +4,6 @@
  */
 package bus;
 
-import util.DBConnection;
 import dao.TonKhoDAO;
 import java.util.ArrayList;
 
@@ -19,13 +18,13 @@ public class TonKhoBUS {
     public ArrayList<Object[]> getDanhSachTonKho() {
         return tonKhoDAO.getDanhSachTonKho();
     }
-    
-    public boolean capNhatSoLuong(String maTonKho, double soLuongMoi) {
-        return tonKhoDAO.capNhatSoLuong(maTonKho, soLuongMoi);
+
+    public boolean capNhatTonKho(String maTonKho, double soLuongMoi, String viTriMoi) {
+        return tonKhoDAO.capNhatTonKho(maTonKho, soLuongMoi, viTriMoi);
     }
 
     public boolean xoaTonKho(String maTonKho) {
         return tonKhoDAO.xoaTonKho(maTonKho);
     }
-    
+
 }
