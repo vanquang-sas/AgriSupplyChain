@@ -54,9 +54,15 @@ public class TonKhoPanel extends JPanel {
         JPanel headerContainer = new JPanel(new BorderLayout(0, 15));
         headerContainer.setBackground(AppColor.BACKGROUND);
 
+        // Khung tách biệt cho Tiêu đề
+        JPanel titlePanel = new RoundedPanel(12, AppColor.SURFACE);
+        titlePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 12));
+        titlePanel.setBorder(new LineBorder(AppColor.BORDER, 1, true));
+
         JLabel lblTitle = new JLabel("Danh Sách Tồn Kho");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        lblTitle.setForeground(AppColor.TEXT_PRIMARY);
+        lblTitle.setForeground(AppColor.PRIMARY);
+        titlePanel.add(lblTitle);
 
         // ================= TOP PANEL =================
         JPanel topPanel = new JPanel(new BorderLayout(10, 10));
@@ -132,13 +138,13 @@ public class TonKhoPanel extends JPanel {
         summaryPanel.add(cardLowStock);
         summaryPanel.add(cardOutOfStock);
 
-        JPanel titleAndSummary = new JPanel(new BorderLayout(0, 15));
-        titleAndSummary.setBackground(AppColor.BACKGROUND);
-        titleAndSummary.add(lblTitle, BorderLayout.NORTH);
-        titleAndSummary.add(summaryPanel, BorderLayout.CENTER);
+        JPanel titleAndTop = new JPanel(new BorderLayout(0, 15));
+        titleAndTop.setBackground(AppColor.BACKGROUND);
+        titleAndTop.add(titlePanel, BorderLayout.NORTH);
+        titleAndTop.add(topPanel, BorderLayout.CENTER);
 
-        headerContainer.add(titleAndSummary, BorderLayout.NORTH);
-        headerContainer.add(topPanel, BorderLayout.CENTER);
+        headerContainer.add(titleAndTop, BorderLayout.NORTH);
+        headerContainer.add(summaryPanel, BorderLayout.CENTER);
 
         this.add(headerContainer, BorderLayout.NORTH);
 
@@ -154,8 +160,8 @@ public class TonKhoPanel extends JPanel {
 
         // ================= SETUP TABLE (STYLE NHAPKHO) =================
         String[] columnNames = {
-                "Mã Kho", "Tên Sản Phẩm", "Hình Ảnh", "Loại", "Nhà Cung Cấp",
-                "Số Lượng", "ĐVT", "Vị Trí", "Cập Nhật", "Trạng Thái"
+                "Mã Kho", "Tên Sản Phẩm", "Loại", "Nhà Cung Cấp",
+                "Số Lượng", "ĐVT", "Vị Trí", "Cập Nhật", "TG Hết Hạn", "Trạng Thái"
         };
 
         tableModel = new DefaultTableModel(columnNames, 0) {
@@ -166,7 +172,7 @@ public class TonKhoPanel extends JPanel {
 
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex == 5)
+                if (columnIndex == 4)
                     return Double.class;
                 return Object.class;
             }
@@ -217,11 +223,9 @@ public class TonKhoPanel extends JPanel {
                 l.setBackground(AppColor.BACKGROUND);
 
                 // align giống body
-                if (c == 5)
+                if (c == 4)
                     l.setHorizontalAlignment(SwingConstants.RIGHT);
-                else if (c == 2 || c == 9) // ✅ Cột 9 là Trạng Thái (canh giữa)
-                    l.setHorizontalAlignment(SwingConstants.CENTER);
-                else if (c == 8) // ✅ Cột 8 là Cập Nhật (canh giữa)
+                else if (c == 7 || c == 8 || c == 9) 
                     l.setHorizontalAlignment(SwingConstants.CENTER);
                 else
                     l.setHorizontalAlignment(SwingConstants.LEFT);
@@ -262,10 +266,8 @@ public class TonKhoPanel extends JPanel {
         CustomCellRenderer right = new CustomCellRenderer(SwingConstants.RIGHT);
 
         for (int i = 0; i < table.getColumnCount(); i++) {
-            if (i == 5) {
+            if (i == 4) {
                 table.getColumnModel().getColumn(i).setCellRenderer(right); // Số lượng
-            } else if (i == 2) {
-                table.getColumnModel().getColumn(i).setCellRenderer(new ImageRenderer());
             } else if (i == 9) {
                 table.getColumnModel().getColumn(i).setCellRenderer(new BadgeStatusRenderer());
             } else {
@@ -304,11 +306,25 @@ public class TonKhoPanel extends JPanel {
                 return l;
             }
         };
-        for (int i = 3; i <= 7; i++) {
-            table.getColumnModel().getColumn(i).setCellRenderer(readonlyRenderer);
+        for (int i = 2; i <= 6; i++) {
+            if (i != 4) table.getColumnModel().getColumn(i).setCellRenderer(readonlyRenderer);
         }
 
-        // Renderer canh phải cho cột Số Lượng (index 5)
+        // Renderer canh giữa cho cột Ngày (index 7, 8)
+        DefaultTableCellRenderer centerReadonlyRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
+                JLabel l = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, r, c);
+                l.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                l.setHorizontalAlignment(SwingConstants.CENTER);
+                l.setBorder(new EmptyBorder(0, 10, 0, 6));
+                return l;
+            }
+        };
+        table.getColumnModel().getColumn(7).setCellRenderer(centerReadonlyRenderer);
+        table.getColumnModel().getColumn(8).setCellRenderer(centerReadonlyRenderer);
+
+        // Renderer canh phải cho cột Số Lượng (index 4)
         DefaultTableCellRenderer numberRenderer = new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
@@ -319,22 +335,21 @@ public class TonKhoPanel extends JPanel {
                 return l;
             }
         };
-        table.getColumnModel().getColumn(5).setCellRenderer(numberRenderer);
+        table.getColumnModel().getColumn(4).setCellRenderer(numberRenderer);
 
-        // Thay đổi thứ tự render - cột Hình Ảnh dãn rộng hơn
+        // Thay đổi thứ tự render
         table.getColumnModel().getColumn(0).setPreferredWidth(85); // Mã Kho
         table.getColumnModel().getColumn(1).setPreferredWidth(145); // Tên Sản Phẩm
-        table.getColumnModel().getColumn(2).setPreferredWidth(95); // Hình Ảnh (tăng)
-        table.getColumnModel().getColumn(3).setPreferredWidth(100); // Loại (tăng)
-        table.getColumnModel().getColumn(4).setPreferredWidth(130); // Nhà Cung Cấp (tăng để thấy rõ)
-        table.getColumnModel().getColumn(5).setPreferredWidth(80); // Số Lượng
-        table.getColumnModel().getColumn(6).setPreferredWidth(55); // ĐVT
-        table.getColumnModel().getColumn(7).setPreferredWidth(90); // Vị Trí
-        table.getColumnModel().getColumn(8).setPreferredWidth(105); // Cập Nhật
+        table.getColumnModel().getColumn(2).setPreferredWidth(100); // Loại 
+        table.getColumnModel().getColumn(3).setPreferredWidth(130); // Nhà Cung Cấp
+        table.getColumnModel().getColumn(4).setPreferredWidth(80); // Số Lượng
+        table.getColumnModel().getColumn(5).setPreferredWidth(55); // ĐVT
+        table.getColumnModel().getColumn(6).setPreferredWidth(90); // Vị Trí
+        table.getColumnModel().getColumn(7).setPreferredWidth(105); // Cập Nhật
+        table.getColumnModel().getColumn(8).setPreferredWidth(105); // TG Hết Hạn
         table.getColumnModel().getColumn(9).setPreferredWidth(95); // Trạng Thái
 
-        table.getColumnModel().getColumn(2).setCellRenderer(new ImageRenderer());
-        table.getColumnModel().getColumn(8).setCellRenderer(new BadgeStatusRenderer());
+        table.getColumnModel().getColumn(9).setCellRenderer(new BadgeStatusRenderer());
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -407,17 +422,18 @@ public class TonKhoPanel extends JPanel {
         String maTonKho = currentData.get(dataIndex)[10].toString(); // Dùng để thao tác CSDL
         String maKho = table.getModel().getValueAt(modelRow, 0).toString(); // Hiển thị
         String tenSP = table.getModel().getValueAt(modelRow, 1).toString();
-        String loai = table.getModel().getValueAt(modelRow, 3) != null ? table.getModel().getValueAt(modelRow, 3).toString() : "";
-        String ncc = table.getModel().getValueAt(modelRow, 4) != null ? table.getModel().getValueAt(modelRow, 4).toString() : "";
-        String soLuongStr = table.getModel().getValueAt(modelRow, 5).toString();
-        String dvt = table.getModel().getValueAt(modelRow, 6) != null ? table.getModel().getValueAt(modelRow, 6).toString() : "";
-        String viTri = table.getModel().getValueAt(modelRow, 7) != null ? table.getModel().getValueAt(modelRow, 7).toString() : "";
-        String capNhat = table.getModel().getValueAt(modelRow, 8) != null ? table.getModel().getValueAt(modelRow, 8).toString() : "";
+        String loai = table.getModel().getValueAt(modelRow, 2) != null ? table.getModel().getValueAt(modelRow, 2).toString() : "";
+        String ncc = table.getModel().getValueAt(modelRow, 3) != null ? table.getModel().getValueAt(modelRow, 3).toString() : "";
+        String soLuongStr = table.getModel().getValueAt(modelRow, 4).toString();
+        String dvt = table.getModel().getValueAt(modelRow, 5) != null ? table.getModel().getValueAt(modelRow, 5).toString() : "";
+        String viTri = table.getModel().getValueAt(modelRow, 6) != null ? table.getModel().getValueAt(modelRow, 6).toString() : "";
+        String capNhat = table.getModel().getValueAt(modelRow, 7) != null ? table.getModel().getValueAt(modelRow, 7).toString() : "";
+        String tgHetHan = table.getModel().getValueAt(modelRow, 8) != null ? table.getModel().getValueAt(modelRow, 8).toString() : "";
 
         // ✅ Tạo dialog chỉnh sửa
         JDialog editDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Sửa Tồn Kho", true);
         editDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        editDialog.setSize(700, 480);
+        editDialog.setSize(700, 520);
         editDialog.setLocationRelativeTo(this);
 
         JPanel mainContainer = new JPanel(new BorderLayout());
@@ -566,6 +582,22 @@ public class TonKhoPanel extends JPanel {
         txtCapNhat.setForeground(new Color(100, 100, 100));
         panel.add(txtCapNhat, gbc);
 
+        // TG Hết Hạn
+        gbc.gridx = 2; gbc.gridy = 4; gbc.weightx = 0.15;
+        JLabel lblHan = new JLabel("TG Hết Hạn:");
+        lblHan.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblHan.setForeground(AppColor.TEXT_PRIMARY);
+        panel.add(lblHan, gbc);
+
+        gbc.gridx = 3; gbc.weightx = 0.35;
+        JTextField txtHan = new JTextField(tgHetHan);
+        txtHan.setEditable(false);
+        txtHan.setPreferredSize(new Dimension(0, 38));
+        txtHan.putClientProperty(FlatClientProperties.STYLE, "arc: 10; margin: 0,10,0,10");
+        txtHan.setBackground(new Color(245, 245, 245));
+        txtHan.setForeground(new Color(100, 100, 100));
+        panel.add(txtHan, gbc);
+
         mainContainer.add(panel, BorderLayout.CENTER);
 
         // --- Panel nút ---
@@ -674,7 +706,7 @@ public class TonKhoPanel extends JPanel {
         int outOfStock = 0;
 
         for (Object[] row : originalData) {
-            double slConLai = row[5] != null ? (double) row[5] : 0;
+            double slConLai = row[4] != null ? (double) row[4] : 0;
             if (slConLai == 0) {
                 outOfStock++;
             } else if (slConLai < 50) {
@@ -715,8 +747,8 @@ public class TonKhoPanel extends JPanel {
 
         String sortOpt = cbSort.getSelectedItem().toString();
         currentData.sort((row1, row2) -> {
-            Double s1 = row1[5] != null ? (Double) row1[5] : 0.0;
-            Double s2 = row2[5] != null ? (Double) row2[5] : 0.0;
+            Double s1 = row1[4] != null ? (Double) row1[4] : 0.0;
+            Double s2 = row2[4] != null ? (Double) row2[4] : 0.0;
             if (sortOpt.contains("giảm dần"))
                 return s2.compareTo(s1);
             if (sortOpt.contains("tăng dần"))
@@ -746,7 +778,7 @@ public class TonKhoPanel extends JPanel {
 
         for (int i = start; i < end; i++) {
             Object[] row = currentData.get(i);
-            double slConLai = row[5] != null ? (double) row[5] : 0;
+            double slConLai = row[4] != null ? (double) row[4] : 0;
 
             // ✅ Xóa .0 nếu là số nguyên
             String soLuong = (slConLai == (long) slConLai)

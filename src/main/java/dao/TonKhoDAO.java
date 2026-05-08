@@ -16,7 +16,7 @@ public class TonKhoDAO {
     public ArrayList<Object[]> getDanhSachTonKho() {
         ArrayList<Object[]> ketQua = new ArrayList<>();
         String sql = "SELECT tk.MaTonKho, tk.MaKho, sp.TenSP, sp.MaSP, lsp.TenLSP, ncc.TenNCC, " +
-                "tk.SLConLai, sp.DonViTinh, tk.ViTri, tk.TGNhapKho " +
+                "tk.SLConLai, sp.DonViTinh, tk.ViTri, tk.TGNhapKho, tk.TGHetHan " +
                 "FROM TONKHO tk " +
                 "LEFT JOIN CHITIETLOHANG ctlh ON tk.MaCTLH = ctlh.MaCTLH " +
                 "LEFT JOIN LOHANG lh ON ctlh.MaLH = lh.MaLH " +
@@ -29,25 +29,32 @@ public class TonKhoDAO {
                 ResultSet rs = pst.executeQuery()) {
 
             while (rs.next()) {
-                Object[] row = new Object[11]; // ✅ Tăng thành 11 cột để lưu MaTonKho
-                row[0] = rs.getString("MaKho"); // ✅ Hiển thị Mã Kho trên bảng
+                Object[] row = new Object[11];
+                row[0] = rs.getString("MaKho"); // Hiển thị Mã Kho
                 row[1] = rs.getString("TenSP");
-                row[2] = rs.getString("MaSP");
-                row[3] = rs.getString("TenLSP");
-                row[4] = rs.getString("TenNCC");
-                row[5] = rs.getDouble("SLConLai");
-                row[6] = rs.getString("DonViTinh");
-                row[7] = rs.getString("ViTri");
+                row[2] = rs.getString("TenLSP"); // Loại
+                row[3] = rs.getString("TenNCC"); // NCC
+                row[4] = rs.getDouble("SLConLai"); // Số Lượng
+                row[5] = rs.getString("DonViTinh"); // ĐVT
+                row[6] = rs.getString("ViTri"); // Vị trí
 
-                // ✅ Thêm cột TGNhapKho
+                // Cập Nhật
                 java.sql.Timestamp ts = rs.getTimestamp("TGNhapKho");
                 if (ts != null) {
-                    row[8] = new java.text.SimpleDateFormat("dd/MM/yyyy").format(ts);
+                    row[7] = new java.text.SimpleDateFormat("dd/MM/yyyy").format(ts);
+                } else {
+                    row[7] = "";
+                }
+
+                // TG Hết Hạn
+                java.sql.Timestamp tsHetHan = rs.getTimestamp("TGHetHan");
+                if (tsHetHan != null) {
+                    row[8] = new java.text.SimpleDateFormat("dd/MM/yyyy").format(tsHetHan);
                 } else {
                     row[8] = "";
                 }
 
-                row[10] = rs.getString("MaTonKho"); // Cột ẩn chứa MaTonKho để thao tác DB
+                row[10] = rs.getString("MaTonKho"); // Ẩn
 
                 ketQua.add(row);
             }
