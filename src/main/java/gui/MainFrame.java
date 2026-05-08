@@ -27,6 +27,13 @@ public class MainFrame extends JFrame {
     private NhaCungCapPanel pnlNhaCungCap;
     private KhoPanel        pnlKho;
     private ThamSoPanel     pnlThamSo;
+    private DonHangPanel    pnlDonHang;
+    private GiaoHangPanel   pnlGiaoHang;
+    private LoaiSanPhamPanel    pnlLoaiSanPham;
+    private LoHangPanel     pnlLoHang;
+    private NhapKhoPanel    pnlNhapKho;
+    private XuatKhoPanel    pnlXuatKho;
+    private TonKhoPanel     pnlTonKho;
 
     public MainFrame() {
         initComponents();
@@ -103,9 +110,15 @@ public class MainFrame extends JFrame {
         JButton btnThamSo     = createMenuButton("⚙",  "Cấu hình Tham số", "ThamSo");
         JButton btnSanPham    = createMenuButton("📦", "Quản lý Sản phẩm", "SanPham");
         JButton btnThongKe    = createMenuButton("📊", "Báo cáo Thống kê", "ThongKe");
+        JButton btnDonHang    = createMenuButton("📊", "Đơn hàng của tôi", "DonHang");
+        // JButton btnLoHang    = createMenuButton("📊", "Lô hàng nhập", "LoHang");
+        // JButton btnGiaoHang    = createMenuButton("📊", "Đơn hàng của tôi", "GiaoHang");
+        JButton btnLoaiSanPham    = createMenuButton("📊", "Quản lý Loại sản phẩm", "LoaiSanPham");
+        JButton btnNhapKho    = createMenuButton("📊", "Nhập kho", "NhapKho");
+        JButton btnXuatKho    = createMenuButton("📊", "Xuất kho", "XuatKho");
+        JButton btnTonKho    = createMenuButton("📊", "Tồn kho", "TonKho");
 
         JButton btnCuaHang    = createMenuButton("🛒", "Cửa hàng Nông sản", "TrangChu"); // Map tạm
-        JButton btnDonCuaToi  = createMenuButton("📜", "Đơn hàng của tôi", "TrangChu");  // Map tạm
 
         JButton defaultActiveBtn = null;
 
@@ -128,6 +141,7 @@ public class MainFrame extends JFrame {
             
             menuPanel.add(buildSectionLabel("SẢN PHẨM & BÁO CÁO"));
             menuPanel.add(btnSanPham); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+            menuPanel.add(btnLoaiSanPham); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
             menuPanel.add(btnThongKe); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
             
             defaultActiveBtn = btnTrangChu;
@@ -138,9 +152,10 @@ public class MainFrame extends JFrame {
             
             if (cv.contains("kho")) { // NHÂN VIÊN KHO
                 menuPanel.add(buildSectionLabel("QUẢN LÝ KHO BÃI"));
-                menuPanel.add(btnKho); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
-                // Thêm nút Nhập/Xuất kho nếu có
-                defaultActiveBtn = btnKho;
+                menuPanel.add(btnTonKho); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+                menuPanel.add(btnNhapKho); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+                menuPanel.add(btnXuatKho); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+                defaultActiveBtn = btnTonKho;
                 
             } else if (cv.contains("thu mua") || cv.contains("giao hàng")) { // NV THU MUA / GIAO HÀNG
                 menuPanel.add(buildSectionLabel("ĐỐI TÁC & SẢN PHẨM"));
@@ -153,7 +168,7 @@ public class MainFrame extends JFrame {
             // 2. KHÁCH HÀNG (Hoặc người chưa đăng nhập)
             menuPanel.add(buildSectionLabel("MUA SẮM"));
             menuPanel.add(btnCuaHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
-            menuPanel.add(btnDonCuaToi); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+            menuPanel.add(btnDonHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
             
             defaultActiveBtn = btnCuaHang;
         }
@@ -261,6 +276,13 @@ public class MainFrame extends JFrame {
         pnlNhaCungCap = new NhaCungCapPanel();
         pnlKho        = new KhoPanel();
         pnlThamSo     = new ThamSoPanel();
+        pnlDonHang    = new DonHangPanel();
+        // pnlGiaoHang   = new GiaoHangPanel();
+        pnlLoaiSanPham = new LoaiSanPhamPanel();
+        // pnlLoHang     = new LoHangPanel();
+        pnlNhapKho    = new NhapKhoPanel();
+        pnlXuatKho    = new XuatKhoPanel();
+        pnlTonKho     = new TonKhoPanel();
 
         JPanel pnlTrangChu = createPlaceholder("🏠", "Trang chủ", "Dashboard tổng quan");
         JPanel pnlSanPham  = createPlaceholder("📦", "Quản lý Sản phẩm", "Đang xây dựng...");
@@ -274,6 +296,13 @@ public class MainFrame extends JFrame {
         contentPanel.add(pnlKho,        "Kho");
         contentPanel.add(pnlThamSo,     "ThamSo");
         contentPanel.add(pnlThongKe,    "ThongKe");
+        contentPanel.add(pnlDonHang,    "DonHang");
+        // contentPanel.add(pnlGiaoHang,    "GiaoHang");
+        contentPanel.add(pnlLoaiSanPham,    "LoaiSanPham");
+        // contentPanel.add(pnlLoHang,    "LoHang");
+        contentPanel.add(pnlNhapKho,    "NhapKho");
+        contentPanel.add(pnlXuatKho,    "XuatKho");
+        contentPanel.add(pnlTonKho,    "TonKho");
     }
 
     private JButton createMenuButton(String icon, String label, String cardName) {
