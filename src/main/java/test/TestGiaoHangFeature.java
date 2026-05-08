@@ -4,7 +4,7 @@ import bus.GiaoHangBUS;
 import dto.DonHangDTO;
 import java.util.List;
 
-public class TestGiaoHang {
+public class TestGiaoHangFeature {
     public static void main(String[] args) {
 
         GiaoHangBUS bus = new GiaoHangBUS();
