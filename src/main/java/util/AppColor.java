@@ -47,4 +47,9 @@ public class AppColor {
     // Secondary (Thường dùng cho nút Hủy/Đóng)
     public static final Color SECONDARY_HOVER  = Color.decode("#F3F4F6");
     public static final Color SECONDARY_ACTIVE = Color.decode("#E5E7EB");
+
+    // MÀU DÀNH RIÊNG CHO SIDEBAR (DARK THEME)
+    public static final Color SIDEBAR_BG      = Color.decode("#111827"); // Nền chính sidebar (Xám đen)
+    public static final Color SIDEBAR_HOVER   = Color.decode("#1F2937"); // Nền khi di chuột qua menu
+    public static final Color SIDEBAR_ACTIVE  = Color.decode("#374151"); // Nền khi menu được chọn / Footer / Header logo
 }
