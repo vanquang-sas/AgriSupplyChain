@@ -2,219 +2,861 @@ package gui.panel;
 
 import bus.KhachHangBUS;
 import dto.KhachHangDTO;
-import gui.component.IntegratedSearch;
 import gui.component.Pagination;
-import gui.component.ActionCellEditor;
-import gui.component.ActionCellRenderer;
-import gui.component.StatusBadgeRenderer;
 import gui.dialog.KhachHangForm;
 import raven.modal.ModalDialog;
 import raven.modal.component.SimpleModalBorder;
+import raven.modal.option.Option;
 import util.AppColor;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
-import java.sql.SQLException;
+import java.awt.event.*;
+import java.awt.geom.RoundRectangle2D;
+import java.util.ArrayList;
 import java.util.List;
 
 public class KhachHangPanel extends JPanel {
 
+    // ── Data ──────────────────────────────────────────────────────────────────
     private final KhachHangBUS bus = new KhachHangBUS();
+    private List<KhachHangDTO> currentDataList = new ArrayList<>();
+
+    // ── UI ────────────────────────────────────────────────────────────────────
     private JTable table;
     private DefaultTableModel tableModel;
-    private IntegratedSearch searchPanel;
+    private ModernSearchField searchField;
+    private Pagination pagination;
+
+    // ── Stat labels ───────────────────────────────────────────────────────────
+    private JLabel lblTongKH, lblKHVIP, lblKHThanThiet;
+
+    private static final String[] COLUMNS = {
+            "MÃ KH", "TÊN KHÁCH HÀNG", "SỐ ĐIỆN THOẠI", "EMAIL", "ĐỊA CHỈ", "LOẠI KH"
+    };
 
     public KhachHangPanel() {
-        initComponents();
-        loadData();
-    }
-
-    private void initComponents() {
-        setLayout(new BorderLayout(0, 12));
-        setBackground(AppColor.SURFACE);
-        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        add(buildTopPanel(), BorderLayout.NORTH);
-        add(buildTablePanel(), BorderLayout.CENTER);
-        add(new Pagination(), BorderLayout.SOUTH);
-    }
-
-    // ===================== TOP PANEL =====================
-    private JPanel buildTopPanel() {
-        JPanel top = new JPanel(new BorderLayout());
-        top.setBackground(AppColor.SURFACE);
-
-        // Tiêu đề
-        JLabel title = new JLabel("Quản lý Khách hàng");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        title.setForeground(AppColor.TEXT_PRIMARY);
-
-        // Nút bên trái
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        left.setBackground(AppColor.SURFACE);
-
-        JButton btnAdd = createButton("+ Thêm mới", AppColor.PRIMARY, Color.WHITE);
-        btnAdd.addActionListener(e -> showForm(null));
-
-        left.add(btnAdd);
-
-        // Thanh tìm kiếm bên phải
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        right.setBackground(AppColor.SURFACE);
-
-        searchPanel = new IntegratedSearch();
-        searchPanel.setPreferredSize(new Dimension(260, 36));
-
-        JButton btnSearch = createButton("Tìm", AppColor.BORDER, AppColor.TEXT_PRIMARY);
-        btnSearch.addActionListener(e -> {
-            String kw = searchPanel.getText().trim();
-            if (kw.isEmpty()) loadData();
-            else loadData(bus.timKiem(kw));
+        setLayout(new BorderLayout());
+        setBackground(AppColor.BACKGROUND);
+        setBorder(new EmptyBorder(24, 24, 24, 24));
+        
+        // Mẹo xử lý tắt focus (hover) của ô tìm kiếm khi bấm ra ngoài
+        setFocusable(true);
+        addMouseListener(new MouseAdapter() {
+            @Override public void mousePressed(MouseEvent e) {
+                requestFocusInWindow();
+            }
         });
 
-        // Tìm kiếm khi nhấn Enter
-        searchPanel.addActionListener(e -> btnSearch.doClick());
+        // --- Gom nhóm Title và Stats đặt lên NORTH ---
+        JPanel topWrapper = new JPanel();
+        topWrapper.setLayout(new BoxLayout(topWrapper, BoxLayout.Y_AXIS));
+        topWrapper.setOpaque(false);
+        topWrapper.addMouseListener(new MouseAdapter() {
+            @Override public void mousePressed(MouseEvent e) { requestFocusInWindow(); }
+        });
+        
+       // 1. Tiêu đề
+        RoundedPanel titleCard = new RoundedPanel(16);
+        titleCard.setBackground(AppColor.SURFACE);
+        titleCard.setLayout(new BorderLayout());
+        
+        // Viền trong dày hơn
+        titleCard.setBorder(new EmptyBorder(24, 24, 24, 24)); 
+        
+        // Tăng giới hạn chiều cao lên 100 để tránh bị Layout ẩn đi
+        titleCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100)); 
+        titleCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel title = new JLabel("Danh sách khách hàng");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 28)); // Đổi sang Segoe UI
+        title.setForeground(AppColor.TEXT_PRIMARY);
+        titleCard.add(title, BorderLayout.WEST);
+        
+        // ĐẢM BẢO KHÔNG BỊ MẤT 2 DÒNG NÀY KHI DÁN ĐÈ
+        topWrapper.add(titleCard);
+        topWrapper.add(Box.createVerticalStrut(18));
+        
+        // 2. Thống kê
+        topWrapper.add(buildStats());
+        topWrapper.add(Box.createVerticalStrut(18));
 
-        right.add(searchPanel);
-        right.add(btnSearch);
+        add(topWrapper, BorderLayout.NORTH);
 
-        // Ghép lại
-        JPanel titleRow = new JPanel(new BorderLayout());
-        titleRow.setBackground(AppColor.SURFACE);
-        titleRow.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-        titleRow.add(title, BorderLayout.WEST);
+        // 3. Khu vực Bảng (Chiếm toàn bộ CENTER để phóng to tối đa)
+        JPanel tableCard = buildTableCard();
+        add(tableCard, BorderLayout.CENTER);
 
-        JPanel actionRow = new JPanel(new BorderLayout());
-        actionRow.setBackground(AppColor.SURFACE);
-        actionRow.add(left, BorderLayout.WEST);
-        actionRow.add(right, BorderLayout.EAST);
-
-        JPanel top2 = new JPanel(new BorderLayout());
-        top2.setBackground(AppColor.SURFACE);
-        top2.add(titleRow, BorderLayout.NORTH);
-        top2.add(actionRow, BorderLayout.CENTER);
-
-        return top2;
+        loadData(null);
     }
 
-    // ===================== TABLE PANEL =====================
-    private JScrollPane buildTablePanel() {
-        String[] cols = {"Mã KH", "Tên khách hàng", "SĐT", "Email", "Loại KH", "Trạng thái", "Thao tác"};
-        tableModel = new DefaultTableModel(cols, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return c == 6; }
-            @Override public Class<?> getColumnClass(int c) { return c == 5 ? Integer.class : String.class; }
+    // ─────────────────────────────────────────────────────────────────────────
+    // STAT CARDS
+    // ─────────────────────────────────────────────────────────────────────────
+    private JPanel buildStats() {
+        JPanel row = new JPanel(new GridLayout(1, 3, 16, 0));
+        row.setOpaque(false);
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        lblTongKH      = new JLabel("0");
+        lblKHVIP       = new JLabel("0");
+        lblKHThanThiet = new JLabel("0");
+
+        row.add(createStatCard("Tổng khách hàng", lblTongKH,      new Color(0x3B82F6), "👥"));
+        row.add(createStatCard("Khách VIP",        lblKHVIP,       new Color(0xF59E0B), "⭐"));
+        row.add(createStatCard("Khách thân thiết", lblKHThanThiet, new Color(0x10B981), "💚"));
+        return row;
+    }
+    private JButton createIconButton(String svgPath) {
+        JButton btn = new JButton();
+        try {
+            btn.setIcon(new com.formdev.flatlaf.extras.FlatSVGIcon(svgPath, 18, 18));
+        } catch (Throwable ex) {
+            btn.setText("↻");
+            btn.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        }
+        
+        btn.setPreferredSize(new Dimension(36, 36));
+        btn.setContentAreaFilled(false);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        
+        // Gắn trạng thái hover
+        btn.addMouseListener(new MouseAdapter() {
+            @Override public void mouseEntered(MouseEvent e) { btn.putClientProperty("hover", true); btn.repaint(); }
+            @Override public void mouseExited(MouseEvent e) { btn.putClientProperty("hover", false); btn.repaint(); }
+        });
+        
+        // Custom viền và nền
+        btn.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                boolean isHovered = Boolean.TRUE.equals(c.getClientProperty("hover"));
+                
+                // Nền
+                g2.setColor(isHovered ? new Color(243, 244, 246) : Color.WHITE);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 10, 10);
+                
+                // Viền
+                g2.setColor(new Color(209, 213, 219));
+                g2.setStroke(new BasicStroke(1.2f));
+                g2.drawRoundRect(1, 1, c.getWidth() - 3, c.getHeight() - 3, 10, 10);
+                
+                g2.dispose();
+                super.paint(g, c);
+            }
+        });
+        return btn;
+    }
+    private JPanel createStatCard(String cardTitle, JLabel valueLabel, Color accent, String icon) {
+        RoundedPanel card = new RoundedPanel(16);
+        card.setBackground(AppColor.SURFACE);
+        card.setLayout(new BorderLayout(14, 0));
+        card.setBorder(new EmptyBorder(14, 18, 14, 18));
+
+        JPanel iconWrap = new JPanel() {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(accent.getRed(), accent.getGreen(), accent.getBlue(), 35));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        iconWrap.setOpaque(false);
+        iconWrap.setPreferredSize(new Dimension(52, 52));
+        iconWrap.setLayout(new GridBagLayout());
+
+        JLabel iconLbl = new JLabel(icon) {
+            @Override
+            public Dimension getPreferredSize() {
+                Dimension d = super.getPreferredSize();
+                d.height += 8; // Bơm thêm 8px chiều cao cho nhãn
+                d.width += 4;  // Bơm thêm tí chiều rộng cho an toàn
+                return d;
+            }
+        };
+        iconLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 22));
+        iconLbl.setVerticalAlignment(SwingConstants.BOTTOM); // Ép icon tụt xuống đáy
+        iconLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        iconWrap.add(iconLbl);
+
+        JPanel textPanel = new JPanel(new GridLayout(2, 1, 0, 2));
+        textPanel.setOpaque(false);
+
+        JLabel lTitle = new JLabel(cardTitle);
+        lTitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lTitle.setForeground(AppColor.TEXT_SECONDARY);
+
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        valueLabel.setForeground(AppColor.TEXT_PRIMARY);
+
+        textPanel.add(lTitle);
+        textPanel.add(valueLabel);
+
+        card.add(iconWrap,  BorderLayout.WEST);
+        card.add(textPanel, BorderLayout.CENTER);
+        return card;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // TABLE CARD
+    // ─────────────────────────────────────────────────────────────────────────
+    private JPanel buildTableCard() {
+        RoundedPanel card = new RoundedPanel(16);
+        card.setBackground(AppColor.SURFACE);
+        card.setLayout(new BorderLayout());
+        card.addMouseListener(new MouseAdapter() {
+            @Override public void mousePressed(MouseEvent e) { requestFocusInWindow(); }
+        });
+
+        // --- Khu vực Công cụ ---
+        JPanel toolBar = new JPanel(new BorderLayout());
+        toolBar.setOpaque(false);
+        toolBar.setBorder(new EmptyBorder(16, 16, 16, 16));
+
+        JPanel btnGroup = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        btnGroup.setOpaque(false);
+
+        JButton btnThem = createActionButton("Thêm", AppColor.SUCCESS, AppColor.SUCCESS_HOVER, AppColor.SUCCESS_ACTIVE);
+        JButton btnSua  = createActionButton("Sửa",    AppColor.INFO,    AppColor.INFO_HOVER,    AppColor.INFO_ACTIVE);
+        JButton btnXoa  = createActionButton("Xóa",    AppColor.ERROR,   AppColor.ERROR_HOVER,   AppColor.ERROR_ACTIVE);
+        JButton btnRefresh = createIconButton("icons/refresh.svg");
+        btnRefresh.setPreferredSize(new Dimension(36, 36));
+
+        btnThem.addActionListener(e -> openFormThem());
+        btnSua .addActionListener(e -> openFormSua());
+        btnXoa .addActionListener(e -> openFormXoa());
+        btnRefresh.addActionListener(e -> loadData(null));
+
+        btnGroup.add(btnThem);
+        btnGroup.add(btnSua);
+        btnGroup.add(btnXoa);
+        btnGroup.add(Box.createHorizontalStrut(4));
+        btnGroup.add(btnRefresh);
+
+        JPanel searchGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        searchGroup.setOpaque(false);
+
+        searchField = new ModernSearchField("Tìm kiếm khách hàng...");
+        searchField.setPreferredSize(new Dimension(280, 36));
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            private void onSearch() {
+                String kw = searchField.getText().trim();
+                loadData(kw.isEmpty() ? null : kw);
+            }
+            @Override public void insertUpdate(DocumentEvent e)  { onSearch(); }
+            @Override public void removeUpdate(DocumentEvent e)  { onSearch(); }
+            @Override public void changedUpdate(DocumentEvent e) { onSearch(); }
+        });
+
+        // --- Cập nhật nút Sắp xếp ---
+        OutlineButton btnSort = new OutlineButton("Sắp xếp ▼");
+        btnSort.setPreferredSize(new Dimension(110, 36));
+        
+        // 1. Làm đẹp khung chứa menu
+        JPopupMenu sortMenu = new JPopupMenu();
+        sortMenu.setBackground(Color.WHITE);
+        sortMenu.setBorder(BorderFactory.createLineBorder(new Color(209, 213, 219), 1)); 
+
+        // 2. Dùng hàm mới để tạo các lựa chọn
+        JMenuItem sortNameAsc  = createStyledMenuItem("Tên KH (A - Z)");
+        JMenuItem sortNameDesc = createStyledMenuItem("Tên KH (Z - A)");
+        JMenuItem sortVip      = createStyledMenuItem("Khách VIP trước");
+
+        // 3. Logic sắp xếp của bạn (Giữ nguyên)
+        sortNameAsc.addActionListener(e -> {
+            currentDataList.sort((k1, k2) -> k1.getTenKH().compareToIgnoreCase(k2.getTenKH()));
+            loadTableData(1);
+            pagination.setPage(1);
+        });
+        sortNameDesc.addActionListener(e -> {
+            currentDataList.sort((k1, k2) -> k2.getTenKH().compareToIgnoreCase(k1.getTenKH()));
+            loadTableData(1);
+            pagination.setPage(1);
+        });
+        sortVip.addActionListener(e -> {
+            currentDataList.sort((k1, k2) -> {
+                int w1 = "VIP".equalsIgnoreCase(k1.getLoaiKH()) ? 0 : 1;
+                int w2 = "VIP".equalsIgnoreCase(k2.getLoaiKH()) ? 0 : 1;
+                return Integer.compare(w1, w2);
+            });
+            loadTableData(1);
+            pagination.setPage(1);
+        });
+
+        sortMenu.add(sortNameAsc);
+        sortMenu.add(sortNameDesc);
+        sortMenu.add(sortVip);
+
+        btnSort.addActionListener(e -> sortMenu.show(btnSort, 0, btnSort.getHeight() + 4)); 
+        
+        searchGroup.add(searchField);
+        searchGroup.add(btnSort);
+
+        toolBar.add(btnGroup, BorderLayout.WEST);
+        toolBar.add(searchGroup, BorderLayout.EAST);
+
+        // --- Khu vực Bảng ---
+        tableModel = new DefaultTableModel(COLUMNS, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
         };
 
         table = new JTable(tableModel);
-        table.setRowHeight(44);
-        table.setShowGrid(false);
+        table.setRowHeight(48);
+        table.setShowVerticalLines(false); 
+        table.setShowHorizontalLines(true); 
+        table.setGridColor(new Color(229, 231, 235)); 
+        table.setBackground(Color.WHITE); 
+        table.setSelectionBackground(new Color(220, 252, 231));
+        table.setSelectionForeground(AppColor.TEXT_PRIMARY);
+        table.setFocusable(false);
         table.setIntercellSpacing(new Dimension(0, 0));
-        table.setSelectionBackground(new Color(235, 248, 240));
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
-        // Header
-        table.getTableHeader().setBackground(AppColor.PRIMARY);
-        table.getTableHeader().setForeground(Color.WHITE);
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-        table.getTableHeader().setPreferredSize(new Dimension(0, 44));
-        table.getTableHeader().setReorderingAllowed(false);
+        // --- Cập nhật tiêu đề bảng ---
+        JTableHeader header = table.getTableHeader();
+        header.setPreferredSize(new Dimension(0, 52)); // Tăng chiều cao header cho thoáng
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(209, 213, 219)));
+        header.setReorderingAllowed(false);
 
-        // Độ rộng cột
-        int[] widths = {80, 180, 120, 180, 90, 110, 140};
-        for (int i = 0; i < widths.length; i++)
-            table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
-
-        // Renderer
-        table.getColumnModel().getColumn(5).setCellRenderer(new StatusBadgeRenderer());
-        table.getColumnModel().getColumn(6).setCellRenderer(new ActionCellRenderer());
-
-        // ✅ SỬA LỖI: Truyền ActionListener (lambda) thay vì ActionEvent
-        table.getColumnModel().getColumn(6).setCellEditor(new ActionCellEditor(e -> {
-            int row = table.getSelectedRow();
-            if (row == -1) return;
-            String maKH  = tableModel.getValueAt(row, 0).toString();
-            String cmd   = e.getActionCommand();
-
-            if ("EDIT".equals(cmd)) {
-                showForm(maKH);
-
-            } else if ("DELETE".equals(cmd)) {
-                // Nút "Xóa" ở đây dùng để Khóa/Mở khóa tài khoản
-                KhachHangDTO kh = bus.getById(maKH);
-                if (kh == null) return;
-
-                int trangThai = kh.getTrangThaiTK();
-                String msg    = trangThai == 1
-                        ? "Bạn có chắc muốn KHÓA tài khoản của " + kh.getTenKH() + "?"
-                        : "Bạn có chắc muốn MỞ KHÓA tài khoản của " + kh.getTenKH() + "?";
-                String title  = trangThai == 1 ? "Khóa tài khoản" : "Mở khóa tài khoản";
-
-                int confirm = JOptionPane.showConfirmDialog(this, msg, title, JOptionPane.YES_NO_OPTION);
-                if (confirm != JOptionPane.YES_OPTION) return;
-
-                try {
-                    if (trangThai == 1) bus.khoaTaiKhoan(kh.getUsername());
-                    else                bus.moKhoaTaiKhoan(kh.getUsername());
-                    loadData();
-                } catch (SQLException ex) {
-                    JOptionPane.showMessageDialog(this,
-                            "Lỗi: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-                }
+        // Custom Renderer ép buộc tiêu đề căn lề khớp 100% với dữ liệu và tăng độ đậm
+        DefaultTableCellRenderer hdrRdr = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean isS, boolean hasF, int r, int c) {
+                Component comp = super.getTableCellRendererComponent(t, v, isS, hasF, r, c);
+                comp.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Cỡ 14, in đậm nét to
+                comp.setForeground(new Color(17, 24, 39)); // Màu chữ đen đậm hơn (gray-900)
+                comp.setBackground(new Color(243, 244, 246));
+                
+                JLabel label = (JLabel) comp;
+                label.setHorizontalAlignment(SwingConstants.LEFT);
+                // Cách trái chính xác 16px, khớp hoàn toàn với renderer của dữ liệu
+                label.setBorder(new EmptyBorder(0, 16, 0, 8)); 
+                return label;
             }
-        }));
+        };
+
+        for (int i = 0; i < COLUMNS.length; i++) {
+            table.getColumnModel().getColumn(i).setHeaderRenderer(hdrRdr);
+        }
+
+        int[] widths = {100, 200, 130, 190, 200, 110};
+        for (int i = 0; i < widths.length; i++) {
+            table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+        }
+
+        ZebraHoverRenderer zebraRdr = new ZebraHoverRenderer(table);
+        for (int i = 0; i < COLUMNS.length - 1; i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(zebraRdr);
+        }
+        table.getColumnModel().getColumn(5).setCellRenderer(new BadgeRenderer(table));
 
         JScrollPane scroll = new JScrollPane(table);
-        scroll.setBorder(BorderFactory.createLineBorder(AppColor.BORDER));
-        scroll.getViewport().setBackground(AppColor.SURFACE);
-        return scroll;
+        scroll.setBorder(BorderFactory.createEmptyBorder()); // Tắt viền vuông mặc định của ScrollPane
+        scroll.getViewport().setBackground(Color.WHITE);
+
+        // --- Tính năng: Thanh cuộn ẩn ---
+        JScrollBar vScroll = scroll.getVerticalScrollBar();
+        vScroll.setUnitIncrement(16); 
+        vScroll.setPreferredSize(new Dimension(0, 0)); 
+
+        // --- Bo tròn khung chứa bảng ---
+        JPanel tableWrapper = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintBorder(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(229, 231, 235)); // Màu viền mượt mà
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12); // Bo góc 12px
+                g2.dispose();
+            }
+        };
+        tableWrapper.setOpaque(false);
+        tableWrapper.setBorder(new EmptyBorder(1, 1, 1, 1)); // Lùi vào 1px để nhường chỗ cho đường vẽ bo góc
+        tableWrapper.add(scroll, BorderLayout.CENTER);
+
+        // Bọc thêm 1 lớp padding bên ngoài để viền bảng không chạm sát mép màn hình
+        JPanel layoutWrapper = new JPanel(new BorderLayout());
+        layoutWrapper.setOpaque(false);
+        layoutWrapper.setBorder(new EmptyBorder(0, 16, 0, 16)); 
+        layoutWrapper.add(tableWrapper, BorderLayout.CENTER);
+
+        // --- Khu vực Phân trang ---
+        pagination = new Pagination();
+        pagination.setPageSize(10);
+        pagination.addPageChangeListener(this::loadTableData);
+        
+        JPanel pagePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        pagePanel.setOpaque(false);
+        pagePanel.setBorder(new EmptyBorder(12, 16, 16, 16));
+        pagePanel.add(pagination);
+
+        card.add(toolBar, BorderLayout.NORTH);
+        card.add(layoutWrapper, BorderLayout.CENTER); // Add Wrapper đã được bo góc và căn lề
+        card.add(pagePanel, BorderLayout.SOUTH);
+
+        return card;
     }
 
-    // ===================== DIALOG =====================
-    private void showForm(String maKH) {
-        KhachHangForm form  = new KhachHangForm(maKH);
-        String title        = (maKH == null) ? "Thêm mới Khách hàng" : "Cập nhật Khách hàng";
-
-        SimpleModalBorder modal = new SimpleModalBorder(
-                form, title, SimpleModalBorder.YES_NO_OPTION,
-                (ctrl, action) -> {
+    // ─────────────────────────────────────────────────────────────────────────
+    // ACTIONS
+    // ─────────────────────────────────────────────────────────────────────────
+    private void openFormThem() {
+        KhachHangForm form = new KhachHangForm(null);
+        SimpleModalBorder border = new SimpleModalBorder(
+                form, "Thêm khách hàng mới",
+                SimpleModalBorder.YES_NO_OPTION,
+                (controller, action) -> {
                     if (action == SimpleModalBorder.YES_OPTION) {
                         if (form.saveData()) {
-                            ctrl.close();
-                            loadData();
+                            controller.close();
+                            loadData(null);
                         }
                     } else {
-                        ctrl.close();
+                        controller.close();
                     }
-                });
-        ModalDialog.showModal(this, modal);
+                }
+        );
+        ModalDialog.showModal(getRootContainer(), border, createModalOption());
     }
 
-    // ===================== LOAD DỮ LIỆU =====================
-    public void loadData() {
-        loadData(bus.getAll());
+    private void openFormSua() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Vui lòng chọn một khách hàng để sửa.",
+                    "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String maKH = tableModel.getValueAt(row, 0).toString();
+        KhachHangForm form = new KhachHangForm(maKH);
+        SimpleModalBorder border = new SimpleModalBorder(
+                form, "Cập nhật khách hàng",
+                SimpleModalBorder.YES_NO_OPTION,
+                (controller, action) -> {
+                    if (action == SimpleModalBorder.YES_OPTION) {
+                        if (form.saveData()) {
+                            controller.close();
+                            loadData(null);
+                        }
+                    } else {
+                        controller.close();
+                    }
+                }
+        );
+        ModalDialog.showModal(getRootContainer(), border, createModalOption());
     }
 
-    private void loadData(List<KhachHangDTO> list) {
+    private void openFormXoa() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Vui lòng chọn một khách hàng để xóa.",
+                    "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String maKH  = tableModel.getValueAt(row, 0).toString();
+        String tenKH = tableModel.getValueAt(row, 1).toString();
+
+        JPanel confirmPanel = new JPanel(new BorderLayout(0, 10));
+        confirmPanel.setBackground(AppColor.SURFACE);
+        confirmPanel.setPreferredSize(new Dimension(380, 80));
+
+        JLabel iconLbl = new JLabel("⚠️");
+        iconLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 32));
+        iconLbl.setHorizontalAlignment(SwingConstants.CENTER);
+
+        JLabel msg = new JLabel(
+                "<html><div style='text-align:center; font-family:Segoe UI;'>"
+                + "Bạn có chắc muốn khóa tài khoản khách hàng<br>"
+                + "<b>" + tenKH + "</b> (" + maKH + ")?<br>"
+                + "<font color='#DC2626'>Tài khoản sẽ không thể đăng nhập.</font>"
+                + "</div></html>"
+        );
+        msg.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        msg.setForeground(AppColor.TEXT_PRIMARY);
+        msg.setHorizontalAlignment(SwingConstants.CENTER);
+
+        confirmPanel.add(iconLbl, BorderLayout.NORTH);
+        confirmPanel.add(msg,     BorderLayout.CENTER);
+
+        SimpleModalBorder border = new SimpleModalBorder(
+                confirmPanel, "Xác nhận khóa tài khoản",
+                SimpleModalBorder.YES_NO_OPTION,
+                (controller, action) -> {
+                    if (action == SimpleModalBorder.YES_OPTION) {
+                        try {
+                            String username = getUsername(maKH);
+                            bus.khoaTaiKhoan(username);
+                            controller.close();
+                            loadData(null);
+                            JOptionPane.showMessageDialog(this,
+                                    "Đã khóa tài khoản thành công!",
+                                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(this,
+                                    "Lỗi: " + ex.getMessage(),
+                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } else {
+                        controller.close();
+                    }
+                }
+        );
+        ModalDialog.showModal(getRootContainer(), border, createModalOption());
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DATA
+    // ─────────────────────────────────────────────────────────────────────────
+    private void loadData(String keyword) {
+        currentDataList = (keyword == null || keyword.isBlank())
+                ? bus.getAll()
+                : bus.timKiem(keyword);
+
+        int vip = 0, thanThiet = 0;
+        for (KhachHangDTO kh : currentDataList) {
+            if ("VIP".equalsIgnoreCase(kh.getLoaiKH()))         vip++;
+            if ("Thân thiết".equalsIgnoreCase(kh.getLoaiKH())) thanThiet++;
+        }
+        lblTongKH     .setText(String.valueOf(currentDataList.size()));
+        lblKHVIP      .setText(String.valueOf(vip));
+        lblKHThanThiet.setText(String.valueOf(thanThiet));
+
+        pagination.setTotalItems(currentDataList.size());
+        loadTableData(1);
+    }
+
+    private void loadTableData(int page) {
         tableModel.setRowCount(0);
-        for (KhachHangDTO kh : list) {
+        int limit = pagination.getPageSize();
+        int start = (page - 1) * limit;
+        int end = Math.min(start + limit, currentDataList.size());
+
+        for (int i = start; i < end; i++) {
+            KhachHangDTO kh = currentDataList.get(i);
             tableModel.addRow(new Object[]{
-                kh.getMaKH(), kh.getTenKH(), kh.getSdt(),
-                kh.getEmail(), kh.getLoaiKH(), kh.getTrangThaiTK(), ""
+                    kh.getMaKH(),
+                    kh.getTenKH(),
+                    kh.getSdt(),
+                    kh.getEmail()  != null ? kh.getEmail()  : "",
+                    kh.getDiaChi() != null ? kh.getDiaChi() : "",
+                    kh.getLoaiKH() != null ? kh.getLoaiKH() : "Thường"
             });
         }
     }
 
-    // ===================== HELPER =====================
-    private JButton createButton(String text, Color bg, Color fg) {
-        JButton btn = new JButton(text);
-        btn.setBackground(bg);
-        btn.setForeground(fg);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
+    // ─────────────────────────────────────────────────────────────────────────
+    // HELPERS
+    // ─────────────────────────────────────────────────────────────────────────
+    private String getUsername(String maKH) {
+        KhachHangDTO kh = bus.getById(maKH);
+        return (kh != null && kh.getUsername() != null) ? kh.getUsername() : maKH;
+    }
+
+    private Component getRootContainer() {
+        Container c = getTopLevelAncestor();
+        return c != null ? c : this;
+    }
+
+    private Option createModalOption() {
+        Option opt = ModalDialog.createOption();
+        opt.getLayoutOption()
+           .setSize(0.45f, -1)
+           .setLocation(0.5f, 0.4f);
+        return opt;
+    }
+
+    private JButton createActionButton(String text, Color bg, Color hoverColor, Color activeColor) {
+        JButton btn = new JButton(text) {
+            private Color current = bg;
+            {
+                addMouseListener(new MouseAdapter() {
+                    @Override public void mouseEntered(MouseEvent e)  { current = hoverColor;  repaint(); }
+                    @Override public void mouseExited(MouseEvent e)   { current = bg;          repaint(); }
+                    @Override public void mousePressed(MouseEvent e)  { current = activeColor; repaint(); }
+                    @Override public void mouseReleased(MouseEvent e) { current = hoverColor;  repaint(); }
+                });
+            }
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(current);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        btn.setForeground(Color.WHITE);
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setOpaque(false);
+        btn.setPreferredSize(new Dimension(80, 36));
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return btn;
+    }
+
+    private JMenuItem createStyledMenuItem(String text) {
+        JMenuItem item = new JMenuItem(text);
+        item.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        item.setBackground(Color.WHITE);
+        item.setForeground(AppColor.TEXT_PRIMARY);
+        item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        item.setPreferredSize(new Dimension(150, 36)); 
+
+        item.setUI(new javax.swing.plaf.basic.BasicMenuItemUI() {
+            @Override
+            protected void paintBackground(Graphics g, JMenuItem menuItem, Color bgColor) {
+                if (menuItem.isArmed() || menuItem.isSelected()) {
+                    g.setColor(new Color(243, 244, 246)); 
+                } else {
+                    g.setColor(Color.WHITE);
+                }
+                g.fillRect(0, 0, menuItem.getWidth(), menuItem.getHeight());
+            }
+
+            @Override
+            protected void paintText(Graphics g, JMenuItem menuItem, Rectangle textRect, String text) {
+                textRect.x = 16; 
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                super.paintText(g2, menuItem, textRect, text);
+                g2.dispose();
+            }
+        });
+        return item;
+    }
+    // ═════════════════════════════════════════════════════════════════════════
+    // INNER CLASSES
+    // ═════════════════════════════════════════════════════════════════════════
+
+    static class OutlineButton extends JButton {
+        private boolean isHovered = false;
+
+        public OutlineButton(String text) {
+            super(text);
+            setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            setForeground(new Color(75, 85, 99));
+            setContentAreaFilled(false);
+            setFocusPainted(false);
+            setBorderPainted(false);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+            addMouseListener(new MouseAdapter() {
+                @Override public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                @Override public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
+            });
+        }
+
+       @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            g2.setColor(isHovered ? new Color(243, 244, 246) : Color.WHITE);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+            
+            g2.setColor(new Color(209, 213, 219)); 
+            g2.setStroke(new BasicStroke(1.2f)); 
+            g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 10, 10);
+            
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    static class ModernSearchField extends JTextField {
+        private final String placeholder;
+        private boolean isHovered = false;
+
+        public ModernSearchField(String placeholder) {
+            this.placeholder = placeholder;
+            setOpaque(false);
+            setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 36));
+            setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            setForeground(AppColor.TEXT_PRIMARY);
+
+            addMouseListener(new MouseAdapter() {
+                @Override public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                @Override public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
+            });
+
+            addFocusListener(new FocusAdapter() {
+                @Override public void focusGained(FocusEvent e) { repaint(); }
+                @Override public void focusLost(FocusEvent e) { 
+                    isHovered = false; 
+                    repaint(); 
+                }
+            });
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(Color.WHITE);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+
+            if (isFocusOwner()) {
+                g2.setColor(AppColor.PRIMARY);
+                g2.setStroke(new BasicStroke(1.5f));
+            } else if (isHovered) {
+                g2.setColor(new Color(156, 163, 175));
+                g2.setStroke(new BasicStroke(1f));
+            } else {
+                g2.setColor(new Color(209, 213, 219));
+                g2.setStroke(new BasicStroke(1f));
+            }
+            g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 12, 12);
+
+            super.paintComponent(g);
+
+            if (getText().isEmpty() && !isFocusOwner()) {
+                g2.setColor(new Color(156, 163, 175));
+                FontMetrics fm = g.getFontMetrics();
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(placeholder, 16, y);
+            }
+
+            g2.setColor(new Color(156, 163, 175));
+            int iconSize = 14;
+            int x = getWidth() - 24;
+            int y = (getHeight() - iconSize) / 2;
+            g2.setStroke(new BasicStroke(2f));
+            g2.drawOval(x, y, 10, 10);
+            g2.drawLine(x + 8, y + 8, x + 13, y + 13);
+
+            g2.dispose();
+        }
+    }
+
+    static class RoundedPanel extends JPanel {
+        private final int arc;
+        RoundedPanel(int arc) { this.arc = arc; setOpaque(false); }
+
+        @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            for (int i = 5; i >= 1; i--) {
+                g2.setColor(new Color(0, 0, 0, 6));
+                g2.fill(new RoundRectangle2D.Float(i, i + 1,
+                        getWidth() - i * 2, getHeight() - i * 2, arc, arc));
+            }
+            g2.setColor(getBackground());
+            g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 5, getHeight() - 5, arc, arc));
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    static class ZebraHoverRenderer extends DefaultTableCellRenderer {
+        private int hoverRow = -1;
+
+        ZebraHoverRenderer(JTable tbl) {
+            tbl.addMouseMotionListener(new MouseMotionAdapter() {
+                @Override public void mouseMoved(MouseEvent e) {
+                    int r = tbl.rowAtPoint(e.getPoint());
+                    if (r != hoverRow) { hoverRow = r; tbl.repaint(); }
+                }
+            });
+            tbl.addMouseListener(new MouseAdapter() {
+                @Override public void mouseExited(MouseEvent e) { hoverRow = -1; tbl.repaint(); }
+            });
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable t, Object value,
+                boolean selected, boolean focused, int row, int col) {
+            super.getTableCellRendererComponent(t, value, selected, focused, row, col);
+            setBorder(new EmptyBorder(0, 16, 0, 8));
+            
+            // Xử lý in đậm cho Cột 0 (Mã KH)
+            if (col == 0) {
+                setFont(new Font("Segoe UI", Font.BOLD, 13));
+                setForeground(new Color(31, 41, 55)); // Đậm màu hơn chút xíu
+            } else {
+                setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                setForeground(new Color(75, 85, 99)); // Màu xám nhạt nhẹ nhàng như web
+            }
+
+            if (selected)           setBackground(new Color(220, 252, 231));
+            else if (row == hoverRow) setBackground(new Color(240, 253, 244));
+            else if (row % 2 == 0)  setBackground(Color.WHITE); // Trắng
+            else                    setBackground(new Color(250, 250, 250)); // Trắng xám cực nhạt để tạo phân tách
+            return this;
+        }
+    }
+
+    static class BadgeRenderer extends DefaultTableCellRenderer {
+        private int hoverRow = -1;
+
+        public BadgeRenderer(JTable tbl) {
+            tbl.addMouseMotionListener(new MouseMotionAdapter() {
+                @Override public void mouseMoved(MouseEvent e) {
+                    int r = tbl.rowAtPoint(e.getPoint());
+                    if (r != hoverRow) { hoverRow = r; tbl.repaint(); }
+                }
+            });
+            tbl.addMouseListener(new MouseAdapter() {
+                @Override public void mouseExited(MouseEvent e) { hoverRow = -1; tbl.repaint(); }
+            });
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable t, Object value,
+                boolean selected, boolean focused, int row, int col) {
+
+            JPanel cell = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 8));
+            cell.setOpaque(true);
+
+            if (selected)             cell.setBackground(new Color(220, 252, 231));
+            else if (row == hoverRow) cell.setBackground(new Color(240, 253, 244));
+            else if (row % 2 == 0)    cell.setBackground(Color.WHITE);
+            else                      cell.setBackground(new Color(250, 250, 250));
+
+            String loai = (value == null) ? "Thường" : value.toString();
+            final Color badgeBg, badgeFg;
+            switch (loai) {
+                case "VIP":
+                    badgeBg = new Color(0xFEF3C7); badgeFg = new Color(0xD97706); break;
+                case "Thân thiết":
+                case "Hoạt động":
+                    badgeBg = new Color(0xD1FAE5); badgeFg = new Color(0x065F46); break;
+                default:
+                    badgeBg = new Color(0xF3F4F6); badgeFg = new Color(0x374151); break;
+            }
+
+            JLabel badge = new JLabel(loai) {
+                @Override protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(badgeBg);
+                    g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 20, 20));
+                    g2.dispose();
+                    super.paintComponent(g);
+                }
+            };
+            badge.setFont(new Font("Segoe UI", Font.BOLD, 11)); 
+            badge.setForeground(badgeFg);
+            badge.setOpaque(false);
+            badge.setBorder(new EmptyBorder(3, 10, 3, 10));
+
+            cell.add(badge);
+            return cell;
+        }
     }
 }
