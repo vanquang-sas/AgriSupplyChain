@@ -87,10 +87,8 @@ public class CuaHangDAO {
         List<SanPhamDTO> list = new ArrayList<>();
 
         String sql = """
-                SELECT * FROM SANPHAM SP
-                JOIN LOAISANPHAM LSP
-                ON SP.MALSP = LSP.MALSP
-                WHERE LSP.TENLSP = ?
+                SELECT * FROM SANPHAM
+                WHERE MALSP = ?
                 """;
 
         try (

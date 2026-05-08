@@ -5,7 +5,7 @@ import dto.SanPhamDTO;
 
 import java.util.List;
 
-public class TestCuaHang {
+public class TestCuaHangFeature {
 
     public static void main(String[] args) {
 
