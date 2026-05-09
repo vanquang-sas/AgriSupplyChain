@@ -232,7 +232,7 @@ public class MainFrame extends JFrame {
         userText.add(lblName);
         userText.add(lblStatus);
 
-        JButton btnLogout = new JButton("⏻ Đăng xuất");
+        JButton btnLogout = new JButton("Đăng xuất");
         btnLogout.setBackground(new Color(255, 255, 255, 30));
         btnLogout.setForeground(Color.WHITE);
         btnLogout.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));

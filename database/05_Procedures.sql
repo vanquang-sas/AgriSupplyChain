@@ -740,3 +740,18 @@ BEGIN
 END;
 /
 
+CREATE OR REPLACE PROCEDURE SP_THONGKE_TRANGTHAI (
+    p_FromDate IN DATE,
+    p_ToDate IN DATE,
+    p_Cursor OUT SYS_REFCURSOR
+)
+AS
+BEGIN
+    OPEN p_Cursor FOR
+    SELECT TrangThaiDH, COUNT(MaDH) as SoLuong 
+    FROM DONHANG 
+    WHERE TRUNC(TGDat) BETWEEN p_FromDate AND p_ToDate
+    GROUP BY TrangThaiDH
+    ORDER BY SoLuong DESC;
+END;
+/

@@ -74,4 +74,25 @@ public class ThongKeDAO {
         } catch (Exception e) { e.printStackTrace(); }
         return list;
     }
+
+    // ============================================= TRẠNG THÁI ĐƠN HÀNG =============================================
+    public List<ThongKeDTO.TrangThai> getThongKeTrangThai(java.util.Date from, java.util.Date to) {
+        List<ThongKeDTO.TrangThai> list = new ArrayList<>();
+        String sql = "{call SP_THONGKE_TRANGTHAI(?, ?, ?)}";
+        try (java.sql.Connection conn = util.DBConnection.getConnection();
+             java.sql.CallableStatement cs = conn.prepareCall(sql)) {
+            
+            cs.setDate(1, new java.sql.Date(from.getTime()));
+            cs.setDate(2, new java.sql.Date(to.getTime()));
+            cs.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR);
+            cs.execute();
+            
+            try (java.sql.ResultSet rs = (java.sql.ResultSet) cs.getObject(3)) {
+                while (rs.next()) {
+                    list.add(new ThongKeDTO.TrangThai(rs.getString("TrangThaiDH"), rs.getInt("SoLuong")));
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
 }

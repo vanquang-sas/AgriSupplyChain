@@ -2,7 +2,6 @@ package gui.panel;
 
 import util.AppColor;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -14,7 +13,7 @@ public class ThongKePanel extends JPanel {
     // Khai báo các Panel con chuyên biệt
     private TopSanPhamPanel pnlTopSanPham;
     // private DoanhThuPanel pnlDoanhThu; // Sẽ khởi tạo khi bạn code xong file này
-    // private TrangThaiPanel pnlTrangThai; // Sẽ khởi tạo khi bạn code xong file này
+    private TrangThaiPanel pnlTrangThai;
 
     public ThongKePanel() {
         setLayout(new BorderLayout());
@@ -35,14 +34,15 @@ public class ThongKePanel extends JPanel {
         
         // 2. Khởi tạo và add TopSanPhamPanel đã có
         pnlTopSanPham = new TopSanPhamPanel();
+        pnlTrangThai  = new TrangThaiPanel();
         
         // Thêm nút "Quay lại" vào TopSanPhamPanel từ bên ngoài 
         // Hoặc bạn có thể thêm nút này trực tiếp trong file TopSanPhamPanel.java
-        mainContent.add(wrapWithBackButton(pnlTopSanPham, "Thống kê Top Nông sản"), "TOPSP");
+        mainContent.add(wrapWithBackButton(pnlTopSanPham, "Thống kê Top sản phẩm"), "TOPSP");
+        mainContent.add(wrapWithBackButton(pnlTrangThai, "Trạng thái đơn hàng"), "TRANGTHAI");
         
         // 3. Các chức năng còn lại (Tạm thời dùng Placeholder hoặc khởi tạo Panel riêng)
         mainContent.add(createDetailPlaceholder("DOANHTHU", "Báo cáo Doanh thu"), "DOANHTHU");
-        mainContent.add(createDetailPlaceholder("TRANGTHAI", "Trạng thái đơn hàng"), "TRANGTHAI");
     }
 
     // --- MÀN HÌNH MENU CHÍNH ---
@@ -108,12 +108,28 @@ public class ThongKePanel extends JPanel {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(AppColor.BACKGROUND);
 
-        // Header có nút Back
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 15));
         header.setBackground(AppColor.BACKGROUND);
         
-        JButton btnBack = new JButton("⬅ Quay lại Menu");
+        // -- NÚT QUAY LẠI PHONG CÁCH HIỆN ĐẠI --
+        JButton btnBack = new JButton("Quay lại Menu");
+        btnBack.setFont(new Font("Segoe UI Emoji", Font.BOLD, 15));
+        btnBack.setForeground(AppColor.PRIMARY); // Chữ màu xanh đồng bộ toàn app
+        btnBack.setBorderPainted(false); // Bỏ viền
+        btnBack.setContentAreaFilled(false); // Bỏ màu nền mặc định
         btnBack.setFocusPainted(false);
+        btnBack.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Hiệu ứng hover nhạt màu khi đưa chuột vào
+        btnBack.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btnBack.setForeground(new Color(0, 102, 204)); 
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btnBack.setForeground(AppColor.PRIMARY);
+            }
+        });
+
         btnBack.addActionListener(e -> cardLayout.show(mainContent, "MENU"));
         
         JLabel lblTitle = new JLabel("|  " + titleText);
