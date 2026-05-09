@@ -61,7 +61,6 @@ public class DonHangDAO {
                 danhSachDH.add(donHangDTO);
             }
 
-            System.out.println("✓ Lấy danh sách đơn hàng thành công. Tổng số: " + danhSachDH.size());
             return danhSachDH;
 
         } catch (SQLException e) {

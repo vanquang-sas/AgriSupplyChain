@@ -689,3 +689,69 @@ EXCEPTION
         RAISE_APPLICATION_ERROR(-20040, 'Lỗi khi lấy danh sách đơn hàng: ' || SQLERRM);
 END SP_LAY_DS_DONHANG_BY_KH;
 /
+
+-- 1. Procedure: Thống kê doanh thu theo từng tháng trong 1 năm cụ thể (Chỉ tính đơn Hoàn Thành)
+CREATE OR REPLACE PROCEDURE SP_THONGKE_DOANHTHU_NAM (
+    p_Nam IN NUMBER,
+    p_Cursor OUT SYS_REFCURSOR
+)
+AS
+BEGIN
+    OPEN p_Cursor FOR
+    SELECT EXTRACT(MONTH FROM TGDat) AS Thang,
+           NVL(SUM(TongTien), 0) AS DoanhThu
+    FROM DONHANG
+    WHERE EXTRACT(YEAR FROM TGDat) = p_Nam
+      AND TrangThaiDH = 'HoanThanh' 
+    GROUP BY EXTRACT(MONTH FROM TGDat)
+    ORDER BY Thang;
+END;
+/
+
+-- 2. Procedure: Thống kê Top N Sản phẩm bán chạy nhất
+CREATE OR REPLACE PROCEDURE SP_THONGKE_SANPHAM (
+    p_Limit IN NUMBER,          -- 5, 10 hoặc 0 (0 đại diện cho tất cả)
+    p_Type IN VARCHAR2,         -- 'BEST' (Bán chạy) hoặc 'WORST' (Bán ít nhất)
+    p_FromDate IN DATE,
+    p_ToDate IN DATE,
+    p_Cursor OUT SYS_REFCURSOR
+)
+AS
+    v_Limit NUMBER := p_Limit;
+BEGIN
+    -- Xử lý tham số 'Tất cả'
+    IF v_Limit = 0 THEN 
+        v_Limit := 999999; 
+    END IF;
+
+    OPEN p_Cursor FOR
+    SELECT TenSP, TongSoLuong FROM (
+        -- Lấy ra danh sách thỏa mãn điều kiện lọc
+        SELECT * FROM (
+            SELECT sp.TenSP, SUM(ct.SoLuong) AS TongSoLuong
+            FROM CHITIETDONHANG ct
+            JOIN SANPHAM sp ON ct.MaSP = sp.MaSP
+            JOIN DONHANG dh ON ct.MaDH = dh.MaDH
+            WHERE dh.TrangThaiDH = 'HoanThanh'
+              AND TRUNC(dh.TGDat) BETWEEN p_FromDate AND p_ToDate
+            GROUP BY sp.TenSP
+            ORDER BY 
+                CASE WHEN p_Type = 'BEST' THEN SUM(ct.SoLuong) END DESC,
+                CASE WHEN p_Type = 'WORST' THEN SUM(ct.SoLuong) END ASC
+        ) WHERE ROWNUM <= v_Limit
+    ) ORDER BY TongSoLuong DESC; -- Luôn sắp xếp cao -> thấp để vẽ biểu đồ từ trái qua phải
+END;
+/
+
+-- 3. Procedure: Thống kê tỷ lệ các trạng thái đơn hàng (Hoàn thành, Đã hủy, Đang giao...)
+CREATE OR REPLACE PROCEDURE SP_THONGKE_TRANGTHAI_DH (
+    p_Cursor OUT SYS_REFCURSOR
+)
+AS
+BEGIN
+    OPEN p_Cursor FOR
+    SELECT TrangThaiDH, COUNT(MaDH) as SoLuong 
+    FROM DONHANG 
+    GROUP BY TrangThaiDH;
+END;
+/

@@ -20,6 +20,7 @@ public class Main {
         // ==========================================
         TaiKhoanDTO mockUser = new TaiKhoanDTO();
         mockUser.setUsername("admin_test"); 
+
         mockUser.setLoaiTK(0); // 0: Quản lý, 1: Nhân viên, 2: Khách hàng
         
         Session.currentUser = mockUser;
