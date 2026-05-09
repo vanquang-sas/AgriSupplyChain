@@ -118,4 +118,41 @@ public class CuaHangDAO {
 
         return list;
     }
+    // 4. Lấy danh sách sản phẩm theo id
+    public SanPhamDTO getById(String maSP) {
+
+        SanPhamDTO sp = null;
+
+        try {
+
+            String sql = "SELECT * FROM SANPHAM WHERE MASP = ?";
+            Connection con = DBConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+
+            ps.setString(1, maSP);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+
+                sp = new SanPhamDTO();
+
+                sp.setMaSP(rs.getString("MASP"));
+                sp.setTenSP(rs.getString("TENSP"));
+                sp.setMaLSP(rs.getString("MALSP"));
+                sp.setChatLuong(rs.getString("CHATLUONG"));
+                sp.setGiaMua(rs.getDouble("GIAMUA"));
+                sp.setGiaBan(rs.getDouble("GIABAN"));
+                sp.setDonViTinh(rs.getString("DONVITINH"));
+                sp.setBaoQuan(rs.getString("BAOQUAN"));
+                sp.setHinhAnh(rs.getString("HINHANH"));
+            }
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+
+        return sp;
+}
 }

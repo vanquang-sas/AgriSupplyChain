@@ -133,7 +133,7 @@ public class CuaHangGUI extends JPanel {
                         "Mã SP",
                         "Tên sản phẩm",
                         "Loại SP",
-                        "Giá bán"
+                        "Giá bán",
                 },
                 0
         );
@@ -230,38 +230,27 @@ public class CuaHangGUI extends JPanel {
             );
         });
 
-        // =========================================
-        // EVENT DOUBLE CLICK -> CHI TIẾT
-        // =========================================
-        tblSanPham.addMouseListener(new java.awt.event.MouseAdapter() {
 
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
+    tblSanPham.addMouseListener(new java.awt.event.MouseAdapter() {
 
-                if (evt.getClickCount() == 2) {
+        @Override
+        public void mouseClicked(java.awt.event.MouseEvent e) {
 
-                    int row = tblSanPham.getSelectedRow();
+            if (e.getClickCount() == 2) {
 
-                    String maSP = model.getValueAt(row, 0).toString();
-                    String tenSP = model.getValueAt(row, 1).toString();
-                    String loai = model.getValueAt(row, 2).toString();
-                    String gia = model.getValueAt(row, 3).toString();
+                int row = tblSanPham.getSelectedRow();
 
-                    JOptionPane.showMessageDialog(
-                            null,
-                            """
-                            ===== CHI TIẾT SẢN PHẨM =====
-                            
-                            Mã SP: """ + maSP +
-                            "\nTên SP: " + tenSP +
-                            "\nLoại SP: " + loai +
-                            "\nGiá bán: " + gia
-                    );
-                }
+                String maSP = model.getValueAt(row,0).toString();
+
+                SanPhamDTO sp = bus.getById(maSP);
+                ChiTietSanPhamGUI dialog = new ChiTietSanPhamGUI(null, sp);
+
+                dialog.setVisible(true);
             }
-        });
+        }
+    });
     }
-
-    // =========================================
+        // =========================================
     // LOAD DATA
     // =========================================
     private void loadData(List<SanPhamDTO> list) {
@@ -324,9 +313,9 @@ public class CuaHangGUI extends JPanel {
 
         return btn;
     }
-// =========================================
-// FILTER REALTIME
-// =========================================
+    // =========================================
+    // FILTER REALTIME
+    // =========================================
     private void filterSanPham() {
 
         String keyword = txtTimKiem.getText().trim();

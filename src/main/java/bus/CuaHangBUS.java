@@ -22,4 +22,10 @@ public class CuaHangBUS {
     public List<SanPhamDTO> locTheoLoai(String loai) {
         return dao.locTheoLoai(loai);
     }
+
+    // Lấy danh sách sản phẩm theo id
+    public SanPhamDTO getById(String maSP) {
+
+        return dao.getById(maSP);
+    }
 }
