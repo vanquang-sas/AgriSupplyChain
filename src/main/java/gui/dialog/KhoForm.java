@@ -11,98 +11,138 @@ import java.sql.SQLException;
 
 public class KhoForm extends JPanel {
 
-    private JTextField txtTenKho, txtDiaChi;
-    private JTextArea txtMoTa;
+    private ModernTextField txtMaKho, txtTenKho, txtDiaChi, txtMoTa;
     private JComboBox<String> cbLoaiKho;
-    private JLabel lblMaKho;
 
     private final KhoBUS bus = new KhoBUS();
-    private final String currentMaKho; // null = thêm mới
+    private final String currentMaKho;
 
     public KhoForm(String maKhoToEdit) {
         this.currentMaKho = maKhoToEdit;
         initComponents();
-        if (maKhoToEdit != null) loadDataToForm(maKhoToEdit);
+        if (maKhoToEdit != null) {
+            loadDataToForm(maKhoToEdit);
+        }
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout());
+        setLayout(new GridBagLayout());
         setBackground(AppColor.SURFACE);
-        setPreferredSize(new Dimension(460, currentMaKho == null ? 340 : 370));
+        setBorder(new EmptyBorder(24, 32, 24, 32));
 
-        JPanel form = new JPanel(new GridBagLayout());
-        form.setBackground(AppColor.SURFACE);
-        form.setBorder(new EmptyBorder(12, 24, 12, 24));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(12, 10, 12, 10);
 
-        GridBagConstraints gc = new GridBagConstraints();
-        gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = new Insets(7, 4, 7, 4);
+        // Khởi tạo các Component theo chuẩn Modern
+        txtMaKho = new ModernTextField(currentMaKho == null ? "Hệ thống tự động cấp" : currentMaKho, false);
+        txtTenKho = new ModernTextField("Nhập tên kho...", true);
+        txtDiaChi = new ModernTextField("Nhập địa chỉ cụ thể...", true);
+        txtMoTa = new ModernTextField("Nhập ghi chú hoặc mô tả...", true);
+        cbLoaiKho = createModernComboBox(new String[]{"Mát", "Lạnh", "Đông"});
 
         int row = 0;
 
-        // Mã kho (chỉ hiện khi sửa)
-        if (currentMaKho != null) {
-            addLabel(form, gc, row, "Mã kho:");
-            lblMaKho = new JLabel();
-            lblMaKho.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            lblMaKho.setForeground(AppColor.PRIMARY);
-            addField(form, gc, row++, lblMaKho);
+        // --- DÒNG 1: Mã Kho (Trái) & Loại Kho (Phải) ---
+        gbc.gridy = row++;
+        gbc.gridx = 0; gbc.weightx = 0; add(createLabel("Mã kho:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 0.5; add(txtMaKho, gbc);
+        gbc.gridx = 2; gbc.weightx = 0; add(createLabel("Loại kho (*):"), gbc);
+        gbc.gridx = 3; gbc.weightx = 0.5; add(cbLoaiKho, gbc);
+
+        // --- DÒNG 2: Tên Kho (Chiếm hết chiều ngang) ---
+        gbc.gridy = row++;
+        gbc.gridx = 0; gbc.weightx = 0; gbc.gridwidth = 1; add(createLabel("Tên kho (*):"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0; gbc.gridwidth = 3; add(txtTenKho, gbc);
+
+        // --- DÒNG 3: Địa chỉ (Chiếm hết chiều ngang) ---
+        gbc.gridy = row++;
+        gbc.gridx = 0; gbc.weightx = 0; gbc.gridwidth = 1; add(createLabel("Địa chỉ (*):"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0; gbc.gridwidth = 3; add(txtDiaChi, gbc);
+
+        // --- DÒNG 4: Mô tả (Chiếm hết chiều ngang) ---
+        gbc.gridy = row++;
+        gbc.gridx = 0; gbc.weightx = 0; gbc.gridwidth = 1; add(createLabel("Mô tả:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0; gbc.gridwidth = 3; add(txtMoTa, gbc);
+    }
+
+    private JLabel createLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lbl.setForeground(AppColor.TEXT_PRIMARY);
+        return lbl;
+    }
+
+    private JComboBox<String> createModernComboBox(String[] items) {
+        JComboBox<String> cb = new JComboBox<>(items);
+        cb.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        cb.setPreferredSize(new Dimension(200, 42)); 
+        cb.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        cb.putClientProperty("JComponent.roundRect", true); 
+        return cb;
+    }
+
+    // --- CLASS CUSTOM UI ---
+    class ModernTextField extends JTextField {
+        private String placeholder;
+        public ModernTextField(String placeholder, boolean enabled) {
+            this.placeholder = placeholder;
+            setEnabled(enabled);
+            setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            setForeground(AppColor.TEXT_PRIMARY);
+            setPreferredSize(new Dimension(200, 42)); 
+            setOpaque(false); 
+            setBorder(BorderFactory.createEmptyBorder(5, 12, 5, 12));
+            addFocusListener(new java.awt.event.FocusAdapter() {
+                @Override public void focusGained(java.awt.event.FocusEvent e) { repaint(); }
+                @Override public void focusLost(java.awt.event.FocusEvent e) { repaint(); }
+            });
         }
-
-        // Tên kho
-        addLabel(form, gc, row, "Tên kho (*):");
-        txtTenKho = new JTextField();
-        styleTextField(txtTenKho);
-        addField(form, gc, row++, txtTenKho);
-
-        // Loại kho
-        addLabel(form, gc, row, "Loại kho (*):");
-        cbLoaiKho = new JComboBox<>(new String[]{"Mát", "Lạnh", "Đông"});
-        cbLoaiKho.setBackground(AppColor.SURFACE);
-        cbLoaiKho.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        addField(form, gc, row++, cbLoaiKho);
-
-        // Địa chỉ
-        addLabel(form, gc, row, "Địa chỉ (*):");
-        txtDiaChi = new JTextField();
-        styleTextField(txtDiaChi);
-        addField(form, gc, row++, txtDiaChi);
-
-        // Mô tả (textarea)
-        addLabel(form, gc, row, "Mô tả:");
-        txtMoTa = new JTextArea(3, 20);
-        txtMoTa.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        txtMoTa.setLineWrap(true);
-        txtMoTa.setWrapStyleWord(true);
-        txtMoTa.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColor.BORDER, 1, true),
-                BorderFactory.createEmptyBorder(6, 10, 6, 10)));
-        JScrollPane spMoTa = new JScrollPane(txtMoTa);
-        spMoTa.setBorder(BorderFactory.createEmptyBorder());
-        gc.gridx = 1; gc.gridy = row; gc.weightx = 0.65;
-        form.add(spMoTa, gc);
-
-        add(form, BorderLayout.CENTER);
+        @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(isEnabled() ? AppColor.SURFACE : AppColor.BACKGROUND);
+            g2.fillRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 8, 8);
+            super.paintComponent(g);
+            if (getText().isEmpty() && !isFocusOwner()) {
+                g2.setColor(new Color(156, 163, 175)); 
+                FontMetrics fm = g.getFontMetrics();
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(placeholder, 12, y); 
+            }
+            g2.dispose();
+        }
+        @Override protected void paintBorder(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if (isFocusOwner()) {
+                g2.setColor(AppColor.PRIMARY); g2.setStroke(new BasicStroke(1.5f));
+            } else {
+                g2.setColor(AppColor.BORDER); g2.setStroke(new BasicStroke(1.2f));
+            }
+            g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 8, 8);
+            g2.dispose();
+        }
     }
 
     private void loadDataToForm(String maKho) {
         KhoDTO kho = bus.getById(maKho);
         if (kho == null) return;
-        lblMaKho.setText(kho.getMaKho());
+
         txtTenKho.setText(kho.getTenKho());
         txtDiaChi.setText(kho.getDiaChi() != null ? kho.getDiaChi() : "");
         txtMoTa.setText(kho.getMoTa() != null ? kho.getMoTa() : "");
-        // Chọn đúng loại kho
-        for (int i = 0; i < cbLoaiKho.getItemCount(); i++) {
-            if (cbLoaiKho.getItemAt(i).equals(kho.getLoaiKho())) {
-                cbLoaiKho.setSelectedIndex(i);
-                break;
-            }
-        }
+
+        String loai = kho.getLoaiKho();
+        if (loai != null) cbLoaiKho.setSelectedItem(loai);
     }
 
     public boolean saveData() {
         try {
+            if(txtTenKho.getText().trim().isEmpty() || txtDiaChi.getText().trim().isEmpty()) {
+                throw new IllegalArgumentException("Vui lòng điền đầy đủ Tên kho và Địa chỉ!");
+            }
+
             KhoDTO kho = new KhoDTO();
             kho.setTenKho(txtTenKho.getText().trim());
             kho.setLoaiKho(cbLoaiKho.getSelectedItem().toString());
@@ -111,45 +151,23 @@ public class KhoForm extends JPanel {
 
             if (currentMaKho == null) {
                 bus.them(kho);
-                JOptionPane.showMessageDialog(this, "Thêm kho thành công!",
+                JOptionPane.showMessageDialog(this, "Thêm kho bãi thành công!",
                         "Thành công", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 kho.setMaKho(currentMaKho);
                 bus.capNhat(kho);
-                JOptionPane.showMessageDialog(this, "Cập nhật kho thành công!",
+                JOptionPane.showMessageDialog(this, "Cập nhật thành công!",
                         "Thành công", JOptionPane.INFORMATION_MESSAGE);
             }
             return true;
+
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Lỗi nhập liệu", JOptionPane.WARNING_MESSAGE);
             return false;
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi hệ thống: " + e.getMessage(),
-                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "Lỗi hệ thống: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             return false;
         }
-    }
-
-    // ===================== HELPER =====================
-    private void addLabel(JPanel p, GridBagConstraints gc, int row, String text) {
-        gc.gridx = 0; gc.gridy = row; gc.weightx = 0.35;
-        JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        lbl.setForeground(AppColor.TEXT_SECONDARY);
-        p.add(lbl, gc);
-    }
-
-    private void addField(JPanel p, GridBagConstraints gc, int row, JComponent field) {
-        gc.gridx = 1; gc.gridy = row; gc.weightx = 0.65;
-        p.add(field, gc);
-    }
-
-    private void styleTextField(JTextField tf) {
-        tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tf.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColor.BORDER, 1, true),
-                BorderFactory.createEmptyBorder(6, 10, 6, 10)));
-        tf.setBackground(AppColor.SURFACE);
-        tf.setForeground(AppColor.TEXT_PRIMARY);
     }
 }
