@@ -12,7 +12,7 @@ public class ThongKePanel extends JPanel {
     
     // Khai báo các Panel con chuyên biệt
     private TopSanPhamPanel pnlTopSanPham;
-    // private DoanhThuPanel pnlDoanhThu; // Sẽ khởi tạo khi bạn code xong file này
+    private DoanhThuPanel pnlDoanhThu; 
     private TrangThaiPanel pnlTrangThai;
 
     public ThongKePanel() {
@@ -32,17 +32,15 @@ public class ThongKePanel extends JPanel {
         // 1. Khởi tạo màn hình Menu chính
         mainContent.add(createMenuThongKe(), "MENU");
         
-        // 2. Khởi tạo và add TopSanPhamPanel đã có
+        // 2. Khởi tạo và add Panel đã có
         pnlTopSanPham = new TopSanPhamPanel();
         pnlTrangThai  = new TrangThaiPanel();
+        pnlDoanhThu   = new DoanhThuPanel();
         
-        // Thêm nút "Quay lại" vào TopSanPhamPanel từ bên ngoài 
-        // Hoặc bạn có thể thêm nút này trực tiếp trong file TopSanPhamPanel.java
         mainContent.add(wrapWithBackButton(pnlTopSanPham, "Thống kê Top sản phẩm"), "TOPSP");
         mainContent.add(wrapWithBackButton(pnlTrangThai, "Trạng thái đơn hàng"), "TRANGTHAI");
-        
-        // 3. Các chức năng còn lại (Tạm thời dùng Placeholder hoặc khởi tạo Panel riêng)
-        mainContent.add(createDetailPlaceholder("DOANHTHU", "Báo cáo Doanh thu"), "DOANHTHU");
+        mainContent.add(wrapWithBackButton(pnlDoanhThu, "Báo cáo Doanh thu"), "DOANHTHU");
+
     }
 
     // --- MÀN HÌNH MENU CHÍNH ---

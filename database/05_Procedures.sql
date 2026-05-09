@@ -755,3 +755,52 @@ BEGIN
     ORDER BY SoLuong DESC;
 END;
 /
+
+CREATE OR REPLACE PROCEDURE SP_THONGKE_TAICHINH (
+    p_PeriodMonths IN NUMBER,
+    p_Cursor OUT SYS_REFCURSOR
+)
+AS
+    v_AnchorDate DATE;
+BEGIN
+    -- Lấy ngày có giao dịch gần nhất giữa bảng Đơn hàng và Lô hàng
+    SELECT GREATEST(
+        NVL((SELECT MAX(TGDat) FROM DONHANG), TO_DATE('1900-01-01', 'YYYY-MM-DD')),
+        NVL((SELECT MAX(TGNhap) FROM LOHANG), TO_DATE('1900-01-01', 'YYYY-MM-DD'))
+    ) INTO v_AnchorDate FROM DUAL;
+    
+    IF v_AnchorDate = TO_DATE('1900-01-01', 'YYYY-MM-DD') THEN
+        v_AnchorDate := SYSDATE;
+    END IF;
+
+    OPEN p_Cursor FOR
+    WITH MonthRange AS (
+        SELECT ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -LEVEL + 1) AS MonthDate
+        FROM DUAL
+        CONNECT BY LEVEL <= p_PeriodMonths
+    ),
+    RevenueData AS (
+        -- TỐI ƯU: Sử dụng trực tiếp cột TongTien và TGDat của DONHANG (Bỏ JOIN)
+        SELECT TRUNC(TGDat, 'MM') AS Thang, SUM(TongTien) AS DoanhThu
+        FROM DONHANG
+        WHERE (TrangThaiDH = 'HoanThanh' OR TrangThaiDH = 'Hoàn thành')
+          AND TGDat >= ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -p_PeriodMonths + 1)
+        GROUP BY TRUNC(TGDat, 'MM')
+    ),
+    CostData AS (
+        -- TỐI ƯU: Sử dụng trực tiếp cột TongTien và TGNhap của LOHANG (Bỏ JOIN)
+        SELECT TRUNC(TGNhap, 'MM') AS Thang, SUM(TongTien) AS ChiPhi
+        FROM LOHANG
+        WHERE TGNhap >= ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -p_PeriodMonths + 1)
+        GROUP BY TRUNC(TGNhap, 'MM')
+    )
+    SELECT 
+        TO_CHAR(mr.MonthDate, 'MM/YYYY') AS ThangNam,
+        NVL(rd.DoanhThu, 0) AS DoanhThu,
+        NVL(cd.ChiPhi, 0) AS ChiPhi
+    FROM MonthRange mr
+    LEFT JOIN RevenueData rd ON mr.MonthDate = rd.Thang
+    LEFT JOIN CostData cd ON mr.MonthDate = cd.Thang
+    ORDER BY mr.MonthDate ASC;
+END;
+/

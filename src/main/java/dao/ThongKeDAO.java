@@ -95,4 +95,22 @@ public class ThongKeDAO {
         } catch (Exception e) { e.printStackTrace(); }
         return list;
     }
+
+    // ============================================= THỐNG KÊ TÀI CHÍNH =============================================
+    public List<ThongKeDTO.TaiChinh> getThongKeTaiChinh(int periodMonths) {
+        List<ThongKeDTO.TaiChinh> list = new ArrayList<>();
+        String sql = "{call SP_THONGKE_TAICHINH(?, ?)}";
+        try (Connection conn = util.DBConnection.getConnection();
+            CallableStatement cs = conn.prepareCall(sql)) {
+            cs.setInt(1, periodMonths);
+            cs.registerOutParameter(2, oracle.jdbc.OracleTypes.CURSOR);
+            cs.execute();
+            try (ResultSet rs = (ResultSet) cs.getObject(2)) {
+                while (rs.next()) {
+                    list.add(new ThongKeDTO.TaiChinh(rs.getString("ThangNam"), rs.getDouble("DoanhThu"), rs.getDouble("ChiPhi")));
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
 }

@@ -25,4 +25,9 @@ public class ThongKeBUS {
     public List<ThongKeDTO.TrangThai> getThongKeTrangThai(java.util.Date from, java.util.Date to) {
         return thongKeDAO.getThongKeTrangThai(from, to);
     }
+
+    // ============================= THỐNG KÊ TÀI CHÍNH =============================
+    public List<ThongKeDTO.TaiChinh> getThongKeTaiChinh(int periodMonths) {
+    return thongKeDAO.getThongKeTaiChinh(periodMonths);
+}
 }

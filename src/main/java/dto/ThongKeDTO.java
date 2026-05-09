@@ -21,4 +21,16 @@ public class ThongKeDTO {
         public int soLuong;
         public TrangThai(String trangThai, int soLuong) { this.trangThai = trangThai; this.soLuong = soLuong; }
     }
+
+    // Class cho dòng tiền
+    public static class TaiChinh {
+        public String thangNam;
+        public double doanhThu;
+        public double chiPhi;
+        public TaiChinh(String thangNam, double doanhThu, double chiPhi) {
+            this.thangNam = thangNam;
+            this.doanhThu = doanhThu;
+            this.chiPhi = chiPhi;
+        }
+    }
 }
