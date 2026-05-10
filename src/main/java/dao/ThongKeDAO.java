@@ -97,15 +97,16 @@ public class ThongKeDAO {
     }
 
     // ============================================= THỐNG KÊ TÀI CHÍNH =============================================
-    public List<ThongKeDTO.TaiChinh> getThongKeTaiChinh(int periodMonths) {
+    public List<ThongKeDTO.TaiChinh> getThongKeTaiChinh(String type, int period) {
         List<ThongKeDTO.TaiChinh> list = new ArrayList<>();
-        String sql = "{call SP_THONGKE_TAICHINH(?, ?)}";
+        String sql = "{call SP_THONGKE_TAICHINH(?, ?, ?)}"; // Chỉnh lại thành 3 tham số
         try (Connection conn = util.DBConnection.getConnection();
             CallableStatement cs = conn.prepareCall(sql)) {
-            cs.setInt(1, periodMonths);
-            cs.registerOutParameter(2, oracle.jdbc.OracleTypes.CURSOR);
+            cs.setString(1, type);
+            cs.setInt(2, period);
+            cs.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR);
             cs.execute();
-            try (ResultSet rs = (ResultSet) cs.getObject(2)) {
+            try (ResultSet rs = (ResultSet) cs.getObject(3)) {
                 while (rs.next()) {
                     list.add(new ThongKeDTO.TaiChinh(rs.getString("ThangNam"), rs.getDouble("DoanhThu"), rs.getDouble("ChiPhi")));
                 }

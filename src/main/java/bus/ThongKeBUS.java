@@ -27,7 +27,7 @@ public class ThongKeBUS {
     }
 
     // ============================= THỐNG KÊ TÀI CHÍNH =============================
-    public List<ThongKeDTO.TaiChinh> getThongKeTaiChinh(int periodMonths) {
-    return thongKeDAO.getThongKeTaiChinh(periodMonths);
-}
+    public List<ThongKeDTO.TaiChinh> getThongKeTaiChinh(String type, int period) {
+        return thongKeDAO.getThongKeTaiChinh(type, period);
+    }
 }

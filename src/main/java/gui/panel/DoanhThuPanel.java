@@ -38,6 +38,7 @@ public class DoanhThuPanel extends JPanel {
     private DefaultTableModel tableModel;
     private JFreeChart currentChart;
     
+    private JComboBox<String> cbLoaiThongKe;
     private JComboBox<String> cbPeriod;
     private JCheckBox chkRevenue, chkCost;
     private List<ThongKeDTO.TaiChinh> lastData;
@@ -60,9 +61,19 @@ public class DoanhThuPanel extends JPanel {
                 new EmptyBorder(5, 5, 5, 5)
         ));
 
-        cbPeriod = new JComboBox<>(new String[]{"3 tháng gần đây", "6 tháng gần đây", "1 năm gần đây"});
+        // Khởi tạo ComboBox loại thống kê
+        cbLoaiThongKe = new JComboBox<>(new String[]{"Theo tháng", "Theo ngày"});
+        cbLoaiThongKe.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cbLoaiThongKe.setBackground(Color.WHITE);
+
+        // Khởi tạo ComboBox chu kỳ
+        cbPeriod = new JComboBox<>();
         cbPeriod.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         cbPeriod.setBackground(Color.WHITE);
+        
+        // Sự kiện đổi loại thống kê sẽ cập nhật lại các Option thời gian
+        updatePeriodOptions();
+        cbLoaiThongKe.addActionListener(e -> updatePeriodOptions());
 
         chkRevenue = new JCheckBox("Hiển thị Doanh thu", true);
         chkCost = new JCheckBox("Hiển thị Chi phí", true);
@@ -82,8 +93,17 @@ public class DoanhThuPanel extends JPanel {
         styleButton(btnExport, new Color(220, 38, 38)); 
         btnExport.addActionListener(e -> exportToPDF());
 
-        pnlFilter.add(new JLabel("Thời gian:")); pnlFilter.add(cbPeriod);
-        pnlFilter.add(new JLabel("   Tùy chọn:")); pnlFilter.add(chkRevenue); pnlFilter.add(chkCost);
+        // Thêm nhãn "Chế độ" và cbLoaiThongKe vào trước
+        pnlFilter.add(new JLabel("Chế độ:")); 
+        pnlFilter.add(cbLoaiThongKe);
+
+        pnlFilter.add(new JLabel("   Thời gian:")); 
+        pnlFilter.add(cbPeriod);
+
+        pnlFilter.add(new JLabel("   Tùy chọn:")); 
+        pnlFilter.add(chkRevenue); 
+        pnlFilter.add(chkCost);
+        
         pnlFilter.add(Box.createRigidArea(new Dimension(10, 0)));
         pnlFilter.add(btnFilter);
         pnlFilter.add(btnExport);
@@ -110,24 +130,27 @@ public class DoanhThuPanel extends JPanel {
 
     // Nhận tham số showNotification để quyết định có báo lỗi hay không
     private void refreshData(boolean showNotification) {
-        int months = cbPeriod.getSelectedIndex() == 0 ? 3 : (cbPeriod.getSelectedIndex() == 1 ? 6 : 12);
-        lastData = thongKeBUS.getThongKeTaiChinh(months);
+        String type = cbLoaiThongKe.getSelectedIndex() == 0 ? "MONTH" : "DAY";
+        int period = 0;
         
-        long totalVal = 0;
-        if (lastData != null) {
-            for (ThongKeDTO.TaiChinh d : lastData) totalVal += (long)(d.doanhThu + d.chiPhi);
+        if (type.equals("MONTH")) {
+            switch(cbPeriod.getSelectedIndex()) {
+                case 0: period = 3; break;
+                case 1: period = 6; break;
+                case 2: period = 12; break;
+                case 3: period = 36; break;
+                default: period = 3;
+            }
+        } else {
+            switch(cbPeriod.getSelectedIndex()) {
+                case 0: period = 7; break;
+                case 1: period = 15; break;
+                case 2: period = 30; break;
+                default: period = 7;
+            }
         }
 
-        if (lastData == null || lastData.isEmpty() || totalVal == 0) {
-            chartContainer.removeAll(); chartContainer.repaint();
-            tableModel.setRowCount(0); currentChart = null;
-            
-            // Xử lý Popup thông minh
-            if (showNotification) {
-                JOptionPane.showMessageDialog(this, "Không có dữ liệu giao dịch trong " + months + " tháng này!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-            }
-            return;
-        }
+        lastData = thongKeBUS.getThongKeTaiChinh(type, period);
 
         tableModel.setRowCount(0);
         DecimalFormat df = new DecimalFormat("#,###");
@@ -156,13 +179,12 @@ public class DoanhThuPanel extends JPanel {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         
         for (ThongKeDTO.TaiChinh d : lastData) {
-            // Đã fix lỗi trùng trục X bằng cách để nguyên tháng năm (VD: 01/2026)
             if (chkRevenue.isSelected()) dataset.addValue(d.doanhThu, "Doanh thu", d.thangNam);
             if (chkCost.isSelected()) dataset.addValue(d.chiPhi, "Chi phí", d.thangNam);
         }
 
         currentChart = ChartFactory.createLineChart(
-                "Biểu đồ Doanh thu & Chi phí", "Tháng", "Số tiền (VND)", 
+                "Biểu đồ Doanh thu & Chi phí", "Thời gian", "Số tiền (Triệu VND)", 
                 dataset, PlotOrientation.VERTICAL, true, true, false);
 
         currentChart.setBackgroundPaint(Color.WHITE);
@@ -173,23 +195,53 @@ public class DoanhThuPanel extends JPanel {
         plot.setRangeGridlinePaint(new Color(220, 220, 220));
         plot.setOutlineVisible(false);
         
+        // --- 1. RÚT GỌN TRỤC Y XUỐNG TRIỆU VND BẰNG FORMATTER ---
+        org.jfree.chart.axis.NumberAxis rangeAxis = (org.jfree.chart.axis.NumberAxis) plot.getRangeAxis();
+        rangeAxis.setNumberFormatOverride(new java.text.DecimalFormat("#,###") {
+            @Override
+            public StringBuffer format(double number, StringBuffer result, java.text.FieldPosition fieldPosition) {
+                // Tự động chia 1 triệu chỉ ở phần hiển thị nhãn trục Y
+                return super.format(number / 1000000.0, result, fieldPosition);
+            }
+        });
+        
         LineAndShapeRenderer renderer = new LineAndShapeRenderer();
         for (int i = 0; i < dataset.getRowCount(); i++) {
             Comparable<?> rowKey = dataset.getRowKey(i);
-            if (rowKey.equals("Doanh thu")) {
-                renderer.setSeriesPaint(i, new Color(40, 167, 69)); 
-            } else if (rowKey.equals("Chi phí")) {
-                renderer.setSeriesPaint(i, new Color(220, 53, 69)); 
-            }
+            if (rowKey.equals("Doanh thu")) renderer.setSeriesPaint(i, new Color(40, 167, 69)); 
+            else if (rowKey.equals("Chi phí")) renderer.setSeriesPaint(i, new Color(220, 53, 69)); 
+            
             renderer.setSeriesStroke(i, new BasicStroke(3.0f)); 
             renderer.setSeriesShapesVisible(i, true); 
         }
+        
+        // --- 2. GẮN TOOLTIP HIỂN THỊ SỐ ĐẦY ĐỦ KHI RÊ CHUỘT ---
+        org.jfree.chart.labels.StandardCategoryToolTipGenerator tooltip = 
+            new org.jfree.chart.labels.StandardCategoryToolTipGenerator(
+                "{0} - {1}: {2} VNĐ", new java.text.DecimalFormat("#,###")
+            );
+            
+        renderer.setDefaultToolTipGenerator(tooltip);
         
         plot.setRenderer(renderer);
         chartContainer.removeAll();
         chartContainer.add(new ChartPanel(currentChart));
         chartContainer.revalidate();
         chartContainer.repaint();
+    }
+
+    private void updatePeriodOptions() {
+        cbPeriod.removeAllItems();
+        if (cbLoaiThongKe.getSelectedIndex() == 0) { // Đang chọn Tháng
+            cbPeriod.addItem("3 tháng gần đây");
+            cbPeriod.addItem("6 tháng gần đây");
+            cbPeriod.addItem("1 năm gần đây");
+            cbPeriod.addItem("3 năm gần đây");
+        } else { // Đang chọn Ngày
+            cbPeriod.addItem("7 ngày gần đây");
+            cbPeriod.addItem("15 ngày gần đây");
+            cbPeriod.addItem("30 ngày gần đây");
+        }
     }
 
     private void exportToPDF() {

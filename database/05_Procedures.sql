@@ -757,50 +757,72 @@ END;
 /
 
 CREATE OR REPLACE PROCEDURE SP_THONGKE_TAICHINH (
-    p_PeriodMonths IN NUMBER,
+    p_LoaiThongKe IN VARCHAR2, -- 'MONTH' hoặc 'DAY'
+    p_Period IN NUMBER,
     p_Cursor OUT SYS_REFCURSOR
 )
 AS
-    v_AnchorDate DATE;
+    v_AnchorDate DATE := SYSDATE;
 BEGIN
-    -- Lấy ngày có giao dịch gần nhất giữa bảng Đơn hàng và Lô hàng
-    SELECT GREATEST(
-        NVL((SELECT MAX(TGDat) FROM DONHANG), TO_DATE('1900-01-01', 'YYYY-MM-DD')),
-        NVL((SELECT MAX(TGNhap) FROM LOHANG), TO_DATE('1900-01-01', 'YYYY-MM-DD'))
-    ) INTO v_AnchorDate FROM DUAL;
-    
-    IF v_AnchorDate = TO_DATE('1900-01-01', 'YYYY-MM-DD') THEN
-        v_AnchorDate := SYSDATE;
+    IF p_LoaiThongKe = 'MONTH' THEN
+        OPEN p_Cursor FOR
+        WITH MonthRange AS (
+            SELECT ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -LEVEL + 1) AS ThoiGian
+            FROM DUAL
+            CONNECT BY LEVEL <= p_Period
+        ),
+        RevenueData AS (
+            SELECT TRUNC(TGDat, 'MM') AS ThoiGian, SUM(TongTien) AS DoanhThu
+            FROM DONHANG
+            WHERE (TrangThaiDH = 'HoanThanh' OR TrangThaiDH = 'Hoàn thành')
+              AND TGDat >= ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -p_Period + 1)
+            GROUP BY TRUNC(TGDat, 'MM')
+        ),
+        CostData AS (
+            SELECT TRUNC(TGNhap, 'MM') AS ThoiGian, SUM(TongTien) AS ChiPhi
+            FROM LOHANG
+            WHERE TrangThaiLH = 'Đã nhập kho' 
+              AND TGNhap >= ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -p_Period + 1)
+            GROUP BY TRUNC(TGNhap, 'MM')
+        )
+        SELECT 
+            TO_CHAR(mr.ThoiGian, 'MM/YYYY') AS ThangNam, -- Giữ tên cột là ThangNam để tương thích Java DTO
+            NVL(rd.DoanhThu, 0) AS DoanhThu,
+            NVL(cd.ChiPhi, 0) AS ChiPhi
+        FROM MonthRange mr
+        LEFT JOIN RevenueData rd ON mr.ThoiGian = rd.ThoiGian
+        LEFT JOIN CostData cd ON mr.ThoiGian = cd.ThoiGian
+        ORDER BY mr.ThoiGian ASC;
+        
+    ELSE -- Xử lý cho chế độ theo NGÀY
+        OPEN p_Cursor FOR
+        WITH DayRange AS (
+            SELECT TRUNC(v_AnchorDate) - LEVEL + 1 AS ThoiGian
+            FROM DUAL
+            CONNECT BY LEVEL <= p_Period
+        ),
+        RevenueData AS (
+            SELECT TRUNC(TGDat) AS ThoiGian, SUM(TongTien) AS DoanhThu
+            FROM DONHANG
+            WHERE (TrangThaiDH = 'HoanThanh' OR TrangThaiDH = 'Hoàn thành')
+              AND TGDat >= TRUNC(v_AnchorDate) - p_Period + 1
+            GROUP BY TRUNC(TGDat)
+        ),
+        CostData AS (
+            SELECT TRUNC(TGNhap) AS ThoiGian, SUM(TongTien) AS ChiPhi
+            FROM LOHANG
+            WHERE TrangThaiLH = 'Đã nhập kho' 
+              AND TGNhap >= TRUNC(v_AnchorDate) - p_Period + 1
+            GROUP BY TRUNC(TGNhap)
+        )
+        SELECT 
+            TO_CHAR(dr.ThoiGian, 'DD/MM/YYYY') AS ThangNam,
+            NVL(rd.DoanhThu, 0) AS DoanhThu,
+            NVL(cd.ChiPhi, 0) AS ChiPhi
+        FROM DayRange dr
+        LEFT JOIN RevenueData rd ON dr.ThoiGian = rd.ThoiGian
+        LEFT JOIN CostData cd ON dr.ThoiGian = cd.ThoiGian
+        ORDER BY dr.ThoiGian ASC;
     END IF;
-
-    OPEN p_Cursor FOR
-    WITH MonthRange AS (
-        SELECT ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -LEVEL + 1) AS MonthDate
-        FROM DUAL
-        CONNECT BY LEVEL <= p_PeriodMonths
-    ),
-    RevenueData AS (
-        -- TỐI ƯU: Sử dụng trực tiếp cột TongTien và TGDat của DONHANG (Bỏ JOIN)
-        SELECT TRUNC(TGDat, 'MM') AS Thang, SUM(TongTien) AS DoanhThu
-        FROM DONHANG
-        WHERE (TrangThaiDH = 'HoanThanh' OR TrangThaiDH = 'Hoàn thành')
-          AND TGDat >= ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -p_PeriodMonths + 1)
-        GROUP BY TRUNC(TGDat, 'MM')
-    ),
-    CostData AS (
-        -- TỐI ƯU: Sử dụng trực tiếp cột TongTien và TGNhap của LOHANG (Bỏ JOIN)
-        SELECT TRUNC(TGNhap, 'MM') AS Thang, SUM(TongTien) AS ChiPhi
-        FROM LOHANG
-        WHERE TGNhap >= ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -p_PeriodMonths + 1)
-        GROUP BY TRUNC(TGNhap, 'MM')
-    )
-    SELECT 
-        TO_CHAR(mr.MonthDate, 'MM/YYYY') AS ThangNam,
-        NVL(rd.DoanhThu, 0) AS DoanhThu,
-        NVL(cd.ChiPhi, 0) AS ChiPhi
-    FROM MonthRange mr
-    LEFT JOIN RevenueData rd ON mr.MonthDate = rd.Thang
-    LEFT JOIN CostData cd ON mr.MonthDate = cd.Thang
-    ORDER BY mr.MonthDate ASC;
 END;
 /
