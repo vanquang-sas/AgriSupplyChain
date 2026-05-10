@@ -32,6 +32,7 @@ public class MainFrame extends JFrame {
     private DonHangPanel    pnlDonHang;
     private GiaoHangPanel   pnlGiaoHang;
     private LoaiSanPhamPanel    pnlLoaiSanPham;
+    private SanPhamPanel    pnlSanPham;
     private LoHangPanel     pnlLoHang;
     private NhapKhoPanel    pnlNhapKho;
     private XuatKhoPanel    pnlXuatKho;
@@ -282,6 +283,7 @@ public class MainFrame extends JFrame {
         pnlDonHang    = new DonHangPanel();
         // pnlGiaoHang   = new GiaoHangPanel();
         pnlLoaiSanPham = new LoaiSanPhamPanel();
+        pnlSanPham    = new SanPhamPanel();
         // pnlLoHang     = new LoHangPanel();
         pnlNhapKho    = new NhapKhoPanel();
         pnlXuatKho    = new XuatKhoPanel();
@@ -289,7 +291,6 @@ public class MainFrame extends JFrame {
         pnlThongKe    = new ThongKePanel();
 
         JPanel pnlTrangChu = createPlaceholder("🏠", "Trang chủ", "Dashboard tổng quan");
-        JPanel pnlSanPham  = createPlaceholder("📦", "Quản lý Sản phẩm", "Đang xây dựng...");
 
         contentPanel.add(pnlTrangChu,   "TrangChu");
         contentPanel.add(pnlSanPham,    "SanPham");

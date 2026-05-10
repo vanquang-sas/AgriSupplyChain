@@ -162,48 +162,79 @@ BEGIN
 END;
 /
 
--- Procedure Xóa Loại Sản Phẩm (Kèm bẫy lỗi khóa ngoại)
+-- Procedure Xóa Loại Sản Phẩm 
 CREATE OR REPLACE PROCEDURE SP_XOA_LSP (
     p_MaLSP IN VARCHAR2
 ) IS
+    v_count NUMBER;
 BEGIN
+    -- 1. Đếm số lượng sản phẩm đang có của loại này
+    SELECT COUNT(*) INTO v_count FROM SANPHAM WHERE MaLSP = p_MaLSP;
+    
+    -- 2. Nếu có >= 1 sản phẩm, lập tức văng lỗi và dừng chương trình
+    IF v_count > 0 THEN
+        RAISE_APPLICATION_ERROR(-20040, 'Không thể xóa vì đang có sản phẩm thuộc loại này!');
+    END IF;
+
+    -- 3. Nếu an toàn (count = 0) thì mới xóa
     DELETE FROM LOAISANPHAM WHERE MaLSP = p_MaLSP;
     COMMIT;
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK;
-        -- Lỗi ORA-02292: Đang có dữ liệu con (Sản phẩm) tham chiếu đến
-        IF SQLCODE = -2292 THEN
-            RAISE_APPLICATION_ERROR(-20040, 'Không thể xóa vì đang có sản phẩm thuộc loại này!');
-        ELSE
-            RAISE;
-        END IF;
 END;
 /
 
 -- ================================= Bảng SANPHAM =================================
-CREATE OR REPLACE PROCEDURE SP_THEM_SP (
-    p_TenSP IN NVARCHAR2, p_MaLSP IN VARCHAR2, p_ChatLuong IN NVARCHAR2,
-    p_GiaMua IN NUMBER, p_GiaBan IN NUMBER, p_DonViTinh IN NVARCHAR2, p_BaoQuan IN NVARCHAR2
-) IS
+-- 1. Procedure lấy danh sách Sản phẩm (Có tên loại)
+CREATE OR REPLACE PROCEDURE SP_LAY_DS_SANPHAM (
+    p_Cursor OUT SYS_REFCURSOR
+) AS
 BEGIN
-    INSERT INTO SANPHAM (TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan)
-    VALUES (p_TenSP, p_MaLSP, p_ChatLuong, p_GiaMua, p_GiaBan, p_DonViTinh, p_BaoQuan);
-    COMMIT;
+    OPEN p_Cursor FOR
+        SELECT SP.MaSP, SP.TenSP, SP.MaLSP, LSP.TenLSP, SP.ChatLuong, 
+               SP.GiaMua, SP.GiaBan, SP.DonViTinh, SP.BaoQuan, SP.HinhAnh
+        FROM SANPHAM SP
+        LEFT JOIN LOAISANPHAM LSP ON SP.MaLSP = LSP.MaLSP
+        ORDER BY SP.MaSP DESC;
 END;
 /
 
-CREATE OR REPLACE PROCEDURE SP_CAPNHAT_SP (
-    p_MaSP IN VARCHAR2, p_TenSP IN NVARCHAR2, p_MaLSP IN VARCHAR2, p_ChatLuong IN NVARCHAR2,
-    p_GiaMua IN NUMBER, p_GiaBan IN NUMBER, p_DonViTinh IN NVARCHAR2, p_BaoQuan IN NVARCHAR2
-) IS
+-- 2. Procedure tìm kiếm Sản phẩm (Có tên loại)
+CREATE OR REPLACE PROCEDURE SP_TIMKIEM_SANPHAM (
+    p_Keyword IN VARCHAR2,
+    p_Cursor OUT SYS_REFCURSOR
+) AS
 BEGIN
-    -- Việc lưu lịch sử giá đã có TRG_SP_LUU_LSG
-    UPDATE SANPHAM
-    SET TenSP = NVL(p_TenSP, TenSP), MaLSP = NVL(p_MaLSP, MaLSP), ChatLuong = NVL(p_ChatLuong, ChatLuong),
-        GiaMua = NVL(p_GiaMua, GiaMua), GiaBan = NVL(p_GiaBan, GiaBan), 
-        DonViTinh = NVL(p_DonViTinh, DonViTinh), BaoQuan = NVL(p_BaoQuan, BaoQuan)
-    WHERE MaSP = p_MaSP;
+    OPEN p_Cursor FOR
+        SELECT SP.MaSP, SP.TenSP, SP.MaLSP, LSP.TenLSP, SP.ChatLuong, 
+               SP.GiaMua, SP.GiaBan, SP.DonViTinh, SP.BaoQuan, SP.HinhAnh
+        FROM SANPHAM SP
+        LEFT JOIN LOAISANPHAM LSP ON SP.MaLSP = LSP.MaLSP
+        WHERE LOWER(SP.TenSP) LIKE LOWER('%' || p_Keyword || '%') 
+           OR LOWER(SP.MaSP) LIKE LOWER('%' || p_Keyword || '%')
+        ORDER BY SP.MaSP DESC;
+END;
+/
+
+-- Procedure Xóa Sản Phẩm (Dùng COUNT kiểm tra Giao dịch)
+CREATE OR REPLACE PROCEDURE SP_XOA_SANPHAM (
+    p_MaSP IN VARCHAR2
+) AS
+    v_count_lh NUMBER;
+    v_count_dh NUMBER;
+BEGIN
+    -- 1. Kiểm tra Lô hàng
+    SELECT COUNT(*) INTO v_count_lh FROM CHITIETLOHANG WHERE MaSP = p_MaSP;
+    IF v_count_lh > 0 THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Sản phẩm đã có giao dịch nhập kho, không thể xóa!');
+    END IF;
+
+    -- 2. Kiểm tra Đơn hàng
+    SELECT COUNT(*) INTO v_count_dh FROM CHITIETDONHANG WHERE MaSP = p_MaSP;
+    IF v_count_dh > 0 THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Sản phẩm đã có giao dịch bán hàng, không thể xóa!');
+    END IF;
+
+    -- 3. Xóa nếu an toàn
+    DELETE FROM SANPHAM WHERE MaSP = p_MaSP;
     COMMIT;
 END;
 /

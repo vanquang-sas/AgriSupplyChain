@@ -3,52 +3,46 @@ package bus;
 import dao.LoaiSanPhamDAO;
 import dto.LoaiSanPhamDTO;
 
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Random;
 
 public class LoaiSanPhamBUS {
-    private LoaiSanPhamDAO lspDAO;
+    private final LoaiSanPhamDAO dao = new LoaiSanPhamDAO();
 
-    public LoaiSanPhamBUS() {
-        this.lspDAO = new LoaiSanPhamDAO();
+    public List<LoaiSanPhamDTO> getAll() {
+        return dao.getAll();
     }
 
-    public List<LoaiSanPhamDTO> layDanhSachLSP() throws Exception {
-        return lspDAO.layDanhSachLSP();
-    }
-
-    public boolean themLSP(LoaiSanPhamDTO lsp) throws Exception {
-        validateData(lsp, true);
-        return lspDAO.themLSP(lsp);
-    }
-
-    public boolean capNhatLSP(LoaiSanPhamDTO lsp) throws Exception {
-        validateData(lsp, false);
-        return lspDAO.capNhatLSP(lsp);
-    }
-
-    public boolean xoaLSP(String maLSP) throws Exception {
-        if (maLSP == null || maLSP.trim().isEmpty()) {
-            throw new IllegalArgumentException("Vui lòng chọn loại sản phẩm cần xóa!");
+    public List<LoaiSanPhamDTO> timKiem(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return getAll();
         }
-        return lspDAO.xoaLSP(maLSP);
+        return dao.timKiem(keyword.trim());
     }
 
-    // Logic kiểm tra dữ liệu dùng chung
-    private void validateData(LoaiSanPhamDTO lsp, boolean isInsert) throws Exception {
+    public boolean add(LoaiSanPhamDTO lsp) {
         if (lsp.getTenLSP() == null || lsp.getTenLSP().trim().isEmpty()) {
             throw new IllegalArgumentException("Tên loại sản phẩm không được để trống!");
         }
-        
-        // Kiểm tra trùng lặp tên
-        List<LoaiSanPhamDTO> currentList = layDanhSachLSP();
-        for (LoaiSanPhamDTO item : currentList) {
-            // Bỏ qua chính nó khi đang update
-            if (!isInsert && item.getMaLSP().equals(lsp.getMaLSP())) {
-                continue;
-            }
-            if (item.getTenLSP().equalsIgnoreCase(lsp.getTenLSP().trim())) {
-                throw new IllegalArgumentException("Tên loại sản phẩm '" + lsp.getTenLSP() + "' đã tồn tại!");
-            }
+
+        return dao.add(lsp);
+    }
+
+    public boolean update(LoaiSanPhamDTO lsp) {
+        if (lsp.getMaLSP() == null || lsp.getMaLSP().trim().isEmpty()) {
+            throw new IllegalArgumentException("Mã loại sản phẩm không hợp lệ!");
         }
+        if (lsp.getTenLSP() == null || lsp.getTenLSP().trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên loại sản phẩm không được để trống!");
+        }
+        return dao.update(lsp);
+    }
+
+    public boolean delete(String maLSP) throws SQLException {
+        if (maLSP == null || maLSP.trim().isEmpty()) {
+            throw new IllegalArgumentException("Mã loại sản phẩm không hợp lệ!");
+        }
+        return dao.delete(maLSP);
     }
 }
