@@ -11,9 +11,7 @@ import java.sql.SQLException;
 
 public class NhaCungCapForm extends JPanel {
 
-    private JTextField txtTenNCC, txtSDT, txtEmail, txtDiaChi, txtChungNhan;
-    private JLabel lblMaNCC;
-
+    private ModernTextField txtMaNCC, txtTenNCC, txtSDT, txtEmail, txtDiaChi, txtChungNhan;
     private final NhaCungCapBUS bus = new NhaCungCapBUS();
     private final String currentMaNCC;
 
@@ -26,67 +24,103 @@ public class NhaCungCapForm extends JPanel {
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout());
+        setLayout(new GridBagLayout());
         setBackground(AppColor.SURFACE);
-        setPreferredSize(new Dimension(480, currentMaNCC == null ? 350 : 380));
+        setBorder(new EmptyBorder(24, 32, 24, 32));
 
-        JPanel form = new JPanel(new GridBagLayout());
-        form.setBackground(AppColor.SURFACE);
-        form.setBorder(new EmptyBorder(10, 20, 10, 20));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(12, 10, 12, 10);
 
-        GridBagConstraints gc = new GridBagConstraints();
-        gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = new Insets(6, 4, 6, 4);
+        // Khởi tạo các Component
+        txtMaNCC = new ModernTextField(currentMaNCC == null ? "Hệ thống tự động cấp" : currentMaNCC, false);
+        txtSDT = new ModernTextField("Nhập số điện thoại...", true);
+        txtTenNCC = new ModernTextField("Nhập tên nhà cung cấp...", true);
+        txtEmail = new ModernTextField("Nhập email liên hệ...", true);
+        txtChungNhan = new ModernTextField("VD: ISO 9001...", true);
+        txtDiaChi = new ModernTextField("Nhập địa chỉ cụ thể...", true);
 
         int row = 0;
 
-        // Mã NCC (chỉ hiện khi sửa)
-        if (currentMaNCC != null) {
-            addLabel(form, gc, row, "Mã nhà cung cấp:");
-            lblMaNCC = new JLabel();
-            lblMaNCC.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            lblMaNCC.setForeground(AppColor.PRIMARY);
-            addField(form, gc, row++, lblMaNCC);
+        // --- DÒNG 1: Mã NCC (Trái) & Số điện thoại (Phải) ---
+        gbc.gridy = row++;
+        gbc.gridx = 0; gbc.weightx = 0; add(createLabel("Mã NCC:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 0.5; add(txtMaNCC, gbc);
+        gbc.gridx = 2; gbc.weightx = 0; add(createLabel("Số điện thoại (*):"), gbc);
+        gbc.gridx = 3; gbc.weightx = 0.5; add(txtSDT, gbc);
+
+        // --- DÒNG 2: Tên NCC (Chiếm hết chiều ngang) ---
+        gbc.gridy = row++;
+        gbc.gridx = 0; gbc.weightx = 0; gbc.gridwidth = 1; add(createLabel("Tên nhà CC (*):"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0; gbc.gridwidth = 3; add(txtTenNCC, gbc);
+
+        // --- DÒNG 3: Email (Trái) & Chứng nhận (Phải) ---
+        gbc.gridy = row++; gbc.gridwidth = 1;
+        gbc.gridx = 0; gbc.weightx = 0; add(createLabel("Email:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 0.5; add(txtEmail, gbc);
+        gbc.gridx = 2; gbc.weightx = 0; add(createLabel("Chứng nhận:"), gbc);
+        gbc.gridx = 3; gbc.weightx = 0.5; add(txtChungNhan, gbc);
+
+        // --- DÒNG 4: Địa chỉ (Chiếm hết chiều ngang) ---
+        gbc.gridy = row++;
+        gbc.gridx = 0; gbc.weightx = 0; gbc.gridwidth = 1; add(createLabel("Địa chỉ (*):"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0; gbc.gridwidth = 3; add(txtDiaChi, gbc);
+    }
+
+    private JLabel createLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lbl.setForeground(AppColor.TEXT_PRIMARY);
+        return lbl;
+    }
+
+    // --- CLASS CUSTOM UI ---
+    class ModernTextField extends JTextField {
+        private String placeholder;
+        public ModernTextField(String placeholder, boolean enabled) {
+            this.placeholder = placeholder;
+            setEnabled(enabled);
+            setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            setForeground(AppColor.TEXT_PRIMARY);
+            setPreferredSize(new Dimension(200, 42)); 
+            setOpaque(false); 
+            setBorder(BorderFactory.createEmptyBorder(5, 12, 5, 12));
+            addFocusListener(new java.awt.event.FocusAdapter() {
+                @Override public void focusGained(java.awt.event.FocusEvent e) { repaint(); }
+                @Override public void focusLost(java.awt.event.FocusEvent e) { repaint(); }
+            });
         }
-
-        // Tên NCC
-        addLabel(form, gc, row, "Tên nhà cung cấp (*):");
-        txtTenNCC = new JTextField();
-        styleTextField(txtTenNCC);
-        addField(form, gc, row++, txtTenNCC);
-
-        // SĐT
-        addLabel(form, gc, row, "Số điện thoại (*):");
-        txtSDT = new JTextField();
-        styleTextField(txtSDT);
-        addField(form, gc, row++, txtSDT);
-
-        // Email
-        addLabel(form, gc, row, "Email:");
-        txtEmail = new JTextField();
-        styleTextField(txtEmail);
-        addField(form, gc, row++, txtEmail);
-
-        // Địa chỉ
-        addLabel(form, gc, row, "Địa chỉ (*):");
-        txtDiaChi = new JTextField();
-        styleTextField(txtDiaChi);
-        addField(form, gc, row++, txtDiaChi);
-
-        // Chứng nhận CL
-        addLabel(form, gc, row, "Chứng nhận chất lượng:");
-        txtChungNhan = new JTextField();
-        styleTextField(txtChungNhan);
-        addField(form, gc, row, txtChungNhan);
-
-        add(form, BorderLayout.CENTER);
+        @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(isEnabled() ? AppColor.SURFACE : AppColor.BACKGROUND);
+            g2.fillRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 8, 8);
+            super.paintComponent(g);
+            if (getText().isEmpty() && !isFocusOwner()) {
+                g2.setColor(new Color(156, 163, 175)); 
+                FontMetrics fm = g.getFontMetrics();
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(placeholder, 12, y); 
+            }
+            g2.dispose();
+        }
+        @Override protected void paintBorder(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if (isFocusOwner()) {
+                g2.setColor(AppColor.PRIMARY); g2.setStroke(new BasicStroke(1.5f));
+            } else {
+                g2.setColor(AppColor.BORDER); g2.setStroke(new BasicStroke(1.2f));
+            }
+            g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 8, 8);
+            g2.dispose();
+        }
     }
 
     private void loadDataToForm(String maNCC) {
         NhaCungCapDTO ncc = bus.getById(maNCC);
         if (ncc == null) return;
 
-        lblMaNCC.setText(ncc.getMaNCC());
         txtTenNCC.setText(ncc.getTenNCC());
         txtSDT.setText(ncc.getSdt());
         txtEmail.setText(ncc.getEmail() != null ? ncc.getEmail() : "");
@@ -96,6 +130,10 @@ public class NhaCungCapForm extends JPanel {
 
     public boolean saveData() {
         try {
+            if(txtTenNCC.getText().trim().isEmpty() || txtSDT.getText().trim().isEmpty() || txtDiaChi.getText().trim().isEmpty()) {
+                throw new IllegalArgumentException("Vui lòng điền đầy đủ Tên, SĐT và Địa chỉ!");
+            }
+
             NhaCungCapDTO ncc = new NhaCungCapDTO();
             ncc.setTenNCC(txtTenNCC.getText().trim());
             ncc.setSdt(txtSDT.getText().trim());
@@ -123,28 +161,5 @@ public class NhaCungCapForm extends JPanel {
                     "Lỗi hệ thống: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             return false;
         }
-    }
-
-    // ===================== HELPER =====================
-    private void addLabel(JPanel panel, GridBagConstraints gc, int row, String text) {
-        gc.gridx = 0; gc.gridy = row; gc.weightx = 0.38;
-        JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        lbl.setForeground(AppColor.TEXT_SECONDARY);
-        panel.add(lbl, gc);
-    }
-
-    private void addField(JPanel panel, GridBagConstraints gc, int row, JComponent field) {
-        gc.gridx = 1; gc.gridy = row; gc.weightx = 0.62;
-        panel.add(field, gc);
-    }
-
-    private void styleTextField(JTextField tf) {
-        tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tf.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColor.BORDER, 1, true),
-                BorderFactory.createEmptyBorder(6, 10, 6, 10)));
-        tf.setBackground(AppColor.SURFACE);
-        tf.setForeground(AppColor.TEXT_PRIMARY);
     }
 }

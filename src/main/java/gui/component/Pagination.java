@@ -49,25 +49,28 @@ public class Pagination extends JPanel {
     public Pagination() { this(0, 10); }
 
     // ── Build UI ───────────────────────────────
+   // ── Build UI ───────────────────────────────
     private void buildUI() {
-        setLayout(new MigLayout("insets 6 0 6 0, gap 4", "[][][][]push[]", "[]"));
+        // Bỏ fix cứng cột. Setup insets và ép tất cả thẳng hàng ngang ở giữa ([center])
+        setLayout(new MigLayout("insets 8 0 8 0, gap 6", "", "[center]"));
         setOpaque(false);
 
-        btnFirst = navBtn("\u00ab");   // ««
+        btnFirst = navBtn("\u00ab");   // «
         btnPrev  = navBtn("\u2039");   // ‹
         btnNext  = navBtn("\u203a");   // ›
-        btnLast  = navBtn("\u00bb");   // »»
+        btnLast  = navBtn("\u00bb");   // »
 
         btnFirst.addActionListener(e -> goToPage(1));
         btnPrev .addActionListener(e -> goToPage(currentPage - 1));
         btnNext .addActionListener(e -> goToPage(currentPage + 1));
         btnLast .addActionListener(e -> goToPage(totalPages));
 
-        pageButtonPanel = new JPanel(new MigLayout("insets 0, gap 4", "", ""));
+        // Panel chứa các nút số: Xóa insets để sát viền, ép gap 6 để đồng bộ với bên ngoài
+        pageButtonPanel = new JPanel(new MigLayout("insets 0, gap 6", "", "[center]"));
         pageButtonPanel.setOpaque(false);
 
         // ── Phần bên phải: "Page [dropdown] of N" ──
-        JPanel rightPanel = new JPanel(new MigLayout("insets 0, gap 6", "[][][]", "[]"));
+        JPanel rightPanel = new JPanel(new MigLayout("insets 0, gap 8", "", "[center]"));
         rightPanel.setOpaque(false);
 
         JLabel lblPage = new JLabel("Page");
@@ -75,8 +78,15 @@ public class Pagination extends JPanel {
         lblPage.setForeground(C_MUTED);
 
         cbJumpTo = new JComboBox<>();
-        cbJumpTo.setPreferredSize(new Dimension(64, 32));
+        cbJumpTo.setPreferredSize(new Dimension(54, 32)); 
         cbJumpTo.setFont(cbJumpTo.getFont().deriveFont(Font.BOLD, 13f));
+        cbJumpTo.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        
+        // Căn giữa số bên trong JComboBox
+        DefaultListCellRenderer listRenderer = new DefaultListCellRenderer();
+        listRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        cbJumpTo.setRenderer(listRenderer);
+
         cbJumpTo.addActionListener(e -> {
             if (cbJumpTo.getSelectedItem() != null && cbJumpTo.isFocusOwner()) {
                 goToPage((Integer) cbJumpTo.getSelectedItem());
@@ -91,12 +101,15 @@ public class Pagination extends JPanel {
         rightPanel.add(cbJumpTo);
         rightPanel.add(lblTotal);
 
+        // Add các thành phần.
         add(btnFirst);
         add(btnPrev);
         add(pageButtonPanel);
         add(btnNext);
         add(btnLast);
-        add(rightPanel); 
+        
+        // Quan trọng nhất: Đẩy riêng cụm rightPanel sang góc phải bằng lệnh này
+        add(rightPanel, "pushx, alignx right"); 
     }
 
     // ── Refresh ────────────────────────────────
@@ -247,6 +260,12 @@ public class Pagination extends JPanel {
     // ── Public API ─────────────────────────────
     public void addPageChangeListener(PageChangeListener l)    { listeners.add(l); }
     public void removePageChangeListener(PageChangeListener l) { listeners.remove(l); }
+
+    // --- ĐÃ THÊM HÀM NÀY ĐỂ FIX LỖI Ở PANEL CỦA BẠN ---
+    public void setPage(int page) {
+        this.currentPage = Math.max(1, Math.min(page, totalPages));
+        refresh();
+    }
 
     public void setTotalItems(int totalItems) {
         this.totalItems  = totalItems;
