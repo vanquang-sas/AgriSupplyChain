@@ -10,6 +10,7 @@ public class DBConnection {
 
     private static final String USER = "AGRIAPP";
     private static final String PASS = "123456";
+
     public static Connection getConnection() {
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
