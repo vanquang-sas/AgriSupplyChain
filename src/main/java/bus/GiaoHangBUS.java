@@ -21,8 +21,8 @@ public class GiaoHangBUS {
     }
 
     public boolean giaoThanhCong(String MaDH, String MaNV) {
-        return dao.giaoHangThanhCong(MaDH); 
-    }
+        return dao.giaoHangThanhCong(MaDH, MaNV);
+    } 
 
     public boolean giaoThatBai(String MaDH) {
         return dao.giaoHangThatBai(MaDH);

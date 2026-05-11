@@ -1,4 +1,4 @@
-package gui;
+package gui.panel;
 
 import bus.TonKhoBUS;
 import com.formdev.flatlaf.FlatClientProperties;

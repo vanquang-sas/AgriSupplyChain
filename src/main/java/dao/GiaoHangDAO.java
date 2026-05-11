@@ -18,7 +18,7 @@ public class GiaoHangDAO {
     public List<DonHangDTO> getDanhSachChoGiao(){
 
         List<DonHangDTO> list = new ArrayList<>();
-        String sql = "SELECT * FROM DONHANG WHERE TrangThaiDH = 'Chờ giao hàng'";
+        String sql = "SELECT * FROM DONHANG WHERE TRANGTHAIDH = 'Chờ giao hàng'";
         try (
             Connection con = DBConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql);
@@ -26,15 +26,22 @@ public class GiaoHangDAO {
         ){
             while(rs.next()){
                 DonHangDTO dh = new DonHangDTO();
-                dh.setMaDH(rs.getString("MaDH"));
-                dh.setMaKH(rs.getString("MaKH"));
-                dh.setMaNV(rs.getString("MaNV"));
-                dh.setDiaChiGiaoHang(rs.getString("DiaChiGiaoHang"));
-                dh.setTgDat(rs.getDate("TGDat"));
-                dh.setTgGiaoYC(rs.getDate("TGGiaoYC"));
-                dh.setPhiVanChuyen(rs.getDouble("PhiVanChuyen"));
-                dh.setTongTien(rs.getDouble("TongTien"));
-                dh.setTrangThaiDH(rs.getString("TrangThaiDH"));
+                dh.setMaDH(rs.getString("MADH"));
+                dh.setMaKH(rs.getString("MAKH"));
+                dh.setMaNV(rs.getString("MANV"));
+                dh.setDiaChiGiaoHang(rs.getString("DIACHIGIAOHANG"));
+                dh.setTgDat(rs.getDate("TGDAT"));
+                dh.setTgGiaoYC(rs.getDate("TGGIAOYC"));
+                dh.setTgGiaoTT(rs.getDate("TGGIAOTT"));
+                dh.setLyDoHuy(rs.getString("LYDOHUY"));
+                dh.setPhiVanChuyen(rs.getDouble("PHIVANCHUYEN"));
+                dh.setTongTienHang(rs.getDouble("TONGTIENHANG"));
+                dh.setGiamGia(rs.getDouble("GIAMGIA"));
+                dh.setTongTien(rs.getDouble("TONGTIEN"));
+                dh.setTrangThaiDH(rs.getString("TRANGTHAIDH"));
+                dh.setTrangThaiTT(rs.getInt("TRANGTHAITT"));
+                // dh.setDanhSachSP(rs.getString("DANHSACHSP"));
+                dh.setPhuongThucTT(rs.getString("PHUONGTHUCTT"));
 
                 list.add(dh);
             }
@@ -65,14 +72,15 @@ public class GiaoHangDAO {
     }
     
     // 3. Giao hàng thành công
-    public boolean giaoHangThanhCong(String maDH) {
-        String sql = "{call SP_GIAOHANG_THANHCONG(?)}";
+    public boolean giaoHangThanhCong(String MaDH, String MaNV) {
+        String sql = "{call SP_GIAOHANG_THANHCONG(?,?)}";
 
         try (
             Connection con = DBConnection.getConnection();
             CallableStatement cs = con.prepareCall(sql);
         ) {
-            cs.setString(1, maDH);
+            cs.setString(1, MaDH);
+            cs.setString(2, MaNV);
             cs.execute();
 
             return true;
@@ -85,7 +93,7 @@ public class GiaoHangDAO {
     
     // 4. Giao hàng thất bại
     public boolean giaoHangThatBai(String maDH) {
-        String sql = "UPDATE DONHANG SET TrangThaiDH = 'Giao thất bại' WHERE MaDH = ?";
+        String sql = "UPDATE DONHANG SET TRANGTHAIDH =  'Đã huỷ' WHERE MADH = ?";
 
         try (
             Connection con = DBConnection.getConnection();
@@ -107,8 +115,8 @@ public class GiaoHangDAO {
 
         String sql = """
             SELECT * FROM DONHANG
-            WHERE TrangThaiDH IN ('Hoàn thành', 'Giao thất bại')
-            ORDER BY TGDat DESC
+            WHERE TRANGTHAIDH IN ('Hoàn thành', 'Đã huỷ')
+            ORDER BY TGDAT DESC
         """;
 
         try (
@@ -118,16 +126,22 @@ public class GiaoHangDAO {
         ) {
             while (rs.next()) {
                 DonHangDTO dh = new DonHangDTO();
-
-                dh.setMaDH(rs.getString("MaDH"));
-                dh.setMaKH(rs.getString("MaKH"));
-                dh.setMaNV(rs.getString("MaNV"));
-                dh.setDiaChiGiaoHang(rs.getString("DiaChiGiaoHang"));
-                dh.setTgDat(rs.getDate("TGDat"));
-                dh.setTgGiaoYC(rs.getDate("TGGiaoYC"));
-                dh.setPhiVanChuyen(rs.getDouble("PhiVanChuyen"));
-                dh.setTongTien(rs.getDouble("TongTien"));
-                dh.setTrangThaiDH(rs.getString("TrangThaiDH"));
+                dh.setMaDH(rs.getString("MADH"));
+                dh.setMaKH(rs.getString("MAKH"));
+                dh.setMaNV(rs.getString("MANV"));
+                dh.setDiaChiGiaoHang(rs.getString("DIACHIGIAOHANG"));
+                dh.setTgDat(rs.getDate("TGDAT"));
+                dh.setTgGiaoYC(rs.getDate("TGGIAOYC"));
+                dh.setTgGiaoTT(rs.getDate("TGGIAOTT"));
+                dh.setLyDoHuy(rs.getString("LYDOHUY"));
+                dh.setPhiVanChuyen(rs.getDouble("PHIVANCHUYEN"));
+                dh.setTongTienHang(rs.getDouble("TONGTIENHANG"));
+                dh.setGiamGia(rs.getDouble("GIAMGIA"));
+                dh.setTongTien(rs.getDouble("TONGTIEN"));
+                dh.setTrangThaiDH(rs.getString("TRANGTHAIDH"));
+                dh.setTrangThaiTT(rs.getInt("TRANGTHAITT"));
+                // dh.setDanhSachSP(rs.getString("DANHSACHSP"));
+                dh.setPhuongThucTT(rs.getString("PHUONGTHUCTT"));
 
                 list.add(dh);
             }

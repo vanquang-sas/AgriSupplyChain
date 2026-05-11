@@ -33,7 +33,7 @@ public class MainFrame extends JFrame {
     private GiaoHangPanel   pnlGiaoHang;
     private LoaiSanPhamPanel    pnlLoaiSanPham;
     private SanPhamPanel    pnlSanPham;
-    private LoHangPanel     pnlLoHang;
+    // private LoHangPanel     pnlLoHang;
     private NhapKhoPanel    pnlNhapKho;
     private XuatKhoPanel    pnlXuatKho;
     private TonKhoPanel     pnlTonKho;
@@ -121,7 +121,7 @@ public class MainFrame extends JFrame {
         JButton btnThongKe    = createMenuButton("📊", "Báo cáo Thống kê", "ThongKe");
         JButton btnDonHang    = createMenuButton("📊", "Đơn hàng của tôi", "DonHang");
         // JButton btnLoHang    = createMenuButton("📊", "Lô hàng nhập", "LoHang");
-        // JButton btnGiaoHang    = createMenuButton("📊", "Đơn hàng của tôi", "GiaoHang");
+        JButton btnGiaoHang    = createMenuButton("📊", "Đơn hàng của tôi", "GiaoHang");
         JButton btnLoaiSanPham    = createMenuButton("📊", "Quản lý Loại sản phẩm", "LoaiSanPham");
         JButton btnNhapKho    = createMenuButton("📊", "Nhập kho", "NhapKho");
         JButton btnXuatKho    = createMenuButton("📊", "Xuất kho", "XuatKho");
@@ -168,6 +168,8 @@ public class MainFrame extends JFrame {
                 menuPanel.add(buildSectionLabel("ĐỐI TÁC & SẢN PHẨM"));
                 menuPanel.add(btnNhaCungCap); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 menuPanel.add(btnSanPham); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+                menuPanel.add(btnGiaoHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+                // menuPanel.add(btnLoHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 defaultActiveBtn = btnNhaCungCap;
             }
         } else { 
@@ -281,7 +283,7 @@ public class MainFrame extends JFrame {
         pnlKho        = new KhoPanel();
         pnlThamSo     = new ThamSoPanel();
         pnlDonHang    = new DonHangPanel();
-        // pnlGiaoHang   = new GiaoHangPanel();
+        pnlGiaoHang   = new GiaoHangPanel();
         pnlLoaiSanPham = new LoaiSanPhamPanel();
         pnlSanPham    = new SanPhamPanel();
         // pnlLoHang     = new LoHangPanel();
@@ -301,7 +303,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(pnlThamSo,     "ThamSo");
         contentPanel.add(pnlThongKe,    "ThongKe");
         contentPanel.add(pnlDonHang,    "DonHang");
-        // contentPanel.add(pnlGiaoHang,    "GiaoHang");
+        contentPanel.add(pnlGiaoHang,    "GiaoHang");
         contentPanel.add(pnlLoaiSanPham,    "LoaiSanPham");
         // contentPanel.add(pnlLoHang,    "LoHang");
         contentPanel.add(pnlNhapKho,    "NhapKho");
