@@ -245,7 +245,7 @@ public class TonKhoPanel extends JPanel {
         }
 
         CustomCellRenderer left = new CustomCellRenderer(SwingConstants.LEFT);
-        CustomCellRenderer right = new CustomCellRenderer(SwingConstants.RIGHT);
+        // CstomCellRenderer right = new CustomCellRenderer(SwingConstants.RIGHT);
 
         table.getColumnModel().getColumn(0).setCellRenderer(left);
         table.getColumnModel().getColumn(1).setCellRenderer(left);
