@@ -1,8 +1,8 @@
 package test;
 
-import gui.CuaHangGUI;
-
 import javax.swing.*;
+
+import gui.panel.CuaHangPanel;
 
 public class TestCuaHangGUI {
 
@@ -10,7 +10,8 @@ public class TestCuaHangGUI {
 
         JFrame frame = new JFrame("Giao Hàng");
 
-        frame.setContentPane(new CuaHangGUI());
+        String maKH = "KH000001";
+        frame.setContentPane(new CuaHangPanel(maKH));
 
         frame.setSize(1050, 700);
 

@@ -16,7 +16,7 @@ public class TestCuaHangFeature {
         // =================================================
         System.out.println("=== DANH SÁCH SẢN PHẨM ===");
 
-        List<SanPhamDTO> dsSP = bus.getAllSanPham();
+        List<SanPhamDTO> dsSP = bus.getAllSanPham("");
 
         for (SanPhamDTO sp : dsSP) {
 
@@ -33,7 +33,7 @@ public class TestCuaHangFeature {
         // =================================================
         System.out.println("\n=== TÌM KIẾM: táo ===");
 
-        List<SanPhamDTO> timKiem = bus.timKiem("táo");
+        List<SanPhamDTO> timKiem = bus.timKiem("táo","");
 
         for (SanPhamDTO sp : timKiem) {
 
@@ -49,7 +49,7 @@ public class TestCuaHangFeature {
         // =================================================
         System.out.println("\n=== LỌC THEO LOẠI: LSP001 ===");
 
-        List<SanPhamDTO> locLoai = bus.locTheoLoai("LSP001");
+        List<SanPhamDTO> locLoai = bus.locTheoLoai("LSP001","");
 
         for (SanPhamDTO sp : locLoai) {
 

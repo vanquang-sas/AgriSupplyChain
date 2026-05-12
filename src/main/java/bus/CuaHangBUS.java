@@ -8,24 +8,24 @@ public class CuaHangBUS {
 
     private CuaHangDAO dao = new CuaHangDAO();
 
-    // lấy tất cả
-    public List<SanPhamDTO> getAllSanPham() {
-        return dao.getAllSanPham();
+    // lấy tất cả theo khách hàng
+    public List<SanPhamDTO> getAllSanPham(String maKH) {
+        return dao.getAllSanPham(maKH);
     }
 
     // tìm kiếm
-    public List<SanPhamDTO> timKiem(String keyword) {
-        return dao.timKiem(keyword);
+    public List<SanPhamDTO> timKiem(String keyword,String maKH) {
+        return dao.timKiem(keyword,maKH);
     }
 
     // lọc loại
-    public List<SanPhamDTO> locTheoLoai(String loai) {
-        return dao.locTheoLoai(loai);
+    public List<SanPhamDTO> locTheoLoai(String loai, String maKH) {
+        return dao.locTheoLoai(loai, maKH);
     }
 
-    // Lấy danh sách sản phẩm theo id
-    public SanPhamDTO getById(String maSP) {
+    // chi tiết sản phẩm
+    public SanPhamDTO getById(String maSP, String maKH) {
 
-        return dao.getById(maSP);
+        return dao.getById(maSP, maKH);
     }
 }

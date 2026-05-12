@@ -1,13 +1,15 @@
 
-package gui;
+package gui.dialog;
 
 import dto.SanPhamDTO;
+import gui.component.RoundedButton;
+import util.AppColor;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-public class ChiTietSanPhamGUI extends JDialog {
+public class ChiTietSanPhamForm extends JDialog {
 
     private JLabel lblMaSP;
     private JLabel lblTenSP;
@@ -22,7 +24,7 @@ public class ChiTietSanPhamGUI extends JDialog {
 
     private JButton btnThemGio;
 
-    public ChiTietSanPhamGUI(Frame parent, SanPhamDTO sp) {
+    public ChiTietSanPhamForm(Frame parent, SanPhamDTO sp) {
 
         super(parent, "Chi tiết sản phẩm", true);
 
@@ -32,7 +34,7 @@ public class ChiTietSanPhamGUI extends JDialog {
 
         setLayout(new BorderLayout());
 
-        Color BG = new Color(245, 247, 250);
+        Color BG = AppColor.BACKGROUND;
 
         JPanel pnlMain = new JPanel(new BorderLayout(15, 15));
 
@@ -69,9 +71,8 @@ public class ChiTietSanPhamGUI extends JDialog {
 
         lblHinhAnh.setHorizontalAlignment(SwingConstants.CENTER);
 
-        lblHinhAnh.setPreferredSize(new Dimension(250, 250));
+        lblHinhAnh.setPreferredSize(new Dimension(240, 240));
 
-        lblHinhAnh.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
 
         // load ảnh
         try {
@@ -168,23 +169,12 @@ public class ChiTietSanPhamGUI extends JDialog {
         // BUTTON
         // =====================================
         JPanel pnlBottom = new JPanel();
-
         pnlBottom.setBackground(BG);
 
-        btnThemGio = new JButton("Thêm vào giỏ hàng");
-
-        btnThemGio.setFont(new Font("Segoe UI", Font.BOLD, 15));
-
-        btnThemGio.setBackground(new Color(46, 125, 50));
-
-        btnThemGio.setForeground(Color.WHITE);
-
-        btnThemGio.setFocusPainted(false);
-
-        btnThemGio.setPreferredSize(new Dimension(220, 45));
+        // dùng component thay vì JButton thường
+        btnThemGio = new RoundedButton("Thêm vào giỏ hàng", AppColor.PRIMARY);
 
         pnlBottom.add(btnThemGio);
-
         pnlMain.add(pnlBottom, BorderLayout.SOUTH);
 
         // =====================================
