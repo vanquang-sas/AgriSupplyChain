@@ -21,6 +21,10 @@ public class XuatKhoBUS {
         return dao.getDanhSachDonHangChoXuat();
     }
 
+    public List<Object[]> getChiTietDonHang(String maDH) throws Exception {
+        return dao.getChiTietDonHang(maDH);
+    }
+
     public String yeuCauXuatKho(String maDH) {
         try {
             dao.yeuCauXuatKho(maDH);
@@ -32,16 +36,6 @@ public class XuatKhoBUS {
         }
     }
 
-    public String yeuCauXuatKhoChoDonHangMoi() {
-        try {
-            dao.yeuCauXuatKhoChoDonHangMoi();
-            return "SUCCESS";
-        } catch (SQLException e) {
-            return parseSqlError(e);
-        } catch (Exception e) {
-            return "Lỗi hệ thống: " + e.getMessage();
-        }
-    }
 
     public String xacNhanSoanHang(XuatKhoDTO dto) {
         if (dto.getMaNV() == null || dto.getMaNV().trim().isEmpty()) {

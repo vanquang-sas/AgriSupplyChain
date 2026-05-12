@@ -489,8 +489,19 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20023, 'Trạng thái đơn hàng không hợp lệ!');
     END IF;
 
+    -- Xoá các yêu cầu cũ nếu có (để tránh trùng lặp nếu nhân viên thao tác lại nửa chừng)
+    -- Trigger sẽ tự động hoàn lại SLKhaDung khi DELETE trạng thái 'Tạm giữ'
+    DELETE FROM XUATKHO 
+    WHERE MaCTDH IN (SELECT MaCTDH FROM CHITIETDONHANG WHERE MaDH = p_MaDH)
+      AND TrangThaiXK = 'Tạm giữ';
+
     -- Duyệt từng sản phẩm trong chi tiết đơn hàng
-    FOR rec_CTDH IN (SELECT MaCTDH, MaSP, SoLuong FROM CHITIETDONHANG WHERE MaDH = p_MaDH) LOOP
+    FOR rec_CTDH IN (
+        SELECT CTDH.MaCTDH, CTDH.MaSP, CTDH.SoLuong, SP.TenSP 
+        FROM CHITIETDONHANG CTDH
+        JOIN SANPHAM SP ON CTDH.MaSP = SP.MaSP
+        WHERE CTDH.MaDH = p_MaDH
+    ) LOOP
         v_SoLuongCan := rec_CTDH.SoLuong;
 
         -- Tìm hàng theo FEFO (Hết hạn trước xuất trước) và FIFO (Nhập trước xuất trước)
@@ -522,7 +533,7 @@ BEGIN
         END LOOP;
 
         IF v_SoLuongCan > 0 THEN
-            RAISE_APPLICATION_ERROR(-20024, 'Kho không đủ hàng cho sản phẩm: ' || rec_CTDH.MaSP);
+            RAISE_APPLICATION_ERROR(-20024, 'Kho không đủ hàng cho sản phẩm: ' || rec_CTDH.TenSP);
         END IF;
     END LOOP;
 
