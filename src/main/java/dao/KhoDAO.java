@@ -92,4 +92,14 @@ public class KhoDAO {
             rs.getString("MoTa")
         );
     }
+
+    // ===================== HÀM XÓA KHO BÃI =====================
+    public boolean delete(String maKho) throws SQLException {
+        String sql = "DELETE FROM KHO WHERE MaKho = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maKho);
+            return ps.executeUpdate() > 0;
+        }
+    }
 }

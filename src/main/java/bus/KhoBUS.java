@@ -31,4 +31,8 @@ public class KhoBUS {
         if (kho.getDiaChi() == null || kho.getDiaChi().trim().isEmpty())
             throw new IllegalArgumentException("Địa chỉ không được để trống!");
     }
+
+    public boolean delete(String maKho) throws SQLException {
+        return dao.delete(maKho);
+    }
 }

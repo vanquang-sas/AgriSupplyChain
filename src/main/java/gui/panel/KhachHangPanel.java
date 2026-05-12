@@ -16,6 +16,7 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -426,7 +427,7 @@ public class KhachHangPanel extends JPanel {
         showForm(maKH);
     }
 
-    // Tính năng XÓA THÔNG MINH
+    // Tính năng XÓA KHÁCH HÀNG THỰC TẾ (Đã gỡ Mock)
     private void xoaKhachHangNieu() {
         List<String> listMa = new ArrayList<>();
         
@@ -452,8 +453,8 @@ public class KhachHangPanel extends JPanel {
         }
 
         String msg = listMa.size() == 1 
-                ? "Bạn có chắc chắn muốn xóa khách hàng (Mã: " + listMa.get(0) + ") không?\nHành động này không thể hoàn tác."
-                : "Bạn có chắc chắn muốn xóa " + listMa.size() + " khách hàng đã chọn không?\nHành động này không thể hoàn tác.";
+                ? "Bạn có chắc chắn muốn xóa khách hàng (Mã: " + listMa.get(0) + ") không?\nToàn bộ tài khoản của khách hàng này sẽ bị xóa theo."
+                : "Bạn có chắc chắn muốn xóa " + listMa.size() + " khách hàng đã chọn không?\nToàn bộ tài khoản của họ sẽ bị xóa theo.";
 
         int confirm = JOptionPane.showConfirmDialog(
                 this, msg, "Xác nhận xóa",
@@ -461,17 +462,31 @@ public class KhachHangPanel extends JPanel {
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                // Mock thao tác xóa - Thay bằng hàm Delete thực tế của BUS
-                // for (String ma : listMa) { bus.delete(ma); }
-                JOptionPane.showMessageDialog(this,
-                        "Đã xóa thành công (Mock)!",
-                        "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                loadData(null);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Lỗi: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            int countSuccess = 0;
+            StringBuilder errors = new StringBuilder();
+
+            for (String ma : listMa) {
+                try {
+                    // Gọi hàm xóa thật từ BUS
+                    if (bus.delete(ma)) {
+                        countSuccess++;
+                    }
+                } catch (SQLException ex) {
+                    // Nếu lỗi SQL sinh ra do ràng buộc (Khách hàng này đã từng mua hàng)
+                    errors.append("- Mã ").append(ma).append(": Lịch sử giao dịch đang tồn tại.\n");
+                }
             }
+
+            if (errors.length() > 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Đã xóa thành công: " + countSuccess + " khách hàng.\n\nKhông thể xóa các khách hàng sau do ràng buộc dữ liệu:\n" + errors.toString(),
+                        "Kết quả xóa", JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Đã xóa thành công " + countSuccess + " khách hàng!",
+                        "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            }
+            loadData(null); // Load lại bảng
         }
     }
 

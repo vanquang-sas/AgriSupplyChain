@@ -107,6 +107,48 @@ public class NhanVienDAO {
         }
     }
 
+    // ===================== HÀM XÓA NHÂN VIÊN =====================
+    public boolean delete(String maNV) throws SQLException {
+        Connection conn = DBConnection.getConnection();
+        try {
+            conn.setAutoCommit(false);
+            
+            // 1. Lấy Username của nhân viên này để xóa luôn Tài khoản
+            String username = null;
+            try (PreparedStatement ps = conn.prepareStatement("SELECT Username FROM NHANVIEN WHERE MaNV = ?")) {
+                ps.setString(1, maNV);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) username = rs.getString("Username");
+                }
+            }
+            
+            // 2. Xóa Nhân Viên trước (Xóa bảng con)
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM NHANVIEN WHERE MaNV = ?")) {
+                ps.setString(1, maNV);
+                ps.executeUpdate();
+            }
+            
+            // 3. Xóa Tài Khoản tương ứng (Xóa bảng cha)
+            if (username != null) {
+                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM TAIKHOAN WHERE Username = ?")) {
+                    ps.setString(1, username);
+                    ps.executeUpdate();
+                }
+            }
+            
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) conn.rollback();
+            throw e; // Ném lỗi lên BUS để giao diện bắt (VD: Lỗi dính khóa ngoại phiếu xuất nhập)
+        } finally {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        }
+    }
+
     // Khóa tài khoản: SP_KHOA_TAIKHOAN
     public void khoaTaiKhoan(String username) throws SQLException {
         try (Connection conn = DBConnection.getConnection();

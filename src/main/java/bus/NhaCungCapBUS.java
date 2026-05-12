@@ -63,4 +63,8 @@ public class NhaCungCapBUS {
         if (ncc.getDiaChi() == null || ncc.getDiaChi().trim().isEmpty())
             throw new IllegalArgumentException("Địa chỉ không được để trống!");
     }
+
+    public boolean delete(String maNCC) throws SQLException {
+        return dao.delete(maNCC);
+    }
 }

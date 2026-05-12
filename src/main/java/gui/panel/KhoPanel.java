@@ -417,7 +417,7 @@ public class KhoPanel extends JPanel {
         showForm(maKho);
     }
 
-    // TÍNH NĂNG XÓA THÔNG MINH
+    // TÍNH NĂNG XÓA KHO BÃI THỰC TẾ
     private void xoaKhoNieu() {
         List<String> listMa = new ArrayList<>();
         
@@ -443,8 +443,8 @@ public class KhoPanel extends JPanel {
         }
 
         String msg = listMa.size() == 1 
-                ? "Bạn có chắc chắn muốn xóa kho (Mã: " + listMa.get(0) + ") không?\nHành động này không thể hoàn tác nếu không bị dính khóa ngoại."
-                : "Bạn có chắc chắn muốn xóa " + listMa.size() + " kho đã chọn không?\nHành động này không thể hoàn tác.";
+                ? "Bạn có chắc chắn muốn xóa kho bãi (Mã: " + listMa.get(0) + ") không?\nHành động này không thể hoàn tác."
+                : "Bạn có chắc chắn muốn xóa " + listMa.size() + " kho bãi đã chọn không?\nHành động này không thể hoàn tác.";
 
         int confirm = JOptionPane.showConfirmDialog(
                 this, msg, "Xác nhận xóa",
@@ -452,17 +452,30 @@ public class KhoPanel extends JPanel {
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                // Thao tác xóa - Thay bằng hàm Delete thực tế của BUS (bắt lỗi SQL Constraint nếu có)
-                // for (String ma : listMa) { bus.delete(ma); }
-                JOptionPane.showMessageDialog(this,
-                        "Đã xóa thành công (Mock)!",
-                        "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                loadData(null);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Không thể xóa kho vì ràng buộc dữ liệu: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            int countSuccess = 0;
+            StringBuilder errors = new StringBuilder();
+
+            for (String ma : listMa) {
+                try {
+                    // Gọi hàm xóa thật từ BUS
+                    if (bus.delete(ma)) {
+                        countSuccess++;
+                    }
+                } catch (Exception ex) {
+                    errors.append("- Mã ").append(ma).append(": Đang có hàng hóa lưu trữ hoặc phiếu nhập/xuất liên quan.\n");
+                }
             }
+
+            if (errors.length() > 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Đã xóa thành công: " + countSuccess + " kho bãi.\n\nKhông thể xóa các kho sau:\n" + errors.toString(),
+                        "Kết quả xóa", JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Đã xóa thành công toàn bộ " + countSuccess + " kho bãi!",
+                        "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            }
+            loadData(null);
         }
     }
 

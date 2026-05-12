@@ -68,6 +68,10 @@ public class KhachHangBUS {
     public KhachHangDTO getById(String maKH) {
         return khDAO.getById(maKH);
     }
+    
+    public boolean delete(String maKH) throws SQLException {
+        return khDAO.delete(maKH);
+    }
 
     public void them(KhachHangDTO kh, String password) throws SQLException, IllegalArgumentException {
         validate(kh);

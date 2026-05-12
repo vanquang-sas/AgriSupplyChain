@@ -426,28 +426,24 @@ public class NhanVienPanel extends JPanel {
         showForm(maNV);
     }
 
-    // --- LOGIC XÓA THÔNG MINH ---
+    // LOGIC XÓA NHÂN VIÊN THỰC TẾ
     private void xoaNhanVienNieu() {
         List<String> listMaNV = new ArrayList<>();
         
-        // 1. Quét tìm những nhân viên đã được "Tick" vào ô vuông
         for (int i = 0; i < tableModel.getRowCount(); i++) {
             Boolean isChecked = (Boolean) tableModel.getValueAt(i, 0);
             if (Boolean.TRUE.equals(isChecked)) {
-                listMaNV.add(tableModel.getValueAt(i, 1).toString()); // Mã NV ở cột 1
+                listMaNV.add(tableModel.getValueAt(i, 1).toString()); 
             }
         }
 
-        // 2. Nếu không có ai được tick, kiểm tra xem người dùng có đang "chọn/bôi đen" dòng nào không
         if (listMaNV.isEmpty()) {
             int selectedRow = table.getSelectedRow();
             if (selectedRow >= 0) {
-                // Thêm mã nhân viên đang được click vào danh sách cần xóa
                 listMaNV.add(tableModel.getValueAt(selectedRow, 1).toString());
             }
         }
 
-        // 3. Nếu vẫn không có mã nào (không tick và cũng không chọn ai)
         if (listMaNV.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                     "Vui lòng tick vào ô vuông hoặc click bôi đen một nhân viên để xóa.",
@@ -455,35 +451,40 @@ public class NhanVienPanel extends JPanel {
             return;
         }
 
-        // 4. Hiển thị thông báo xác nhận linh hoạt dựa theo số lượng
         String msg = listMaNV.size() == 1 
-                ? "Bạn có chắc chắn muốn xóa nhân viên (Mã: " + listMaNV.get(0) + ") không?\nHành động này không thể hoàn tác."
-                : "Bạn có chắc chắn muốn xóa " + listMaNV.size() + " nhân viên đã chọn không?\nHành động này không thể hoàn tác.";
+                ? "Bạn có chắc chắn muốn xóa nhân viên (Mã: " + listMaNV.get(0) + ") không?\nToàn bộ tài khoản và quyền truy cập của nhân viên này sẽ bị xóa."
+                : "Bạn có chắc chắn muốn xóa " + listMaNV.size() + " nhân viên đã chọn không?\nToàn bộ tài khoản và quyền truy cập của họ sẽ bị xóa.";
 
         int confirm = JOptionPane.showConfirmDialog(
-                this,
-                msg,
-                "Xác nhận xóa",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
+                this, msg, "Xác nhận xóa",
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
         );
 
-        // 5. Tiến hành xóa nếu đồng ý
         if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                // Bạn có thể vòng lặp qua từng mã để xóa hoặc gọi BUS xóa nhiều
-                // for (String ma : listMaNV) { bus.delete(ma); }
-                
-                JOptionPane.showMessageDialog(this,
-                        "Đã xóa thành công!",
-                        "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                
-                loadData(null); // Load lại dữ liệu bảng
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Đã có lỗi xảy ra khi xóa: " + ex.getMessage(),
-                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+            int countSuccess = 0;
+            StringBuilder errors = new StringBuilder();
+
+            for (String ma : listMaNV) {
+                try {
+                    // Gọi hàm xóa thật từ BUS
+                    if (bus.delete(ma)) {
+                        countSuccess++;
+                    }
+                } catch (Exception ex) {
+                    errors.append("- Mã ").append(ma).append(": Đang dính dữ liệu lập hóa đơn hoặc phiếu xuất/nhập kho.\n");
+                }
             }
+
+            if (errors.length() > 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Đã xóa thành công: " + countSuccess + " nhân viên.\n\nKhông thể xóa các nhân viên sau:\n" + errors.toString(),
+                        "Kết quả xóa", JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Đã xóa thành công toàn bộ " + countSuccess + " nhân viên!",
+                        "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            }
+            loadData(null); 
         }
     }
 

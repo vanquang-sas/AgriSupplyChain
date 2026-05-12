@@ -169,6 +169,48 @@ public class KhachHangDAO {
         return false;
     }
 
+    // ===================== HÀM XÓA KHÁCH HÀNG =====================
+    public boolean delete(String maKH) throws SQLException {
+        Connection conn = DBConnection.getConnection();
+        try {
+            conn.setAutoCommit(false);
+            
+            // 1. Lấy Username của khách hàng này để xóa luôn Tài khoản
+            String username = null;
+            try (PreparedStatement ps = conn.prepareStatement("SELECT Username FROM KHACHHANG WHERE MaKH = ?")) {
+                ps.setString(1, maKH);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) username = rs.getString("Username");
+                }
+            }
+            
+            // 2. Xóa Khách Hàng trước (Xóa bảng con)
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM KHACHHANG WHERE MaKH = ?")) {
+                ps.setString(1, maKH);
+                ps.executeUpdate();
+            }
+            
+            // 3. Xóa Tài Khoản tương ứng (Xóa bảng cha)
+            if (username != null) {
+                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM TAIKHOAN WHERE Username = ?")) {
+                    ps.setString(1, username);
+                    ps.executeUpdate();
+                }
+            }
+            
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) conn.rollback();
+            throw e; // Ném lỗi lên BUS để giao diện bắt (VD: Lỗi dính khóa ngoại Đơn hàng)
+        } finally {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        }
+    }
+
     // ===================== HELPER =====================
     private KhachHangDTO mapRow(ResultSet rs) throws SQLException {
         KhachHangDTO kh = new KhachHangDTO();

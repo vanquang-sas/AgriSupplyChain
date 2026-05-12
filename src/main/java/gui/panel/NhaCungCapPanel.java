@@ -413,7 +413,7 @@ public class NhaCungCapPanel extends JPanel {
         showForm(maNCC);
     }
 
-    // TÍNH NĂNG XÓA THÔNG MINH
+    // TÍNH NĂNG XÓA NHÀ CUNG CẤP THỰC TẾ
     private void xoaNhaCungCapNieu() {
         List<String> listMa = new ArrayList<>();
         
@@ -448,17 +448,30 @@ public class NhaCungCapPanel extends JPanel {
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                // Mock thao tác xóa - Thay bằng hàm Delete thực tế của BUS
-                // for (String ma : listMa) { bus.delete(ma); }
-                JOptionPane.showMessageDialog(this,
-                        "Đã xóa thành công (Mock)!",
-                        "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                loadData(null);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Lỗi: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            int countSuccess = 0;
+            StringBuilder errors = new StringBuilder();
+
+            for (String ma : listMa) {
+                try {
+                    // Gọi hàm xóa thật từ BUS
+                    if (bus.delete(ma)) {
+                        countSuccess++;
+                    }
+                } catch (Exception ex) {
+                    errors.append("- Mã ").append(ma).append(": Đang có sản phẩm hoặc phiếu nhập liên quan.\n");
+                }
             }
+
+            if (errors.length() > 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Đã xóa thành công: " + countSuccess + " nhà cung cấp.\n\nKhông thể xóa các nhà cung cấp sau:\n" + errors.toString(),
+                        "Kết quả xóa", JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Đã xóa thành công toàn bộ " + countSuccess + " nhà cung cấp!",
+                        "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            }
+            loadData(null);
         }
     }
 

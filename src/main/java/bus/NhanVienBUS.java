@@ -68,4 +68,8 @@ public class NhanVienBUS {
     public dto.NhanVienDTO getByUsername(String username) {
         return nvDAO.getByUsername(username);
     }
+
+    public boolean delete(String maNV) throws SQLException {
+        return nvDAO.delete(maNV);
+    }
 }

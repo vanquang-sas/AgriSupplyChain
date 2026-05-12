@@ -70,6 +70,16 @@ public class NhaCungCapDAO {
         }
     }
 
+    // ===================== HÀM XÓA NHÀ CUNG CẤP =====================
+    public boolean delete(String maNCC) throws SQLException {
+        String sql = "DELETE FROM NHACUNGCAP WHERE MaNCC = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maNCC);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
     // Cập nhật: SP_CAPNHAT_NCC
     public void capNhat(NhaCungCapDTO ncc) throws SQLException {
         try (Connection conn = DBConnection.getConnection();

@@ -133,14 +133,17 @@ public class SanPhamPanel extends JPanel {
         JButton btnThem = createActionButton("Thêm", AppColor.SUCCESS, AppColor.SUCCESS_HOVER, AppColor.SUCCESS_ACTIVE);
         JButton btnSua  = createActionButton("Sửa",  AppColor.INFO,    AppColor.INFO_HOVER,    AppColor.INFO_ACTIVE);
         JButton btnXoa  = createActionButton("Xóa",  AppColor.ERROR,   AppColor.ERROR_HOVER,   AppColor.ERROR_ACTIVE);
-        JButton btnRefresh = createActionButton("↻", Color.GRAY, Color.DARK_GRAY, Color.BLACK); 
+        
+        // CẬP NHẬT NÚT REFRESH THEO CHUẨN MỚI
+        JButton btnRefresh = createIconButton("icons/refresh.svg");
 
         btnThem.addActionListener(e -> showForm(null));
         btnSua.addActionListener(e -> showFormForEdit());
         btnXoa.addActionListener(e -> xoaSanPhamNieu());
         btnRefresh.addActionListener(e -> loadData(null));
 
-        btnGroup.add(btnThem); btnGroup.add(btnSua); btnGroup.add(btnXoa); btnGroup.add(btnRefresh);
+        btnGroup.add(btnThem); btnGroup.add(btnSua); btnGroup.add(btnXoa); 
+        btnGroup.add(Box.createHorizontalStrut(4)); btnGroup.add(btnRefresh);
 
         JPanel searchGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0)); searchGroup.setOpaque(false);
         searchField = new ModernSearchField("Tìm kiếm sản phẩm...");
@@ -335,6 +338,48 @@ public class SanPhamPanel extends JPanel {
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13)); btn.setForeground(Color.WHITE);
         btn.setContentAreaFilled(false); btn.setBorderPainted(false);
         btn.setPreferredSize(new Dimension(80, 36)); btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return btn;
+    }
+
+    // THÊM HÀM TẠO NÚT ICON REFRESH THEO CHUẨN
+    private JButton createIconButton(String svgPath) {
+        JButton btn = new JButton();
+        try {
+            btn.setIcon(new com.formdev.flatlaf.extras.FlatSVGIcon(svgPath, 18, 18));
+        } catch (Throwable ex) {
+            btn.setText("↻");
+            btn.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        }
+        
+        btn.setPreferredSize(new Dimension(36, 36));
+        btn.setContentAreaFilled(false);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        
+        btn.addMouseListener(new MouseAdapter() {
+            @Override public void mouseEntered(MouseEvent e) { btn.putClientProperty("hover", true); btn.repaint(); }
+            @Override public void mouseExited(MouseEvent e) { btn.putClientProperty("hover", false); btn.repaint(); }
+        });
+        
+        btn.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                boolean isHovered = Boolean.TRUE.equals(c.getClientProperty("hover"));
+                
+                g2.setColor(isHovered ? new Color(243, 244, 246) : Color.WHITE);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 10, 10);
+                
+                g2.setColor(new Color(209, 213, 219));
+                g2.setStroke(new BasicStroke(1.2f));
+                g2.drawRoundRect(1, 1, c.getWidth() - 3, c.getHeight() - 3, 10, 10);
+                
+                g2.dispose();
+                super.paint(g, c);
+            }
+        });
         return btn;
     }
 
