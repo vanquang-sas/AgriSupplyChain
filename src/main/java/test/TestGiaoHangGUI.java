@@ -1,8 +1,10 @@
 package test;
 
-import gui.GiaoHangGUI;
-
 import javax.swing.*;
+
+import gui.panel.GiaoHangPanel;
+
+
 
 public class TestGiaoHangGUI {
 
@@ -10,7 +12,10 @@ public class TestGiaoHangGUI {
 
         JFrame frame = new JFrame("Giao Hàng");
 
-        frame.setContentPane(new GiaoHangGUI());
+        // giả lập nhân viên đăng nhập
+        String maNV = "NV000012";
+
+        frame.setContentPane(new GiaoHangPanel(maNV));
 
         frame.setSize(1000, 500);
 

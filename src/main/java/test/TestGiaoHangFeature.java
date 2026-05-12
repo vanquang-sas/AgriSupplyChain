@@ -11,7 +11,7 @@ public class TestGiaoHangFeature {
 
         // 1. Test lấy danh sách đơn chờ giao
         System.out.println("=== DANH SÁCH ĐƠN CHỜ GIAO ===");
-        List<DonHangDTO> list = bus.layDonChoGiao();
+        List<DonHangDTO> list = bus.layDonChoGiao("NV000011");
 
         for (DonHangDTO dh : list) {
             System.out.println(dh.getMaDH() + " - " + dh.getTrangThaiDH());
@@ -29,12 +29,12 @@ public class TestGiaoHangFeature {
 
         // 4. Test giao thất bại
         System.out.println("\n=== GIAO THẤT BẠI ===");
-        boolean kq3 = bus.giaoThatBai("DH000002");
+        boolean kq3 = bus.giaoThatBai("DH000002","NV000001","Dat nham");
         System.out.println("Kết quả: " + kq3);
 
         // 5. Test lịch sử giao hàng
         System.out.println("\n=== LỊCH SỬ ===");
-        List<DonHangDTO> ls = bus.lichSuGiaoHang();
+        List<DonHangDTO> ls = bus.lichSuGiaoHang("NV000011");
 
         for (DonHangDTO dh : ls) {
             System.out.println(dh.getMaDH() + " - " + dh.getTrangThaiDH());

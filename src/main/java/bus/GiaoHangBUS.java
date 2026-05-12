@@ -9,8 +9,8 @@ public class GiaoHangBUS {
 
     private GiaoHangDAO dao = new GiaoHangDAO();
 
-    public List<DonHangDTO> layDonChoGiao(){
-        return dao.getDanhSachChoGiao();
+    public List<DonHangDTO> layDonChoGiao(String MaNV){
+        return dao.getDanhSachChoGiao(MaNV);
     }
 
     public boolean nhanDonGiao(String MaDH, String MaNV){
@@ -24,11 +24,11 @@ public class GiaoHangBUS {
         return dao.giaoHangThanhCong(MaDH, MaNV);
     } 
 
-    public boolean giaoThatBai(String MaDH) {
-        return dao.giaoHangThatBai(MaDH);
+    public boolean giaoThatBai(String MaDH, String MaNV, String LyDoHuy) {
+        return dao.giaoHangThatBai(MaDH,MaNV,LyDoHuy);
     }
 
-    public List<DonHangDTO> lichSuGiaoHang() {
-        return dao.getLichSuGiaoHang();
+    public List<DonHangDTO> lichSuGiaoHang(String MaNV) {
+        return dao.getLichSuGiaoHang(MaNV);
     }
 }

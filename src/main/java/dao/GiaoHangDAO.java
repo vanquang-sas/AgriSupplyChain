@@ -13,15 +13,27 @@ import util.DBConnection;
 public class GiaoHangDAO {
 
      // 1. Lấy danh sách đơn hàng chờ giao
-    public List<DonHangDTO> getDanhSachChoGiao(){
+    public List<DonHangDTO> getDanhSachChoGiao(String MaNV){
 
         List<DonHangDTO> list = new ArrayList<>();
-        String sql = "SELECT * FROM DONHANG WHERE TRANGTHAIDH = 'Chờ giao hàng'";
+        String sql = """
+            SELECT * FROM DONHANG
+            WHERE (
+                TRANGTHAIDH = 'Chờ giao hàng'
+                AND MANV IS NULL
+            )
+            OR (
+                MANV = ?
+                AND TRANGTHAIDH = 'Đang giao'
+            )
+        """;
         try (
             Connection con = DBConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
         ){
+            ps.setString(1, MaNV);
+            ResultSet rs = ps.executeQuery();
+            
             while(rs.next()){
                 DonHangDTO dh = new DonHangDTO();
                 dh.setMaDH(rs.getString("MADH"));
@@ -90,16 +102,19 @@ public class GiaoHangDAO {
     }
     
     // 4. Giao hàng thất bại
-    public boolean giaoHangThatBai(String maDH) {
-        String sql = "UPDATE DONHANG SET TRANGTHAIDH =  'Đã huỷ' WHERE MADH = ?";
+    public boolean giaoHangThatBai(String maDH, String maNV, String lyDoHuy) {
+
+        String sql = "{call SP_GIAOHANG_THATBAI(?,?,?)}";
 
         try (
             Connection con = DBConnection.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql);
+            PreparedStatement ps = con.prepareCall(sql);
         ) {
             ps.setString(1, maDH);
-
-            return ps.executeUpdate() > 0;
+            ps.setString(2, maNV);
+            ps.setString(3, lyDoHuy);
+            ps.execute();
+            return true;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -108,20 +123,23 @@ public class GiaoHangDAO {
     }
     
     // 5. Lịch sử giao hàng
-    public List<DonHangDTO> getLichSuGiaoHang() {
+    public List<DonHangDTO> getLichSuGiaoHang(String MaNV) {
         List<DonHangDTO> list = new ArrayList<>();
 
         String sql = """
-            SELECT * FROM DONHANG
-            WHERE TRANGTHAIDH IN ('Hoàn thành', 'Đã huỷ')
-            ORDER BY TGDAT DESC
+        SELECT * FROM DONHANG
+        WHERE MANV = ?
+        AND TRANGTHAIDH IN ('Hoàn thành', 'Đã huỷ')
+        ORDER BY TGDAT DESC
         """;
 
         try (
             Connection con = DBConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
         ) {
+            ps.setString(1, MaNV);
+            ResultSet rs = ps.executeQuery();
+
             while (rs.next()) {
                 DonHangDTO dh = new DonHangDTO();
                 dh.setMaDH(rs.getString("MADH"));
