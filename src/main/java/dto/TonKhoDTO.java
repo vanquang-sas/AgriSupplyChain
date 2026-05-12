@@ -1,4 +1,5 @@
 package dto;
+
 import java.util.Date;
 
 public class TonKhoDTO {
@@ -10,29 +11,93 @@ public class TonKhoDTO {
     private Date tgNhapKho;
     private Date tgHetHan;
     private String viTri;
+    private String trangThai;
 
-    public TonKhoDTO() {}
-
-    public TonKhoDTO(String maTonKho, String maKho, String maCTLH, double slConLai, double slKhaDung, Date tgNhapKho, Date tgHetHan, String viTri) {
-        this.maTonKho = maTonKho; this.maKho = maKho; this.maCTLH = maCTLH; 
-        this.slConLai = slConLai; this.slKhaDung = slKhaDung; 
-        this.tgNhapKho = tgNhapKho; this.tgHetHan = tgHetHan; this.viTri = viTri;
+    public TonKhoDTO() {
     }
 
-    public String getMaTonKho() { return maTonKho; }
-    public void setMaTonKho(String maTonKho) { this.maTonKho = maTonKho; }
-    public String getMaKho() { return maKho; }
-    public void setMaKho(String maKho) { this.maKho = maKho; }
-    public String getMaCTLH() { return maCTLH; }
-    public void setMaCTLH(String maCTLH) { this.maCTLH = maCTLH; }
-    public double getSlConLai() { return slConLai; }
-    public void setSlConLai(double slConLai) { this.slConLai = slConLai; }
-    public double getSlKhaDung() { return slKhaDung; }
-    public void setSlKhaDung(double slKhaDung) { this.slKhaDung = slKhaDung; }
-    public Date getTgNhapKho() { return tgNhapKho; }
-    public void setTgNhapKho(Date tgNhapKho) { this.tgNhapKho = tgNhapKho; }
-    public Date getTgHetHan() { return tgHetHan; }
-    public void setTgHetHan(Date tgHetHan) { this.tgHetHan = tgHetHan; }
-    public String getViTri() { return viTri; }
-    public void setViTri(String viTri) { this.viTri = viTri; }
+    public TonKhoDTO(String maTonKho, String maKho, String maCTLH, double slConLai, double slKhaDung,
+            Date tgNhapKho, Date tgHetHan, String viTri, String trangThai) {
+        this.maTonKho = maTonKho;
+        this.maKho = maKho;
+        this.maCTLH = maCTLH;
+        this.slConLai = slConLai;
+        this.slKhaDung = slKhaDung;
+        this.tgNhapKho = tgNhapKho;
+        this.tgHetHan = tgHetHan;
+        this.viTri = viTri;
+        this.trangThai = trangThai;
+    }
+
+    public String getTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(String trangThai) {
+        this.trangThai = trangThai;
+    }
+
+    public String getMaTonKho() {
+        return maTonKho;
+    }
+
+    public void setMaTonKho(String maTonKho) {
+        this.maTonKho = maTonKho;
+    }
+
+    public String getMaKho() {
+        return maKho;
+    }
+
+    public void setMaKho(String maKho) {
+        this.maKho = maKho;
+    }
+
+    public String getMaCTLH() {
+        return maCTLH;
+    }
+
+    public void setMaCTLH(String maCTLH) {
+        this.maCTLH = maCTLH;
+    }
+
+    public double getSlConLai() {
+        return slConLai;
+    }
+
+    public void setSlConLai(double slConLai) {
+        this.slConLai = slConLai;
+    }
+
+    public double getSlKhaDung() {
+        return slKhaDung;
+    }
+
+    public void setSlKhaDung(double slKhaDung) {
+        this.slKhaDung = slKhaDung;
+    }
+
+    public Date getTgNhapKho() {
+        return tgNhapKho;
+    }
+
+    public void setTgNhapKho(Date tgNhapKho) {
+        this.tgNhapKho = tgNhapKho;
+    }
+
+    public Date getTgHetHan() {
+        return tgHetHan;
+    }
+
+    public void setTgHetHan(Date tgHetHan) {
+        this.tgHetHan = tgHetHan;
+    }
+
+    public String getViTri() {
+        return viTri;
+    }
+
+    public void setViTri(String viTri) {
+        this.viTri = viTri;
+    }
 }

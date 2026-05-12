@@ -375,3 +375,57 @@ BEGIN
     END IF;
 END;
 /
+
+CREATE OR REPLACE TRIGGER TRG_CAPNHAT_TRANGTHAI_TONKHO
+BEFORE INSERT OR UPDATE OF TGHetHan, MaCTLH ON TONKHO
+FOR EACH ROW
+DECLARE
+    v_SoNgayHSD NUMBER;
+    v_TenSP NVARCHAR2(100);
+BEGIN
+    -- 1. Lấy quy định số ngày cảnh báo từ bảng THAMSO
+    BEGIN
+        SELECT GiaTri INTO v_SoNgayHSD 
+        FROM THAMSO 
+        WHERE TenTS = 'CANHBAO_HETHAN';
+    EXCEPTION 
+        WHEN NO_DATA_FOUND THEN 
+            v_SoNgayHSD := 7; -- Mặc định là 7 ngày nếu không tìm thấy cấu hình
+    END;
+
+    -- 2. Logic phân loại trạng thái dựa trên thời gian
+    -- TRUNC(SYSDATE) để chỉ lấy ngày, bỏ qua giờ phút giây cho chính xác
+    IF :NEW.TGHetHan IS NULL THEN
+        :NEW.TrangThai := N'Còn hạn';
+        
+    ELSIF (TRUNC(:NEW.TGHetHan) < TRUNC(SYSDATE)) THEN
+        :NEW.TrangThai := N'Hết hạn';
+        
+    ELSIF (TRUNC(:NEW.TGHetHan) - TRUNC(SYSDATE)) <= v_SoNgayHSD THEN
+        :NEW.TrangThai := N'Sắp hết hạn';
+
+        -- 3. Gửi thông báo khi rơi vào trạng thái "Sắp hết hạn"
+        BEGIN
+            SELECT SP.TenSP INTO v_TenSP 
+            FROM CHITIETLOHANG CTLH 
+            JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP 
+            WHERE CTLH.MaCTLH = :NEW.MaCTLH;
+
+            INSERT INTO THONGBAO (LoaiTB, NoiDung, TrangThaiTB, TGTao)
+            VALUES (N'Sắp hết hạn', 
+                    N'Lô ' || :NEW.MaTonKho || N' của SP ' || v_TenSP || N' sẽ hết hạn vào ' || TO_CHAR(:NEW.TGHetHan, 'DD/MM/YYYY'), 
+                    0, SYSDATE);
+        EXCEPTION 
+            WHEN OTHERS THEN NULL; -- Tránh lỗi Trigger nếu không lấy được tên SP
+        END;
+        
+    ELSE
+        :NEW.TrangThai := N'Còn hạn';
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Ghi log lỗi ra console của Database nếu có sự cố
+        DBMS_OUTPUT.PUT_LINE('Lỗi trigger TRG_CAPNHAT_TRANGTHAI_TONKHO: ' || SQLERRM);
+END;
+/
