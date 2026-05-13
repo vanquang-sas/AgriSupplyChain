@@ -7,8 +7,8 @@ import java.util.List;
 import java.sql.SQLException;
 
 public class XuatKhoBUS {
-    private XuatKhoDAO dao = new XuatKhoDAO();
-    
+    private final XuatKhoDAO dao = new XuatKhoDAO();
+
     public List<String> getAllMaNhanVien() throws Exception {
         return dao.getAllMaNhanVien();
     }
@@ -21,20 +21,21 @@ public class XuatKhoBUS {
         return dao.getDanhSachDonHangChoXuat();
     }
 
+    public ArrayList<Object[]> getDanhSachDonHangDaXuat() {
+        return dao.getDanhSachDonHangDaXuat();
+    }
+
+    public int getSoDonHangThieuTonKho() {
+        return dao.getSoDonHangThieuTonKho();
+    }
+
+    public List<Object[]> getChiTietDonHang(String maDH) throws Exception {
+        return dao.getChiTietDonHang(maDH);
+    }
+
     public String yeuCauXuatKho(String maDH) {
         try {
             dao.yeuCauXuatKho(maDH);
-            return "SUCCESS";
-        } catch (SQLException e) {
-            return parseSqlError(e);
-        } catch (Exception e) {
-            return "Lỗi hệ thống: " + e.getMessage();
-        }
-    }
-
-    public String yeuCauXuatKhoChoDonHangMoi() {
-        try {
-            dao.yeuCauXuatKhoChoDonHangMoi();
             return "SUCCESS";
         } catch (SQLException e) {
             return parseSqlError(e);
