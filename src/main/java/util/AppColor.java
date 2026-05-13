@@ -7,6 +7,9 @@ public class AppColor {
     // Thay vì viết formPanel.setBackground(new Color(46, 204, 113));
     // Có thể viết  formPanel.setBackground(AppColor.BACKGROUND);
     
+    // MÀU CHO HEADER
+    public static final Color HEADER = Color.decode("#eeeeee");
+
     // MÀU THƯƠNG HIỆU (BRAND COLORS)
     public static final Color PRIMARY        = Color.decode("#16A34A"); // Xanh lá đậm
     public static final Color PRIMARY_HOVER  = Color.decode("#22C55E");

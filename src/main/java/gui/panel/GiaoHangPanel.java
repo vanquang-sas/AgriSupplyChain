@@ -3,6 +3,7 @@ package gui.panel;
 
 import bus.GiaoHangBUS;
 import dto.DonHangDTO;
+import util.AppColor;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -51,7 +52,6 @@ public class GiaoHangPanel extends JPanel {
     private final Color SUCCESS = new Color(56, 142, 60);
     private final Color DANGER = new Color(211, 47, 47);
     private final Color INFO = new Color(2, 136, 209);
-
     private final Color BG = new Color(245, 247, 250);
 
     // =====================================================
@@ -88,10 +88,10 @@ public class GiaoHangPanel extends JPanel {
         // =====================================================
         JTabbedPane tabbedPane = new JTabbedPane();
 
-        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 17));
         tabbedPane.setBackground(Color.WHITE);
         tabbedPane.setFocusable(false);
-
+        // ============================================================================================================
         // =====================================================
         // PANEL ĐƠN GIAO
         // =====================================================
@@ -108,7 +108,7 @@ public class GiaoHangPanel extends JPanel {
         pnlTopAction.setBackground(BG);
         pnlTopAction.setBorder(new EmptyBorder(0, 0, 10, 0));
 
-        JLabel lblChoGiao = new JLabel("đơn giao hàng");
+        JLabel lblChoGiao = new JLabel("Đơn giao hàng");
 
         lblChoGiao.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         lblChoGiao.setForeground(new Color(120, 120, 120));
@@ -155,12 +155,23 @@ public class GiaoHangPanel extends JPanel {
         );
 
         tblChoGiao = new JTable(modelChoGiao);
-
-        customTable(tblChoGiao);
+        UIManager.put("TableHeader.cellBorder", BorderFactory.createEmptyBorder());
+        customTables(tblChoGiao);
+    
 
         JScrollPane scrollChoGiao = new JScrollPane(tblChoGiao);
 
         scrollChoGiao.setBorder(null);
+        scrollChoGiao.getViewport().setBackground(Color.WHITE);
+
+        // XÓA SCROLLBAR
+        scrollChoGiao.setVerticalScrollBarPolicy(
+                JScrollPane.VERTICAL_SCROLLBAR_NEVER
+        );
+
+        scrollChoGiao.setHorizontalScrollBarPolicy(
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        );
 
         JPanel tableWrapper = new JPanel(new BorderLayout());
 
@@ -178,16 +189,17 @@ public class GiaoHangPanel extends JPanel {
         tableWrapper.add(scrollChoGiao, BorderLayout.CENTER);
 
         pnlChoGiao.add(tableWrapper, BorderLayout.CENTER);
-
+        // =======================================================================================================================
         // =====================================================
         // PANEL LỊCH SỬ
         // =====================================================
+       
         JPanel pnlLichSu = new JPanel(new BorderLayout(10, 10));
 
         pnlLichSu.setBackground(BG);
         pnlLichSu.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        JLabel lblLichSu = new JLabel("lịch sử giao hàng");
+        JLabel lblLichSu = new JLabel("Lịch sử giao hàng");
 
         lblLichSu.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         lblLichSu.setForeground(new Color(120, 120, 120));
@@ -211,11 +223,21 @@ public class GiaoHangPanel extends JPanel {
 
         tblLichSu = new JTable(modelLichSu);
 
-        customTable(tblLichSu);
+        customTables(tblLichSu);
 
         JScrollPane scrollLichSu = new JScrollPane(tblLichSu);
 
         scrollLichSu.setBorder(null);
+        scrollLichSu.getViewport().setBackground(Color.WHITE);
+
+        // XÓA SCROLLBAR
+        scrollLichSu.setVerticalScrollBarPolicy(
+                JScrollPane.VERTICAL_SCROLLBAR_NEVER
+        );
+
+        scrollLichSu.setHorizontalScrollBarPolicy(
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        );
 
         JPanel tableHistoryWrapper = new JPanel(new BorderLayout());
 
@@ -449,9 +471,9 @@ public class GiaoHangPanel extends JPanel {
         });
     }
 
-    // =====================================================
-    // CUSTOM TABLE
-    // =====================================================
+//     // =====================================================
+//     // CUSTOM TABLE
+//     // =====================================================
     private void customTable(JTable table) {
 
         table.setRowHeight(42);
@@ -496,6 +518,7 @@ public class GiaoHangPanel extends JPanel {
                 )
         );
 
+        
         header.setPreferredSize(
                 new Dimension(header.getWidth(), 42)
         );
@@ -647,5 +670,184 @@ public class GiaoHangPanel extends JPanel {
             });
         }
     }
+    // =====================================================
+// CUSTOM TABLE
+// =====================================================
+        private void customTables(JTable table) {
+
+        // =====================================================
+        // TABLE
+        // =====================================================
+        table.setRowHeight(45);
+
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+
+        table.setForeground(new Color(60, 60, 60));
+
+        table.setBackground(Color.WHITE);
+
+        table.setShowVerticalLines(false);
+
+        table.setShowHorizontalLines(false);
+
+        table.setIntercellSpacing(new Dimension(0, 0));
+
+        table.setFocusable(false);
+
+        table.setBorder(null);
+
+        table.setSelectionBackground(
+                new Color(232, 245, 233)
+        );
+
+        table.setSelectionForeground(Color.BLACK);
+
+        // =====================================================
+        // HEADER
+        // =====================================================
+        JTableHeader header = table.getTableHeader();
+
+        header.setBackground(AppColor.HEADER);
+
+        header.setForeground(Color.BLACK);
+
+        header.setFont(
+                new Font("Segoe UI", Font.BOLD, 15)
+        );
+
+        // XÓA VIỀN HEADER
+        header.setBorder(null);
+
+        header.setPreferredSize(
+                new Dimension(header.getWidth(), 45)
+        );
+
+        // =====================================================
+        // HEADER TITLE IN HOA
+        // =====================================================
+        for (int i = 0; i < table.getColumnCount(); i++) {
+
+                String title =
+                        table.getColumnName(i).toUpperCase();
+
+                table.getColumnModel()
+                        .getColumn(i)
+                        .setHeaderValue(title);
+        }
+
+        // =====================================================
+        // RENDER CELL
+        // =====================================================
+        table.setDefaultRenderer(
+                Object.class,
+                new DefaultTableCellRenderer() {
+
+                        @Override
+                        public Component getTableCellRendererComponent(
+                                JTable table,
+                                Object value,
+                                boolean isSelected,
+                                boolean hasFocus,
+                                int row,
+                                int column
+                        ) {
+
+                        JLabel lbl =
+                                (JLabel)
+                                        super.getTableCellRendererComponent(
+                                                table,
+                                                value,
+                                                isSelected,
+                                                hasFocus,
+                                                row,
+                                                column
+                                        );
+                       
+                        // CAN GIUA TAT CA
+                        // setHorizontalAlignment(SwingConstants.CENTER);
+
+                        // IN DAM TAT CA
+                        // lbl.setFont(new Font("Arial", Font.BOLD, 13));
+
+                        // =========================================
+                        // PADDING
+                        // =========================================
+                        lbl.setBorder(
+                                new EmptyBorder(0, 12, 0, 12)
+                        );
+
+                        // =========================================
+                        // ROW BACKGROUND
+                        // =========================================
+                        if (!isSelected) {
+
+                                if (row % 2 == 0) {
+
+                                lbl.setBackground(Color.WHITE);
+
+                                } else {
+
+                                lbl.setBackground(
+                                        new Color(248, 249, 251)
+                                );
+                                }       
+                        }
+
+                    // =========================================
+                    // MÃ ĐH -> IN HOA
+                    // =========================================
+                    if (column == 0 && value != null) {
+
+                        lbl.setText(
+                                value.toString().toUpperCase()
+                        );
+                        // IN ĐẬM
+                        setFont(getFont().deriveFont(Font.BOLD));
+                        setHorizontalAlignment(SwingConstants.CENTER);
+                    }
+
+                    // =========================================
+                    // STATUS COLOR
+                    // =========================================
+                    if (column == 6 && value != null) {
+
+                        String status =
+                                value.toString();
+
+                        if (status.equalsIgnoreCase(
+                                "Chờ giao hàng"
+                        )) {
+
+                            lbl.setForeground(
+                                    new Color(46, 125, 50)
+                            );
+
+                        } else if (status.equalsIgnoreCase(
+                                "Giao thất bại"
+                        )) {
+
+                            lbl.setForeground(
+                                    new Color(211, 47, 47)
+                            );
+
+                        } else {
+
+                            lbl.setForeground(
+                                    new Color(60, 60, 60)
+                            );
+                        }
+
+                    } else {
+
+                        lbl.setForeground(
+                                new Color(60, 60, 60)
+                        );
+                    }
+                    lbl.setBorder(BorderFactory.createEmptyBorder());
+                    return lbl;
+                }
+            }
+    );
+}
 }
 
