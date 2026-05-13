@@ -162,48 +162,79 @@ BEGIN
 END;
 /
 
--- Procedure Xóa Loại Sản Phẩm (Kèm bẫy lỗi khóa ngoại)
+-- Procedure Xóa Loại Sản Phẩm 
 CREATE OR REPLACE PROCEDURE SP_XOA_LSP (
     p_MaLSP IN VARCHAR2
 ) IS
+    v_count NUMBER;
 BEGIN
+    -- 1. Đếm số lượng sản phẩm đang có của loại này
+    SELECT COUNT(*) INTO v_count FROM SANPHAM WHERE MaLSP = p_MaLSP;
+    
+    -- 2. Nếu có >= 1 sản phẩm, lập tức văng lỗi và dừng chương trình
+    IF v_count > 0 THEN
+        RAISE_APPLICATION_ERROR(-20040, 'Không thể xóa vì đang có sản phẩm thuộc loại này!');
+    END IF;
+
+    -- 3. Nếu an toàn (count = 0) thì mới xóa
     DELETE FROM LOAISANPHAM WHERE MaLSP = p_MaLSP;
     COMMIT;
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK;
-        -- Lỗi ORA-02292: Đang có dữ liệu con (Sản phẩm) tham chiếu đến
-        IF SQLCODE = -2292 THEN
-            RAISE_APPLICATION_ERROR(-20040, 'Không thể xóa vì đang có sản phẩm thuộc loại này!');
-        ELSE
-            RAISE;
-        END IF;
 END;
 /
 
 -- ================================= Bảng SANPHAM =================================
-CREATE OR REPLACE PROCEDURE SP_THEM_SP (
-    p_TenSP IN NVARCHAR2, p_MaLSP IN VARCHAR2, p_ChatLuong IN NVARCHAR2,
-    p_GiaMua IN NUMBER, p_GiaBan IN NUMBER, p_DonViTinh IN NVARCHAR2, p_BaoQuan IN NVARCHAR2
-) IS
+-- 1. Procedure lấy danh sách Sản phẩm (Có tên loại)
+CREATE OR REPLACE PROCEDURE SP_LAY_DS_SANPHAM (
+    p_Cursor OUT SYS_REFCURSOR
+) AS
 BEGIN
-    INSERT INTO SANPHAM (TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan)
-    VALUES (p_TenSP, p_MaLSP, p_ChatLuong, p_GiaMua, p_GiaBan, p_DonViTinh, p_BaoQuan);
-    COMMIT;
+    OPEN p_Cursor FOR
+        SELECT SP.MaSP, SP.TenSP, SP.MaLSP, LSP.TenLSP, SP.ChatLuong, 
+               SP.GiaMua, SP.GiaBan, SP.DonViTinh, SP.BaoQuan, SP.HinhAnh
+        FROM SANPHAM SP
+        LEFT JOIN LOAISANPHAM LSP ON SP.MaLSP = LSP.MaLSP
+        ORDER BY SP.MaSP DESC;
 END;
 /
 
-CREATE OR REPLACE PROCEDURE SP_CAPNHAT_SP (
-    p_MaSP IN VARCHAR2, p_TenSP IN NVARCHAR2, p_MaLSP IN VARCHAR2, p_ChatLuong IN NVARCHAR2,
-    p_GiaMua IN NUMBER, p_GiaBan IN NUMBER, p_DonViTinh IN NVARCHAR2, p_BaoQuan IN NVARCHAR2
-) IS
+-- 2. Procedure tìm kiếm Sản phẩm (Có tên loại)
+CREATE OR REPLACE PROCEDURE SP_TIMKIEM_SANPHAM (
+    p_Keyword IN VARCHAR2,
+    p_Cursor OUT SYS_REFCURSOR
+) AS
 BEGIN
-    -- Việc lưu lịch sử giá đã có TRG_SP_LUU_LSG
-    UPDATE SANPHAM
-    SET TenSP = NVL(p_TenSP, TenSP), MaLSP = NVL(p_MaLSP, MaLSP), ChatLuong = NVL(p_ChatLuong, ChatLuong),
-        GiaMua = NVL(p_GiaMua, GiaMua), GiaBan = NVL(p_GiaBan, GiaBan), 
-        DonViTinh = NVL(p_DonViTinh, DonViTinh), BaoQuan = NVL(p_BaoQuan, BaoQuan)
-    WHERE MaSP = p_MaSP;
+    OPEN p_Cursor FOR
+        SELECT SP.MaSP, SP.TenSP, SP.MaLSP, LSP.TenLSP, SP.ChatLuong, 
+               SP.GiaMua, SP.GiaBan, SP.DonViTinh, SP.BaoQuan, SP.HinhAnh
+        FROM SANPHAM SP
+        LEFT JOIN LOAISANPHAM LSP ON SP.MaLSP = LSP.MaLSP
+        WHERE LOWER(SP.TenSP) LIKE LOWER('%' || p_Keyword || '%') 
+           OR LOWER(SP.MaSP) LIKE LOWER('%' || p_Keyword || '%')
+        ORDER BY SP.MaSP DESC;
+END;
+/
+
+-- Procedure Xóa Sản Phẩm (Dùng COUNT kiểm tra Giao dịch)
+CREATE OR REPLACE PROCEDURE SP_XOA_SANPHAM (
+    p_MaSP IN VARCHAR2
+) AS
+    v_count_lh NUMBER;
+    v_count_dh NUMBER;
+BEGIN
+    -- 1. Kiểm tra Lô hàng
+    SELECT COUNT(*) INTO v_count_lh FROM CHITIETLOHANG WHERE MaSP = p_MaSP;
+    IF v_count_lh > 0 THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Sản phẩm đã có giao dịch nhập kho, không thể xóa!');
+    END IF;
+
+    -- 2. Kiểm tra Đơn hàng
+    SELECT COUNT(*) INTO v_count_dh FROM CHITIETDONHANG WHERE MaSP = p_MaSP;
+    IF v_count_dh > 0 THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Sản phẩm đã có giao dịch bán hàng, không thể xóa!');
+    END IF;
+
+    -- 3. Xóa nếu an toàn
+    DELETE FROM SANPHAM WHERE MaSP = p_MaSP;
     COMMIT;
 END;
 /
@@ -688,4 +719,141 @@ EXCEPTION
     WHEN OTHERS THEN
         RAISE_APPLICATION_ERROR(-20040, 'Lỗi khi lấy danh sách đơn hàng: ' || SQLERRM);
 END SP_LAY_DS_DONHANG_BY_KH;
+/
+
+-- Thống kê Top N Sản phẩm bán chạy nhất
+CREATE OR REPLACE PROCEDURE SP_THONGKE_SANPHAM (
+    p_Limit IN NUMBER,
+    p_Type IN VARCHAR2,
+    p_FromDate IN DATE,
+    p_ToDate IN DATE,
+    p_Cursor OUT SYS_REFCURSOR
+)
+AS
+    v_Limit NUMBER := p_Limit;
+BEGIN
+    IF v_Limit = 0 THEN 
+        v_Limit := 999999; 
+    END IF;
+
+    IF p_Type = 'BEST' THEN
+        OPEN p_Cursor FOR
+        SELECT TenSP, TongSoLuong FROM (
+            SELECT sp.TenSP, NVL(SUM(ct.SoLuong), 0) AS TongSoLuong
+            FROM SANPHAM sp
+            -- Lọc ngày và trạng thái trước, sau đó mới LEFT JOIN để đếm số lượng
+            LEFT JOIN (
+                SELECT ctdh.MaSP, ctdh.SoLuong
+                FROM CHITIETDONHANG ctdh
+                JOIN DONHANG dh ON ctdh.MaDH = dh.MaDH
+                WHERE dh.TrangThaiDH = 'Hoàn thành'
+                  AND TRUNC(dh.TGDat) BETWEEN p_FromDate AND p_ToDate
+            ) ct ON sp.MaSP = ct.MaSP
+            GROUP BY sp.TenSP
+            ORDER BY TongSoLuong DESC 
+        ) WHERE ROWNUM <= v_Limit ORDER BY TongSoLuong DESC; 
+    ELSE
+        OPEN p_Cursor FOR
+        SELECT TenSP, TongSoLuong FROM (
+            SELECT sp.TenSP, NVL(SUM(ct.SoLuong), 0) AS TongSoLuong
+            FROM SANPHAM sp
+            LEFT JOIN (
+                SELECT ctdh.MaSP, ctdh.SoLuong
+                FROM CHITIETDONHANG ctdh
+                JOIN DONHANG dh ON ctdh.MaDH = dh.MaDH
+                WHERE dh.TrangThaiDH = 'Hoàn thành'
+                  AND TRUNC(dh.TGDat) BETWEEN p_FromDate AND p_ToDate
+            ) ct ON sp.MaSP = ct.MaSP
+            GROUP BY sp.TenSP
+            ORDER BY TongSoLuong ASC 
+        ) WHERE ROWNUM <= v_Limit ORDER BY TongSoLuong DESC; 
+    END IF;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE SP_THONGKE_TRANGTHAI (
+    p_FromDate IN DATE,
+    p_ToDate IN DATE,
+    p_Cursor OUT SYS_REFCURSOR
+)
+AS
+BEGIN
+    OPEN p_Cursor FOR
+    SELECT TrangThaiDH, COUNT(MaDH) as SoLuong 
+    FROM DONHANG 
+    WHERE TRUNC(TGDat) BETWEEN p_FromDate AND p_ToDate
+    GROUP BY TrangThaiDH
+    ORDER BY SoLuong DESC;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE SP_THONGKE_TAICHINH (
+    p_LoaiThongKe IN VARCHAR2, -- 'MONTH' hoặc 'DAY'
+    p_Period IN NUMBER,
+    p_Cursor OUT SYS_REFCURSOR
+)
+AS
+    v_AnchorDate DATE := SYSDATE;
+BEGIN
+    IF p_LoaiThongKe = 'MONTH' THEN
+        OPEN p_Cursor FOR
+        WITH MonthRange AS (
+            SELECT ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -LEVEL + 1) AS ThoiGian
+            FROM DUAL
+            CONNECT BY LEVEL <= p_Period
+        ),
+        RevenueData AS (
+            SELECT TRUNC(TGDat, 'MM') AS ThoiGian, SUM(TongTien) AS DoanhThu
+            FROM DONHANG
+            WHERE (TrangThaiDH = 'HoanThanh' OR TrangThaiDH = 'Hoàn thành')
+              AND TGDat >= ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -p_Period + 1)
+            GROUP BY TRUNC(TGDat, 'MM')
+        ),
+        CostData AS (
+            SELECT TRUNC(TGNhap, 'MM') AS ThoiGian, SUM(TongTien) AS ChiPhi
+            FROM LOHANG
+            WHERE TrangThaiLH = 'Đã nhập kho' 
+              AND TGNhap >= ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -p_Period + 1)
+            GROUP BY TRUNC(TGNhap, 'MM')
+        )
+        SELECT 
+            TO_CHAR(mr.ThoiGian, 'MM/YYYY') AS ThangNam, -- Giữ tên cột là ThangNam để tương thích Java DTO
+            NVL(rd.DoanhThu, 0) AS DoanhThu,
+            NVL(cd.ChiPhi, 0) AS ChiPhi
+        FROM MonthRange mr
+        LEFT JOIN RevenueData rd ON mr.ThoiGian = rd.ThoiGian
+        LEFT JOIN CostData cd ON mr.ThoiGian = cd.ThoiGian
+        ORDER BY mr.ThoiGian ASC;
+        
+    ELSE -- Xử lý cho chế độ theo NGÀY
+        OPEN p_Cursor FOR
+        WITH DayRange AS (
+            SELECT TRUNC(v_AnchorDate) - LEVEL + 1 AS ThoiGian
+            FROM DUAL
+            CONNECT BY LEVEL <= p_Period
+        ),
+        RevenueData AS (
+            SELECT TRUNC(TGDat) AS ThoiGian, SUM(TongTien) AS DoanhThu
+            FROM DONHANG
+            WHERE (TrangThaiDH = 'HoanThanh' OR TrangThaiDH = 'Hoàn thành')
+              AND TGDat >= TRUNC(v_AnchorDate) - p_Period + 1
+            GROUP BY TRUNC(TGDat)
+        ),
+        CostData AS (
+            SELECT TRUNC(TGNhap) AS ThoiGian, SUM(TongTien) AS ChiPhi
+            FROM LOHANG
+            WHERE TrangThaiLH = 'Đã nhập kho' 
+              AND TGNhap >= TRUNC(v_AnchorDate) - p_Period + 1
+            GROUP BY TRUNC(TGNhap)
+        )
+        SELECT 
+            TO_CHAR(dr.ThoiGian, 'DD/MM/YYYY') AS ThangNam,
+            NVL(rd.DoanhThu, 0) AS DoanhThu,
+            NVL(cd.ChiPhi, 0) AS ChiPhi
+        FROM DayRange dr
+        LEFT JOIN RevenueData rd ON dr.ThoiGian = rd.ThoiGian
+        LEFT JOIN CostData cd ON dr.ThoiGian = cd.ThoiGian
+        ORDER BY dr.ThoiGian ASC;
+    END IF;
+END;
 /

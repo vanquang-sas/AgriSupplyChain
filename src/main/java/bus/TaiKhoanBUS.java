@@ -36,4 +36,32 @@ public class TaiKhoanBUS {
         Session.currentUser = taiKhoan;
         return "SUCCESS";
     }
+
+    public String xacThucQuenMatKhau(String username, String emailOrPhone) {
+        if (username == null || username.trim().isEmpty() || emailOrPhone == null || emailOrPhone.trim().isEmpty()) {
+            return "Vui lòng nhập đầy đủ tên đăng nhập và email/số điện thoại!";
+        }
+
+        boolean isValid = taiKhoanDAO.xacThucThongTinQuenMK(username, emailOrPhone);
+        if (isValid) {
+            return "SUCCESS";
+        }
+        return "Thông tin tài khoản không chính xác!";
+    }
+
+    public String datLaiMatKhau(String username, String newPassword) {
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            return "Mật khẩu mới không được để trống!";
+        }
+        if (newPassword.length() < 6) {
+            return "Mật khẩu phải có ít nhất 6 ký tự!";
+        }
+
+        String hashedNewPassword = HashPass.hashPassword(newPassword);
+        boolean isSuccess = taiKhoanDAO.doiMatKhau(username, hashedNewPassword);
+        if (isSuccess) {
+            return "SUCCESS";
+        }
+        return "Lỗi hệ thống khi cập nhật mật khẩu!";
+    }
 }

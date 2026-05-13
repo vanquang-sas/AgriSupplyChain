@@ -12,6 +12,8 @@ import util.DBConnection;
 
 public class GiaoHangDAO {
 
+    public GiaoHangDAO() {}
+
      // 1. Lấy danh sách đơn hàng chờ giao
     public List<DonHangDTO> getDanhSachChoGiao(String MaNV){
 

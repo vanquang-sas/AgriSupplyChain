@@ -6,6 +6,7 @@ import javax.swing.border.EmptyBorder;
 
 import gui.panel.DangKyPanel;
 import gui.panel.DangNhapPanel;
+import gui.panel.QuenMKPanel;
 
 import java.awt.*;
 
@@ -65,7 +66,7 @@ public class AuthFrame extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-                java.net.URL imgURL = getClass().getResource("/images/Background_DangKy.jpg");
+                java.net.URL imgURL = getClass().getResource("/images/Background.jpg");
                 if (imgURL != null) {
                     Image bgImage = new ImageIcon(imgURL).getImage();
                     int panelW = getWidth(), panelH = getHeight();
@@ -87,11 +88,11 @@ public class AuthFrame extends JFrame {
         logoContainer.setBorder(new EmptyBorder(20, 30, 20, 30));
 
         JLabel lblLogo = new JLabel();
-        java.net.URL logoURL = getClass().getResource("/images/TestLogo.png");
+        java.net.URL logoURL = getClass().getResource("/images/Logo.jpg");
         if (logoURL != null) lblLogo.setIcon(new ImageIcon(new ImageIcon(logoURL).getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH)));
         lblLogo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel lblBrand = new JLabel("AGRI-SUPPLY-CHAIN") {
+        JLabel lblBrand = new JLabel("MEKONG-AGRI-CHAIN") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();

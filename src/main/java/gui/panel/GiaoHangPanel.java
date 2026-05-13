@@ -8,6 +8,7 @@ import util.AppColor;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
+
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
@@ -35,6 +36,7 @@ public class GiaoHangPanel extends JPanel {
     // =====================================================
     // BUTTON
     // =====================================================
+
     private JButton btnNhanDon;
     private JButton btnThanhCong;
     private JButton btnThatBai;
@@ -48,6 +50,7 @@ public class GiaoHangPanel extends JPanel {
     // =====================================================
     // COLOR
     // =====================================================
+
     private final Color PRIMARY = new Color(46, 125, 50);
     private final Color SUCCESS = new Color(56, 142, 60);
     private final Color DANGER = new Color(211, 47, 47);
@@ -60,6 +63,7 @@ public class GiaoHangPanel extends JPanel {
     public GiaoHangPanel(String maNV) {
 
         this.maNV = maNV;
+
 
         setLayout(new BorderLayout());
         setBackground(BG);
@@ -115,14 +119,17 @@ public class GiaoHangPanel extends JPanel {
 
         pnlTopAction.add(lblChoGiao, BorderLayout.WEST);
 
+
         // =====================================================
         // BUTTON PANEL
         // =====================================================
+
         JPanel pnlButton = new JPanel(
                 new FlowLayout(FlowLayout.RIGHT, 12, 0)
         );
 
         pnlButton.setOpaque(false);
+
 
         btnNhanDon = createButton("Nhận đơn", INFO);
         btnThanhCong = createButton("Giao thành công", SUCCESS);
@@ -209,11 +216,13 @@ public class GiaoHangPanel extends JPanel {
         // =====================================================
         // TABLE LỊCH SỬ
         // =====================================================
+
         modelLichSu = new DefaultTableModel(
                 new String[]{
                         "Mã ĐH",
                         "Mã KH",
                         "NV Giao",
+
                         "Ngày đặt",
                         "Tổng tiền",
                         "Trạng thái"
@@ -314,6 +323,8 @@ public class GiaoHangPanel extends JPanel {
 
         // =====================================================
         // EVENT THÀNH CÔNG
+
+
         // =====================================================
         btnThanhCong.addActionListener(e -> {
 
@@ -351,6 +362,7 @@ public class GiaoHangPanel extends JPanel {
                         this,
                         "Đơn chưa ở trạng thái đang giao"
                 );
+
             }
         });
 
@@ -453,7 +465,6 @@ public class GiaoHangPanel extends JPanel {
                 loadLichSu();
 
             } else {
-
                 JOptionPane.showMessageDialog(
                         this,
                         "Cập nhật thất bại"
@@ -469,106 +480,6 @@ public class GiaoHangPanel extends JPanel {
             loadDanhSachChoGiao();
             loadLichSu();
         });
-    }
-
-//     // =====================================================
-//     // CUSTOM TABLE
-//     // =====================================================
-    private void customTable(JTable table) {
-
-        table.setRowHeight(42);
-
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        table.setForeground(new Color(90, 90, 90));
-
-        table.setBackground(Color.WHITE);
-
-        table.setShowVerticalLines(false);
-
-        table.setGridColor(new Color(240, 240, 240));
-
-        table.setIntercellSpacing(new Dimension(0, 1));
-
-        table.setSelectionBackground(
-                new Color(232, 245, 233)
-        );
-
-        table.setSelectionForeground(Color.BLACK);
-
-        table.setFocusable(false);
-
-        JTableHeader header = table.getTableHeader();
-
-        header.setBackground(Color.WHITE);
-
-        header.setForeground(Color.BLACK);
-
-        header.setFont(
-                new Font("Segoe UI", Font.BOLD, 14)
-        );
-
-        header.setBorder(
-                BorderFactory.createMatteBorder(
-                        0,
-                        0,
-                        1,
-                        0,
-                        new Color(230, 230, 230)
-                )
-        );
-
-        
-        header.setPreferredSize(
-                new Dimension(header.getWidth(), 42)
-        );
-
-        table.setDefaultRenderer(
-                Object.class,
-                new DefaultTableCellRenderer() {
-
-                    @Override
-                    public Component getTableCellRendererComponent(
-                            JTable table,
-                            Object value,
-                            boolean isSelected,
-                            boolean hasFocus,
-                            int row,
-                            int column
-                    ) {
-
-                        Component c =
-                                super.getTableCellRendererComponent(
-                                        table,
-                                        value,
-                                        isSelected,
-                                        hasFocus,
-                                        row,
-                                        column
-                                );
-
-                        if (!isSelected) {
-
-                            if (row % 2 == 0) {
-
-                                c.setBackground(Color.WHITE);
-
-                            } else {
-
-                                c.setBackground(
-                                        new Color(248, 249, 251)
-                                );
-                            }
-                        }
-
-                        setBorder(
-                                new EmptyBorder(0, 10, 0, 10)
-                        );
-
-                        return c;
-                    }
-                }
-        );
     }
 
     // =====================================================
@@ -632,6 +543,7 @@ public class GiaoHangPanel extends JPanel {
         List<DonHangDTO> list =
                 bus.layDonChoGiao(maNV);
 
+
         for (DonHangDTO dh : list) {
 
             modelChoGiao.addRow(new Object[]{
@@ -653,6 +565,7 @@ public class GiaoHangPanel extends JPanel {
     private void loadLichSu() {
 
         modelLichSu.setRowCount(0);
+
 
         List<DonHangDTO> list =
                 bus.lichSuGiaoHang(maNV);

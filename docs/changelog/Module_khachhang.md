@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ### Khách hàng Module Developer - 28/04/2026 - feature/login-auth
 - **Thêm mới:**
   - `src/main/java/util/Session.java`: Tạo lớp quản lý trạng thái, phân quyền và phiên làm việc của người dùng hiện tại.
@@ -18,7 +17,7 @@
   - `src/main/java/Main.java`: Xóa code test chức năng, giữ file trống (code test đã chuyển sang `test/TestMainLogin.java`).
 - **Xóa:**
   - `src/main/java/test/TestMainLSP.java`: Xóa file test cũ không còn sử dụng, thay thế bằng `TestMainLogin.java`.
-=======
+
 ### Từ Lê Việt Hoàng - 27/04/2026 - feature/lich-su-don-hang
 - **Thêm mới:**
   - Procedure `SP_LAY_DS_DONHANG_BY_KH` (database/05_Procedures.sql): Lấy danh sách đơn hàng của khách hàng kèm chi tiết sản phẩm gom bằng LISTAGG (ví dụ: "2 Xoài, 1 Chuối"). Kết hợp 3 bảng DONHANG, CHITIETDONHANG, SANPHAM.
@@ -35,4 +34,11 @@
   - Xử lý lỗi tràn chuỗi LISTAGG trong procedure SP_LAY_DS_DONHANG_BY_KH.
 - **Xoá:**
   - Loại bỏ Procedure SP_XOA_DH dư thừa (sử dụng SP_HUY_DH có sẵn)
->>>>>>> origin/feature/lich-su-don-hang
+
+### Khách hàng Module Developer - 08/05/2026 - feature/quen-mat-khau
+- **Thêm mới:**
+  - `src/main/java/gui/QuenMKPanel.java`: Xây dựng giao diện Quên mật khẩu 3 bước (Xác thực thông tin → Nhập OTP giả lập → Đặt mật khẩu mới) sử dụng CardLayout.
+- **Cập nhật:**
+  - `src/main/java/dao/TaiKhoanDAO.java`: Thêm method `xacThucThongTinQuenMK()` (JOIN bảng TAIKHOAN, NHANVIEN, KHACHHANG để xác thực danh tính) và method `doiMatKhau()` (UPDATE mật khẩu đã hash).
+  - `src/main/java/bus/TaiKhoanBUS.java`: Thêm method `xacThucQuenMatKhau()` (validate input + gọi DAO) và method `datLaiMatKhau()` (hash mật khẩu mới bằng SHA-256 trước khi lưu).
+  - `src/main/java/util/DBConnection.java`: Sửa URL kết nối từ `orclpdb` sang `orcl` cho phù hợp với Oracle Non-CDB trên môi trường phát triển.

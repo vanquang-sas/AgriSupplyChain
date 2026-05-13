@@ -83,6 +83,10 @@ public class DangNhapPanel extends JPanel {
         styleTextField(txtPassword);
         gridForm.add(txtPassword, gbc);
 
+        // Cái này để đảm bảo khi bấm Enter thì đăng nhập luôn
+        txtUsername.addActionListener(e -> handleLogin());
+        txtPassword.addActionListener(e -> handleLogin());
+
         // Nút đăng nhập
         JButton btnLogin = new JButton("ĐĂNG NHẬP");
         btnLogin.setBackground(AppColor.PRIMARY);
