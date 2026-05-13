@@ -1,11 +1,12 @@
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package test;
 
 import com.formdev.flatlaf.FlatLightLaf;
-import gui.ThongBaoWidget;
+import gui.panel.ThongBaoWidget;
 import util.AppColor;
 
 import javax.swing.*;

@@ -21,4 +21,8 @@ public class ThongBaoBUS {
     public void danhDauDaDocTatCa() {
         thongBaoDAO.danhDauDaDocTatCa();
     }
+    
+    public void kiemTraHetHan() {
+        thongBaoDAO.kiemTraHetHan();
+    }
 }
