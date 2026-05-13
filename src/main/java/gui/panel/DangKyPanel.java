@@ -1,14 +1,31 @@
 package gui.panel;
 
-import util.AppColor;
-import bus.KhachHangBUS;
-import gui.AuthFrame;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+
+import bus.KhachHangBUS;
+import gui.AuthFrame;
+import util.AppColor;
 
 public class DangKyPanel extends JPanel {
     private AuthFrame parentFrame;
@@ -40,13 +57,27 @@ public class DangKyPanel extends JPanel {
         gbc.weightx = 1.0;
 
         int row = 0;
-        txtUsername = createStyledTextField(); addFormField(gridForm, "Tên đăng nhập", txtUsername, gbc, row); row += 2;
-        txtPassword = new JPasswordField(); styleTextField(txtPassword); addFormField(gridForm, "Mật khẩu", txtPassword, gbc, row); row += 2;
-        txtConfirmPassword = new JPasswordField(); styleTextField(txtConfirmPassword); addFormField(gridForm, "Xác nhận mật khẩu", txtConfirmPassword, gbc, row); row += 2;
-        txtTen = createStyledTextField(); addFormField(gridForm, "Họ tên", txtTen, gbc, row); row += 2;
-        txtSDT = createStyledTextField(); addFormField(gridForm, "Số điện thoại", txtSDT, gbc, row); row += 2;
-        txtEmail = createStyledTextField(); addFormField(gridForm, "Email", txtEmail, gbc, row); row += 2;
-        txtDiaChi = createStyledTextField(); addFormField(gridForm, "Địa chỉ", txtDiaChi, gbc, row);
+        
+        txtUsername = createStyledTextField(); 
+        addFormField(gridForm, "Tên đăng nhập", txtUsername, gbc, row); 
+        row += 2;
+        txtPassword = new JPasswordField();
+        addFormField(gridForm, "Mật khẩu", createPasswordWrapper(txtPassword), gbc, row); 
+        row += 2;
+        txtConfirmPassword = new JPasswordField();
+        addFormField(gridForm, "Xác nhận mật khẩu", createPasswordWrapper(txtConfirmPassword), gbc, row); 
+        row += 2;
+        txtTen = createStyledTextField(); 
+        addFormField(gridForm, "Họ tên", txtTen, gbc, row); 
+        row += 2;
+        txtSDT = createStyledTextField(); 
+        addFormField(gridForm, "Số điện thoại", txtSDT, gbc, row); 
+        row += 2;
+        txtEmail = createStyledTextField(); 
+        addFormField(gridForm, "Email", txtEmail, gbc, row); 
+        row += 2;
+        txtDiaChi = createStyledTextField(); 
+        addFormField(gridForm, "Địa chỉ", txtDiaChi, gbc, row);
 
         // Thêm mấy dòng này để đăng ký khi bấm Enter
         txtUsername.addActionListener(e -> handleRegistration());
@@ -119,7 +150,50 @@ public class DangKyPanel extends JPanel {
             JOptionPane.showMessageDialog(this, result, "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
+    // Hàm bọc JPasswordField thành một panel chứa icon con mắt
+    private JPanel createPasswordWrapper(JPasswordField txtPass) {
+        JPanel passWrapper = new JPanel(new BorderLayout());
+        passWrapper.setBackground(AppColor.BACKGROUND);
+        passWrapper.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppColor.BORDER),
+                BorderFactory.createEmptyBorder(8, 15, 8, 15) // Giống padding của textfield thường
+        ));
 
+        // Format ô nhập
+        txtPass.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtPass.setBackground(AppColor.BACKGROUND);
+        txtPass.setBorder(null);
+
+        // Tạo Icon mắt
+        JLabel lblEye = new JLabel("👁");
+        lblEye.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+        lblEye.setForeground(AppColor.TEXT_SECONDARY);
+        lblEye.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        lblEye.setBorder(new EmptyBorder(0, 10, 0, 0));
+
+        char defaultEchoChar = txtPass.getEchoChar();
+
+        // Xử lý sự kiện click
+        lblEye.addMouseListener(new MouseAdapter() {
+            boolean isVisible = false;
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                isVisible = !isVisible;
+                if (isVisible) {
+                    txtPass.setEchoChar((char) 0);
+                    lblEye.setText("🙈");
+                } else {
+                    txtPass.setEchoChar(defaultEchoChar);
+                    lblEye.setText("👁");
+                }
+            }
+        });
+
+        passWrapper.add(txtPass, BorderLayout.CENTER);
+        passWrapper.add(lblEye, BorderLayout.EAST);
+
+        return passWrapper;
+    }
     private JTextField createStyledTextField() {
         JTextField tf = new JTextField();
         styleTextField(tf);
