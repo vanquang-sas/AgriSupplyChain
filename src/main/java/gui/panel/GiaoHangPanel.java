@@ -60,9 +60,11 @@ public class GiaoHangPanel extends JPanel {
     // =====================================================
     // CONSTRUCTOR
     // =====================================================
-    public GiaoHangPanel(String maNV) {
+    public GiaoHangPanel() {
 
-        this.maNV = maNV;
+        // this.maNV = maNV;
+        // giả lập nhân viên đăng nhập
+        String maNV = "NV000012";
 
 
         setLayout(new BorderLayout());

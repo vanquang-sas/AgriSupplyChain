@@ -6,6 +6,9 @@ import util.Session;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+
+import dto.TaiKhoanDTO;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -176,6 +179,9 @@ public class MainFrame extends JFrame {
             menuPanel.add(buildSectionLabel("MUA SẮM"));
             menuPanel.add(btnCuaHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
             menuPanel.add(btnDonHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 2)));
+
+            //  test thử phần giao hàng
+            menuPanel.add(btnGiaoHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
             
             defaultActiveBtn = btnCuaHang;
         }
