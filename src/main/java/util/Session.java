@@ -7,7 +7,7 @@ public class Session {
     public static String chucVu = "Khách hàng";            // Lưu chức vụ hiển thị
 
     // THÊM DÒNG NÀY
-    public static String maNV = null;
+    public static String maNV = "NV000012";
 
     public static boolean isLogged() {
         return currentUser != null;

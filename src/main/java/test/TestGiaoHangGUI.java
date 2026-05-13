@@ -14,9 +14,8 @@ public class TestGiaoHangGUI {
 
         // giả lập nhân viên đăng nhập
         String maNV = "NV000012";
-
-        // frame.setContentPane(new GiaoHangPanel(maNV));
-        frame.setContentPane(new GiaoHangPanel());
+        frame.setContentPane(new GiaoHangPanel(maNV));
+        // frame.setContentPane(new GiaoHangPanel());
 
         frame.setSize(1000, 500);
 

@@ -141,6 +141,7 @@ public class MainFrame extends JFrame {
         if (roleId == 0) { 
             menuPanel.add(buildSectionLabel("TỔNG QUAN"));
             menuPanel.add(btnTrangChu); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+            menuPanel.add(btnGiaoHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
             
             menuPanel.add(buildSectionLabel("NHÂN SỰ & ĐỐI TÁC"));
             menuPanel.add(btnKhachHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
@@ -289,7 +290,8 @@ public class MainFrame extends JFrame {
         pnlKho        = new KhoPanel();
         pnlThamSo     = new ThamSoPanel();
         pnlDonHang    = new DonHangPanel();
-        pnlGiaoHang   = new GiaoHangPanel();
+        pnlGiaoHang   = new GiaoHangPanel(Session.maNV);
+        // pnlGiaoHang   = new GiaoHangPanel();
         pnlLoaiSanPham = new LoaiSanPhamPanel();
         pnlSanPham    = new SanPhamPanel();
         // pnlLoHang     = new LoHangPanel();
