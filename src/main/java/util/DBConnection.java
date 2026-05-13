@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 public class DBConnection {
 
-    private static final String URL = "jdbc:oracle:thin:@localhost:1521/orclpbdb"; 
+    private static final String URL = "jdbc:oracle:thin:@localhost:1521/orclpdb"; 
     // private static final String URL = "jdbc:oracle:thin:@localhost:1521/XEPDB1"; 
 
 

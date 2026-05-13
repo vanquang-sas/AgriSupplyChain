@@ -185,16 +185,17 @@ public class MainFrame extends JFrame {
                 menuPanel.add(btnXuatKho);
                 menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 defaultActiveBtn = btnTonKho;
-
-            } else if (cv.contains("thu mua") || cv.contains("giao hàng")) { // NV THU MUA / GIAO HÀNG
+                
+            } else if (cv.contains("thu mua")) { // NV THU MUA
                 menuPanel.add(buildSectionLabel("ĐỐI TÁC & SẢN PHẨM"));
-                menuPanel.add(btnNhaCungCap);
-                menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
-                menuPanel.add(btnSanPham);
-                menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
-                menuPanel.add(btnGiaoHang);
-                menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+                menuPanel.add(btnNhaCungCap); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+                menuPanel.add(btnSanPham); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+                // menuPanel.add(btnLoHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 defaultActiveBtn = btnNhaCungCap;
+            } else if (cv.contains("giao hàng")) { // NV GIAO HÀNG
+                menuPanel.add(buildSectionLabel("VẬN CHUYỂN"));
+                menuPanel.add(btnGiaoHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+                defaultActiveBtn = btnGiaoHang;
             }
         } else { // KHÁCH HÀNG
             menuPanel.add(buildSectionLabel("MUA SẮM"));
