@@ -109,7 +109,7 @@ public class MainFrame extends JFrame {
 
         JLabel lblSubName = new JLabel(roleName);
         lblSubName.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblSubName.setForeground(new Color(187, 247, 208));
+        lblSubName.setForeground(new Color(190, 247, 208));
 
         logoText.add(lblAppName);
         logoText.add(lblSubName);
