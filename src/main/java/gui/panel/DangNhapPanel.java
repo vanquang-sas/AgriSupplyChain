@@ -1,15 +1,29 @@
 package gui.panel;
 
-import util.AppColor;
-import bus.TaiKhoanBUS;
-import gui.AuthFrame;
-import gui.MainFrame;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+
+import bus.TaiKhoanBUS;
+import gui.AuthFrame;
+import util.AppColor;
 
 public class DangNhapPanel extends JPanel {
     private AuthFrame parentFrame;
@@ -79,9 +93,53 @@ public class DangNhapPanel extends JPanel {
         gridForm.add(passLabelRow, gbc);
 
         gbc.gridy = 3; gbc.insets = new Insets(0, 0, 20, 0);
+        
+        // 1. Tạo Panel bọc ngoài (Wrapper) đóng vai trò như cái viền của text field
+        JPanel passWrapper = new JPanel(new BorderLayout());
+        passWrapper.setBackground(AppColor.BACKGROUND);
+        passWrapper.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppColor.BORDER),
+                BorderFactory.createEmptyBorder(8, 15, 8, 15) // Padding giống styleTextField
+        ));
+
+        // 2. Khởi tạo ô nhập mật khẩu
         txtPassword = new JPasswordField();
-        styleTextField(txtPassword);
-        gridForm.add(txtPassword, gbc);
+        txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtPassword.setBackground(AppColor.BACKGROUND);
+        txtPassword.setBorder(null); // Bỏ viền mặc định vì passWrapper đã có viền rồi
+
+        // 3. Khởi tạo Icon con mắt (Dùng font Emoji tích hợp sẵn của Win/Mac)
+        JLabel lblEye = new JLabel("👁"); 
+        lblEye.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+        lblEye.setForeground(AppColor.TEXT_SECONDARY);
+        lblEye.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        lblEye.setBorder(new EmptyBorder(0, 10, 0, 0)); // Cách ô nhập một chút
+
+        // Lưu lại ký tự ẩn mặc định của JPasswordField (thường là dấu chấm tròn)
+        char defaultEchoChar = txtPassword.getEchoChar();
+
+        // 4. Xử lý sự kiện Click để Hiện/Ẩn mật khẩu
+        lblEye.addMouseListener(new MouseAdapter() {
+            boolean isVisible = false;
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                isVisible = !isVisible;
+                if (isVisible) {
+                    txtPassword.setEchoChar((char) 0); // Hiện chữ
+                    lblEye.setText("🙈"); // Đổi icon thành "che mắt"
+                } else {
+                    txtPassword.setEchoChar(defaultEchoChar); // Ẩn chữ
+                    lblEye.setText("👁"); // Đổi lại icon mắt mở
+                }
+            }
+        });
+
+        // 5. Ráp mọi thứ vào wrapper
+        passWrapper.add(txtPassword, BorderLayout.CENTER);
+        passWrapper.add(lblEye, BorderLayout.EAST);
+
+        // Đưa wrapper vào Form
+        gridForm.add(passWrapper, gbc);
 
         // Cái này để đảm bảo khi bấm Enter thì đăng nhập luôn
         txtUsername.addActionListener(e -> handleLogin());
@@ -178,4 +236,5 @@ public class DangNhapPanel extends JPanel {
                 BorderFactory.createLineBorder(AppColor.BORDER),
                 BorderFactory.createEmptyBorder(10, 15, 10, 15)));
     }
+    
 }
