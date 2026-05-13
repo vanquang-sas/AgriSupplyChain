@@ -298,7 +298,7 @@ END;
 /
 
 -- ================================= Bảng TONKHO =================================
-CREATE OR REPLACE TRIGGER TRG_CANHBAO_HETHAN
+/*CREATE OR REPLACE TRIGGER TRG_CANHBAO_HETHAN
 AFTER INSERT OR UPDATE OF TGHetHan ON TONKHO
 FOR EACH ROW
 DECLARE
@@ -331,13 +331,16 @@ EXCEPTION
         DBMS_OUTPUT.PUT_LINE('Lỗi trigger TRG_CANHBAO_HETHAN: ' || SQLERRM);
 END;
 /
+*/
 
+
+/*
 CREATE OR REPLACE TRIGGER TRG_CANHBAO_MIN_TONKHO
 AFTER UPDATE OF SLConLai ON TONKHO
 FOR EACH ROW
 DECLARE
     -- Sử dụng AUTONOMOUS_TRANSACTION để tránh lỗi (Mutating Table) khi SELECT SUM trên chính bảng đang UPDATE
-    PRAGMA AUTONOMOUS_TRANSACTION; 
+    PRAGMA AUTONOMOUS_TRANSACTION;
     v_MinTonKho NUMBER;
     v_TongTon NUMBER;
     v_MaSP VARCHAR2(10);
@@ -349,29 +352,160 @@ BEGIN
         -- 1. Lấy ngưỡng tồn kho tối thiểu từ THAMSO
         BEGIN
             SELECT GiaTri INTO v_MinTonKho FROM THAMSO WHERE TenTS = 'MIN_TONKHO';
-        EXCEPTION 
+        EXCEPTION
             WHEN NO_DATA_FOUND THEN v_MinTonKho := 20; -- Mặc định
         END;
-
         -- 2. Tìm Mã SP của lô hàng vừa bị xuất kho
         SELECT MaSP INTO v_MaSP FROM CHITIETLOHANG WHERE MaCTLH = :NEW.MaCTLH;
-
         -- 3. Tính tổng tồn kho khả dụng của sản phẩm đó
         SELECT SUM(TK.SLConLai) INTO v_TongTon
         FROM TONKHO TK
         JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH
         WHERE CTLH.MaSP = v_MaSP AND TK.TGHetHan >= TRUNC(SYSDATE);
-
         -- 4. Nếu tổng kho < mức quy định, tạo thông báo
         IF NVL(v_TongTon, 0) < v_MinTonKho THEN
             SELECT TenSP INTO v_TenSP FROM SANPHAM WHERE MaSP = v_MaSP;
             v_MaTB := 'TB' || DBMS_RANDOM.STRING('X', 8);
-
             INSERT INTO THONGBAO (LoaiTB, NoiDung)
             VALUES ('Cảnh báo tồn kho', 'Sản phẩm ' || v_TenSP || ' sắp hết hàng (Chỉ còn ' || v_TongTon || ' đơn vị).');
-            
             COMMIT; -- Bắt buộc phải có COMMIT khi dùng AUTONOMOUS_TRANSACTION
         END IF;
     END IF;
+END;
+/
+*/
+
+CREATE OR REPLACE TRIGGER TRG_CANHBAO_NHAP_HANG
+AFTER UPDATE OF SLConLai ON TONKHO
+FOR EACH ROW
+DECLARE
+    PRAGMA AUTONOMOUS_TRANSACTION; 
+    v_MinTonKho NUMBER;
+    v_TongTon NUMBER;
+    v_MaSP VARCHAR2(10);
+    v_TenSP NVARCHAR2(100);
+    v_CheckExists NUMBER;
+    v_LoaiTB NVARCHAR2(50);
+    v_NoiDung NVARCHAR2(500);
+BEGIN
+    -- Chỉ kiểm tra khi số lượng thực tế giảm xuống
+    IF :NEW.SLConLai < :OLD.SLConLai THEN
+        
+        -- 1. Lấy ngưỡng tối thiểu
+        BEGIN
+            SELECT GiaTri INTO v_MinTonKho FROM THAMSO WHERE TenTS = 'MIN_TONKHO';
+        EXCEPTION WHEN NO_DATA_FOUND THEN v_MinTonKho := 20;
+        END;
+
+        -- 2. Tìm thông tin sản phẩm
+        SELECT MaSP INTO v_MaSP FROM CHITIETLOHANG WHERE MaCTLH = :NEW.MaCTLH;
+        SELECT TenSP INTO v_TenSP FROM SANPHAM WHERE MaSP = v_MaSP;
+
+        -- 3. Tính tổng tồn (Chỉ tính hàng chưa hết hạn)
+        SELECT SUM(SLConLai) INTO v_TongTon 
+        FROM TONKHO TK
+        JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH
+        WHERE CTLH.MaSP = v_MaSP AND TK.TrangThai <> N'Hết hạn';
+
+        -- 4. Phân loại
+        IF NVL(v_TongTon, 0) <= 0 THEN
+            v_LoaiTB := N'Hết hàng';
+            v_NoiDung := N'CẢNH BÁO: Sản phẩm [' || v_TenSP || N'] đã HẾT HÀNG hoàn toàn. Admin cần nhập gấp!';
+        ELSIF v_TongTon < v_MinTonKho THEN
+            v_LoaiTB := N'Sắp hết hàng';
+            v_NoiDung := N'Thông báo: Sản phẩm [' || v_TenSP || N'] sắp hết hàng. Hiện chỉ còn ' || v_TongTon || N' đơn vị.';
+        ELSE
+            RETURN;
+        END IF;
+
+        -- 5. Chặn trùng thông báo chưa đọc
+        SELECT COUNT(*) INTO v_CheckExists FROM THONGBAO 
+        WHERE NoiDung = v_NoiDung AND TrangThaiTB = 0;
+
+        IF v_CheckExists = 0 THEN
+            INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao)
+            VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), v_LoaiTB, v_NoiDung, 0, SYSDATE);
+            COMMIT; 
+        END IF;
+    END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER TRG_CAPNHAT_TRANGTHAI_TONKHO
+BEFORE INSERT OR UPDATE OF TGHetHan, MaCTLH ON TONKHO
+FOR EACH ROW
+DECLARE
+    v_SoNgayHSD NUMBER;
+    v_TenSP NVARCHAR2(100);
+    v_NgayHienTai DATE := TRUNC(SYSDATE);
+    v_CheckExists NUMBER;
+    v_NoiDung NVARCHAR2(500);
+BEGIN
+    -- 1. Lấy cấu hình ngày cảnh báo
+    BEGIN
+        SELECT GiaTri INTO v_SoNgayHSD FROM THAMSO WHERE TenTS = 'CANHBAO_HETHAN';
+    EXCEPTION WHEN NO_DATA_FOUND THEN v_SoNgayHSD := 7;
+    END;
+
+    -- Lấy tên sản phẩm để làm nội dung thông báo
+    BEGIN
+        SELECT SP.TenSP INTO v_TenSP FROM CHITIETLOHANG CTLH 
+        JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP 
+        WHERE CTLH.MaCTLH = :NEW.MaCTLH;
+    EXCEPTION WHEN OTHERS THEN v_TenSP := N'Chưa rõ';
+    END;
+
+    -- 2. Logic phân loại và xử lý
+    IF :NEW.TGHetHan IS NULL THEN
+        :NEW.TrangThai := N'Còn hạn';
+        :NEW.SLKhaDung := :NEW.SLConLai;
+
+    ELSIF TRUNC(:NEW.TGHetHan) < v_NgayHienTai THEN
+        :NEW.TrangThai := N'Hết hạn';
+        :NEW.SLKhaDung := 0; -- Khóa kho
+        
+        v_NoiDung := N'Lô ' || :NEW.MaTonKho || N' (' || v_TenSP || N') đã HẾT HẠN vào ngày ' || TO_CHAR(:NEW.TGHetHan, 'DD/MM/YYYY');
+        
+        -- Kiểm tra xem đã có thông báo "Hết hạn" chưa đọc cho lô này chưa
+        SELECT COUNT(*) INTO v_CheckExists FROM THONGBAO 
+        WHERE NoiDung LIKE N'%Lô ' || :NEW.MaTonKho || N'%hết hạn%' AND TrangThaiTB = 0;
+        
+        IF v_CheckExists = 0 THEN
+            INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao)
+            VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Hết hạn', v_NoiDung, 0, SYSDATE);
+        END IF;
+
+    ELSIF (TRUNC(:NEW.TGHetHan) - v_NgayHienTai) <= v_SoNgayHSD THEN
+        :NEW.TrangThai := N'Sắp hết hạn';
+        :NEW.SLKhaDung := :NEW.SLConLai;
+
+        v_NoiDung := N'Lô ' || :NEW.MaTonKho || N' (' || v_TenSP || N') sắp hết hạn vào ' || TO_CHAR(:NEW.TGHetHan, 'DD/MM/YYYY');
+
+        -- Kiểm tra xem đã có thông báo "Sắp hết hạn" chưa đọc cho lô này chưa
+        SELECT COUNT(*) INTO v_CheckExists FROM THONGBAO 
+        WHERE NoiDung LIKE N'%Lô ' || :NEW.MaTonKho || N'%sắp hết hạn%' AND TrangThaiTB = 0;
+
+        IF v_CheckExists = 0 THEN
+            INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao)
+            VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Sắp hết hạn', v_NoiDung, 0, SYSDATE);
+        END IF;
+    ELSE
+        :NEW.TrangThai := N'Còn hạn';
+        :NEW.SLKhaDung := :NEW.SLConLai;
+    END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER TRG_CAPNHAT_KHI_XOA_LO
+AFTER DELETE ON TONKHO
+FOR EACH ROW
+BEGIN
+    UPDATE CHITIETLOHANG 
+    SET SoLuong = SoLuong - :OLD.SLConLai
+    WHERE MaCTLH = :OLD.MaCTLH;
+    
+    -- Xóa luôn các thông báo chưa đọc liên quan đến lô hàng vừa xóa cho sạch chuông
+    DELETE FROM THONGBAO 
+    WHERE NoiDung LIKE N'%Lô ' || :OLD.MaTonKho || N'%';
 END;
 /
