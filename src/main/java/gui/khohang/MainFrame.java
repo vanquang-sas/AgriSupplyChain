@@ -1,144 +1,155 @@
 package gui.khohang;
 
-
-
-import javax.swing.*;
-import java.awt.*;
 import util.AppColor;
 
-public class MainFrame extends javax.swing.JFrame {
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 
-    // Panel chính bên phải dùng CardLayout để chuyển đổi nội dung
+public class MainFrame extends JFrame {
+
+    private static final String PAGE_NHAP = "PAGE_NHAP";
+    private static final String PAGE_XUAT = "PAGE_XUAT";
+    private static final String PAGE_TON = "PAGE_TON";
+
     private JPanel mainContent;
     private CardLayout cardLayout;
+    private JButton activeBtn;
 
     public MainFrame() {
         initComponents();
-        setTitle("Hệ Thống Quản Lý Kho");
-        setSize(1000, 600);
+        setTitle("Hệ thống quản lý kho");
+        setSize(1280, 760);
+        setMinimumSize(new Dimension(1100, 680));
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
     private void initComponents() {
-        // Layout tổng quát của JFrame là BorderLayout
         setLayout(new BorderLayout());
+        getContentPane().setBackground(AppColor.BACKGROUND);
 
-        // --- 1. SIDEBAR PANEL (Bên trái) ---
-        JPanel sideBar = new JPanel();
-        sideBar.setPreferredSize(new Dimension(200, 600));
-        sideBar.setBackground(AppColor.SURFACE);
-        sideBar.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 20));
-
-        // Logo tượng trưng
-        JLabel lbLogo = new JLabel("AGRI APP");
-        lbLogo.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        lbLogo.setForeground(AppColor.TEXT_PRIMARY);
-        sideBar.add(lbLogo);
-
-        // Các nút chức năng
-        JButton btnNhap = createSideBarButton("Nhập Kho");
-        JButton btnXuat = createSideBarButton("Xuất Kho");
-        JButton btnTon = createSideBarButton("Tồn Kho");
-
-        sideBar.add(btnNhap);
-        sideBar.add(btnXuat);
-        sideBar.add(btnTon);
-
-        // --- 2. CONTENT AREA (Bên phải) ---
         cardLayout = new CardLayout();
         mainContent = new JPanel(cardLayout);
+        mainContent.setBackground(AppColor.BACKGROUND);
+        mainContent.add(new NhapKhoPanel(), PAGE_NHAP);
+        mainContent.add(new XuatKhoPanel(), PAGE_XUAT);
+        mainContent.add(createDummyPanel("Giao diện tồn kho"), PAGE_TON);
 
-        // Trang Nhập Kho: Lấy content từ class NhapKho của bạn
-        // Lưu ý: Bạn nên sửa class NhapKho thành JPanel thay vì JFrame 
-        // để add vào đây mượt mà hơn.
-        NhapKhoPanel NhapKho = new NhapKhoPanel();
-        // Nếu NhapKho là JFrame, ta lấy ContentPane của nó
-        mainContent.add(NhapKho, "PAGE_NHAP");
-
-        // Trang Xuất Kho & Tồn Kho (Tượng trưng)
-        mainContent.add(createDummyPanel("Giao diện XUẤT KHO"), "PAGE_XUAT");
-        mainContent.add(createDummyPanel("Giao diện TỒN KHO"), "PAGE_TON");
-
-        // --- 3. SỰ KIỆN CHUYỂN TRANG ---
-        btnNhap.addActionListener(e -> cardLayout.show(mainContent, "PAGE_NHAP"));
-        btnXuat.addActionListener(e -> cardLayout.show(mainContent, "PAGE_XUAT"));
-        btnTon.addActionListener(e -> cardLayout.show(mainContent, "PAGE_TON"));
-
-        // Thêm vào JFrame
-        add(sideBar, BorderLayout.WEST);
+        add(buildSideBar(), BorderLayout.WEST);
         add(mainContent, BorderLayout.CENTER);
     }
-    
-    private JButton activeBtn = null; // Lưu nút đang được chọn
-    
-    //khi an vao thi giu mau tai do
+
+    private JPanel buildSideBar() {
+        JPanel sideBar = new JPanel();
+        sideBar.setPreferredSize(new Dimension(220, 0));
+        sideBar.setBackground(AppColor.SURFACE);
+        sideBar.setBorder(new EmptyBorder(28, 16, 24, 16));
+        sideBar.setLayout(new BoxLayout(sideBar, BoxLayout.Y_AXIS));
+
+        JLabel lbLogo = new JLabel("AGRI APP");
+        lbLogo.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lbLogo.setForeground(AppColor.TEXT_PRIMARY);
+        lbLogo.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JButton btnNhap = createSideBarButton("Nhập kho");
+        JButton btnXuat = createSideBarButton("Xuất kho");
+        JButton btnTon = createSideBarButton("Tồn kho");
+
+        btnNhap.addActionListener(e -> showPage(PAGE_NHAP, btnNhap));
+        btnXuat.addActionListener(e -> showPage(PAGE_XUAT, btnXuat));
+        btnTon.addActionListener(e -> showPage(PAGE_TON, btnTon));
+
+        sideBar.add(lbLogo);
+        sideBar.add(Box.createVerticalStrut(28));
+        sideBar.add(btnNhap);
+        sideBar.add(Box.createVerticalStrut(8));
+        sideBar.add(btnXuat);
+        sideBar.add(Box.createVerticalStrut(8));
+        sideBar.add(btnTon);
+        sideBar.add(Box.createVerticalGlue());
+
+        updateActiveButton(btnNhap);
+        return sideBar;
+    }
+
+    private void showPage(String pageName, JButton button) {
+        cardLayout.show(mainContent, pageName);
+        updateActiveButton(button);
+    }
+
     private void updateActiveButton(JButton clickedBtn) {
-    // 1. Reset nút cũ về màu bình thường 
-    if (activeBtn != null) {
-        activeBtn.setBackground(AppColor.SURFACE);
-        activeBtn.setForeground(AppColor.TEXT_PRIMARY);
+        if (activeBtn != null) {
+            activeBtn.setBackground(AppColor.SURFACE);
+            activeBtn.setForeground(AppColor.TEXT_PRIMARY);
+        }
+
+        activeBtn = clickedBtn;
+        activeBtn.setBackground(new Color(22, 163, 74, 28));
+        activeBtn.setForeground(AppColor.PRIMARY_ACTIVE);
     }
 
-    // 2. Thiết lập nút mới là active
-    activeBtn = clickedBtn;
-
-    // 3. Đổi màu nút mới
-    activeBtn.setBackground(AppColor.PRIMARY_ACTIVE);
-    activeBtn.setForeground(AppColor.TEXT_PRIMARY);
-    }
-
-    // Hàm tạo nút sidebar cho đẹp và đồng nhất
     private JButton createSideBarButton(String text) {
-        JButton btn = new JButton(text);
-        btn.setPreferredSize(new Dimension(180, 40));
+        JButton btn = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 6, 6);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btn.setMaximumSize(new Dimension(188, 42));
+        btn.setPreferredSize(new Dimension(188, 42));
+        btn.setHorizontalAlignment(SwingConstants.LEFT);
+        btn.setMargin(new Insets(0, 18, 0, 18));
         btn.setFocusPainted(false);
+        btn.setOpaque(false);
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
         btn.setBackground(AppColor.SURFACE);
         btn.setForeground(AppColor.TEXT_PRIMARY);
-        btn.setBorderPainted(false);
-        btn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        // --- THÊM HIỆU ỨNG HOVER TẠI ĐÂY ---
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                //Hieu ung HOVER
                 if (btn != activeBtn) {
-                btn.setBackground(AppColor.PRIMARY_HOVER);
-            }
-                btn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR)); // Đổi con trỏ thành hình bàn tay
+                    btn.setBackground(AppColor.SECONDARY_HOVER);
+                }
             }
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                // Khi di chuột ra: Trả lại màu mặc định ban đầu
-               if (btn != activeBtn) {
-                btn.setBackground(AppColor.SURFACE);
-            }
-            }
-
-            @Override
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                // Hiệu ứng khi click xuống 
-                updateActiveButton(btn);
+                if (btn != activeBtn) {
+                    btn.setBackground(AppColor.SURFACE);
+                }
             }
         });
         return btn;
     }
 
-    // Hàm tạo panel tạm thời cho Xuất/Tồn kho
     private JPanel createDummyPanel(String text) {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.add(new JLabel(text, JLabel.CENTER));
+        panel.setBackground(AppColor.BACKGROUND);
+
+        JLabel label = new JLabel(text, JLabel.CENTER);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        label.setForeground(AppColor.TEXT_SECONDARY);
+        panel.add(label);
         return panel;
     }
 
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
-        java.awt.EventQueue.invokeLater(() -> {
-            new MainFrame().setVisible(true);
-        });
+        EventQueue.invokeLater(() -> new MainFrame().setVisible(true));
     }
 }

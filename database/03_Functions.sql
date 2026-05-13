@@ -3,36 +3,29 @@
 -- ====================================================================================
 
 -- Tính phí vận chuyển của 1 đơn hàng
--- Ý tưởng: Khi người dùng nhập DiaChiGiaoHang, gọi API tới bên thứ 3 
+-- Ý tưởng: Khi người dùng nhập DiaChiGiaoHang, gọi API tới bên thứ 3
 -- để tính khoảng cách giao hàng rồi truyền vào hàm để tính phí
 CREATE OR REPLACE FUNCTION FN_TINH_PHIVANCHUYEN (
     p_KhoangCach IN NUMBER
-) RETURN NUMBER 
+) RETURN NUMBER
 IS
     v_DonGia NUMBER := 0;
     v_PhiVanChuyen NUMBER := 0;
 BEGIN
-    -- 1. Lấy đơn giá vận chuyển từ bảng THAMSO
     SELECT GiaTri INTO v_DonGia
     FROM THAMSO
     WHERE TenTS = 'DON_GIA_VANCHUYEN';
 
-    -- 2. Tính toán phí vận chuyển
     v_PhiVanChuyen := p_KhoangCach * v_DonGia;
-
-    -- 3. Trả về kết quả
     RETURN v_PhiVanChuyen;
 
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
-        -- Xử lý trường hợp không tìm thấy tham số trong bảng
         RETURN -1;
 END;
 /
 
---function mới thêm
-
--- Lấy danh sách đơn hàng chờ tạo yêu cầu xuất kho (chưa có phiếu Tạm giữ)
+-- Lấy danh sách đơn hàng chờ tạo yêu cầu xuất kho, chưa có phiếu tạm giữ
 CREATE OR REPLACE FUNCTION FN_GET_DS_DONHANG_CHO_XUAT
 RETURN SYS_REFCURSOR
 IS
@@ -61,7 +54,43 @@ BEGIN
 END;
 /
 
--- Lấy danh sách soạn hàng xuất kho (các phiếu Tạm giữ, sắp xếp theo FEFO)
+-- Đếm số đơn hàng chờ xuất nhưng thiếu tồn kho khả dụng
+CREATE OR REPLACE FUNCTION FN_GET_SO_DONHANG_THIEU_TONKHO
+RETURN NUMBER
+IS
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_count
+    FROM DONHANG DH
+    WHERE DH.TrangThaiDH IN (N'Đã đặt', N'Chờ xử lý')
+      AND NOT EXISTS (
+          SELECT 1
+          FROM XUATKHO XK
+          JOIN CHITIETDONHANG CT ON XK.MaCTDH = CT.MaCTDH
+          WHERE CT.MaDH = DH.MaDH
+            AND XK.TrangThaiXK = N'Tạm giữ'
+      )
+      AND EXISTS (
+          SELECT 1
+          FROM CHITIETDONHANG CTDH
+          WHERE CTDH.MaDH = DH.MaDH
+          GROUP BY CTDH.MaSP
+          HAVING SUM(CTDH.SoLuong) > (
+              SELECT NVL(SUM(TK.SLKhaDung), 0)
+              FROM TONKHO TK
+              JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH
+              WHERE CTLH.MaSP = CTDH.MaSP
+                AND TK.SLKhaDung > 0
+                AND TK.TGHetHan >= TRUNC(SYSDATE)
+          )
+      );
+
+    RETURN v_count;
+END;
+/
+
+-- Lấy danh sách soạn hàng xuất kho theo FEFO
 CREATE OR REPLACE FUNCTION FN_GET_DS_SOANHANG
 RETURN SYS_REFCURSOR
 IS
@@ -111,7 +140,7 @@ BEGIN
 END;
 /
 
--- Lấy chi tiết đơn hàng kèm preview phân bổ thực tế theo FEFO (có thể trả về nhiều dòng cho 1 SP nếu nằm ở nhiều vị trí)
+-- Lấy chi tiết đơn hàng kèm preview phân bổ thực tế theo FEFO
 CREATE OR REPLACE FUNCTION FN_GET_CHITIET_DONHANG (
     p_MaDH IN VARCHAR2
 )
@@ -121,16 +150,15 @@ IS
 BEGIN
     OPEN v_cursor FOR
         WITH Allocation AS (
-            SELECT 
+            SELECT
                 CTDH.MaSP,
                 SP.TenSP,
                 CTDH.SoLuong AS SoLuongYeuCau,
                 TK.SLKhaDung,
                 TK.ViTri,
                 TK.TGHetHan,
-                -- Tính tổng lũy kế số lượng khả dụng của từng sản phẩm theo thứ tự FEFO
                 SUM(TK.SLKhaDung) OVER (
-                    PARTITION BY CTDH.MaSP 
+                    PARTITION BY CTDH.MaSP
                     ORDER BY TK.TGHetHan ASC, TK.TGNhapKho ASC, TK.MaTonKho ASC
                 ) AS LuyKe
             FROM CHITIETDONHANG CTDH
@@ -141,22 +169,20 @@ BEGIN
               AND TK.SLKhaDung > 0
               AND TK.TGHetHan >= TRUNC(SYSDATE)
         )
-        SELECT 
+        SELECT
             MaSP,
             TenSP,
             SoLuongYeuCau,
-            -- Số lượng thực tế lấy từ lô này
-            CASE 
+            CASE
                 WHEN LuyKe <= SoLuongYeuCau THEN SLKhaDung
                 ELSE SoLuongYeuCau - (LuyKe - SLKhaDung)
             END AS SoLuongXuat,
             ViTri,
             TO_CHAR(TGHetHan, 'DD/MM/YYYY') AS NgayHetHan
         FROM Allocation
-        -- Chỉ lấy những dòng mà lũy kế trước đó chưa vượt quá số lượng yêu cầu
         WHERE LuyKe - SLKhaDung < SoLuongYeuCau
         ORDER BY TenSP ASC, TGHetHan ASC;
-        
+
     RETURN v_cursor;
 END;
 /
