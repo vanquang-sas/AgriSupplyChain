@@ -51,7 +51,9 @@ public class ChiTietSanPhamForm extends JDialog {
 
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
 
+        // lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
         lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
+        lblTitle.setForeground(Color.BLACK);
 
         pnlMain.add(lblTitle, BorderLayout.NORTH);
 
@@ -89,7 +91,9 @@ public class ChiTietSanPhamForm extends JDialog {
 
         } catch (Exception e) {
 
+            // lblHinhAnh.setText("Không có ảnh");
             lblHinhAnh.setText("Không có ảnh");
+            lblHinhAnh.setForeground(Color.BLACK);
         }
 
         pnlCenter.add(lblHinhAnh, BorderLayout.WEST);
@@ -201,7 +205,8 @@ public class ChiTietSanPhamForm extends JDialog {
                 bold ? Font.BOLD : Font.PLAIN,
                 16
         ));
-
+        // ÉP MÀU CHỮ ĐEN
+        lbl.setForeground(Color.BLACK); 
         return lbl;
     }
 }

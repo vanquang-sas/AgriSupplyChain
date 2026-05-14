@@ -5,6 +5,9 @@ public class Session {
     public static TaiKhoanDTO currentUser = null;
     public static String tenNguoiDung = "Người dùng"; // Lưu tên (TenNV hoặc TenKH)
     public static String chucVu = "Khách hàng";            // Lưu chức vụ hiển thị
+    //  THÊM DÒNG NÀY
+    public static String maKH = "KH000001";
+    public static String maNV = "NV000012";
 
     public static boolean isLogged() {
         return currentUser != null;
@@ -14,6 +17,9 @@ public class Session {
         currentUser = null;
         tenNguoiDung = "Người dùng";
         chucVu = "Khách hàng";
+         
+        // RESET
+        maKH = null;
     }
 
     public static boolean hasRole(int roleLevel) {

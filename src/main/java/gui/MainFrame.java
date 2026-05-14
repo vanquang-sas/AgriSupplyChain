@@ -38,6 +38,9 @@ public class MainFrame extends JFrame {
     private ThamSoPanel pnlThamSo;
     private DonHangPanel pnlDonHang;
     private GiaoHangPanel pnlGiaoHang;
+    // THEM DONG NAY
+    private CuaHangPanel pnlCuaHang;
+    //
     private LoaiSanPhamPanel pnlLoaiSanPham;
     private SanPhamPanel pnlSanPham;
     private NhapKhoPanel pnlNhapKho;
@@ -139,7 +142,8 @@ public class MainFrame extends JFrame {
         JButton btnDonHang = createMenuButton("📜", "Đơn hàng", "DonHang");
         JButton btnGiaoHang = createMenuButton("🚚", "Giao hàng", "GiaoHang");
         
-        JButton btnCuaHang = createMenuButton("🛒", "Cửa hàng Nông sản", "TrangChu");
+        // THEM DONG NAY
+        JButton btnCuaHang = createMenuButton("🛒", "Cửa hàng Nông sản", "CuaHang");
 
         JButton defaultActiveBtn = null;
 
@@ -199,8 +203,13 @@ public class MainFrame extends JFrame {
             }
         } else { // KHÁCH HÀNG
             menuPanel.add(buildSectionLabel("MUA SẮM"));
+
+            // dùng để test phần giao hàng và cửa hàng
             menuPanel.add(btnCuaHang);
             menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+            menuPanel.add(btnGiaoHang);
+            menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+            // 
             menuPanel.add(btnDonHang);
             menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
             defaultActiveBtn = btnCuaHang;
@@ -372,7 +381,10 @@ public class MainFrame extends JFrame {
         pnlKho = new KhoPanel();
         pnlThamSo = new ThamSoPanel();
         pnlDonHang = new DonHangPanel();
-        pnlGiaoHang = new GiaoHangPanel();
+        pnlGiaoHang = new GiaoHangPanel(Session.maNV);
+        // THEM DONG NAY
+        pnlCuaHang = new CuaHangPanel(Session.maKH);
+        //
         pnlLoaiSanPham = new LoaiSanPhamPanel();
         pnlSanPham = new SanPhamPanel();
         pnlNhapKho = new NhapKhoPanel();
@@ -391,6 +403,9 @@ public class MainFrame extends JFrame {
         contentPanel.add(pnlThongKe, "ThongKe");
         contentPanel.add(pnlDonHang, "DonHang");
         contentPanel.add(pnlGiaoHang, "GiaoHang");
+        // THEM DONG NAY
+        contentPanel.add(pnlCuaHang, "CuaHang");
+        //
         contentPanel.add(pnlLoaiSanPham, "LoaiSanPham");
         contentPanel.add(pnlNhapKho, "NhapKho");
         contentPanel.add(pnlXuatKho, "XuatKho");

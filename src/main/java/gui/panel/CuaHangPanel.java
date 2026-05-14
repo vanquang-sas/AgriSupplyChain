@@ -80,6 +80,7 @@ public class CuaHangPanel extends JPanel {
         pnlSearch.setBackground(AppColor.BACKGROUND);
         JLabel lblTim = new JLabel("Tìm kiếm:");
         lblTim.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblTim.setForeground(AppColor.TEXT_PRIMARY);
 
         txtTimKiem = new JTextField();
         txtTimKiem.setPreferredSize(new Dimension(220, 35));
@@ -89,14 +90,24 @@ public class CuaHangPanel extends JPanel {
         BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
         BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
-        txtTimKiem.setBackground(Color.WHITE);
-        txtTimKiem.setForeground(Color.DARK_GRAY);
-        txtTimKiem.setCaretColor(AppColor.PRIMARY);
+        txtTimKiem.setForeground(Color.WHITE);
+
+        txtTimKiem.setCaretColor(Color.WHITE);
+
+        txtTimKiem.setSelectedTextColor(Color.WHITE);
+
+        txtTimKiem.setSelectionColor(AppColor.PRIMARY);
+                
+        txtTimKiem.setCaretColor(Color.BLACK);
+        txtTimKiem.setSelectedTextColor(Color.WHITE);
+        txtTimKiem.setSelectionColor(AppColor.PRIMARY);
         
 
 
         JLabel lblLoai = new JLabel("Loại sản phẩm:");
         lblLoai.setFont(new Font("Segoe UI", Font.BOLD, 14));
+
+        lblLoai.setForeground(AppColor.TEXT_PRIMARY);
 
         cboLoai = new JComboBox<>();
         cboLoai.setPreferredSize(new Dimension(180, 35));
@@ -146,6 +157,7 @@ public class CuaHangPanel extends JPanel {
         scrollPane.setBorder(
                 BorderFactory.createLineBorder(new Color(220,220,220))
         );
+        scrollPane.getViewport().setBackground(Color.WHITE);
 
         pnlCenter.add(scrollPane, BorderLayout.CENTER);
 
@@ -285,6 +297,9 @@ public class CuaHangPanel extends JPanel {
         table.setSelectionForeground(Color.WHITE);
 
         table.setFocusable(false);
+
+        table.setBackground(Color.WHITE);
+        table.setForeground(Color.BLACK);
 
         // ======================
         // HEADER STYLE + IN HOA TIÊU ĐỀ
