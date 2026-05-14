@@ -8,7 +8,6 @@ import util.AppColor;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
-
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
@@ -36,7 +35,6 @@ public class GiaoHangPanel extends JPanel {
     // =====================================================
     // BUTTON
     // =====================================================
-
     private JButton btnNhanDon;
     private JButton btnThanhCong;
     private JButton btnThatBai;
@@ -50,7 +48,6 @@ public class GiaoHangPanel extends JPanel {
     // =====================================================
     // COLOR
     // =====================================================
-
     private final Color PRIMARY = new Color(46, 125, 50);
     private final Color SUCCESS = new Color(56, 142, 60);
     private final Color DANGER = new Color(211, 47, 47);
@@ -60,14 +57,9 @@ public class GiaoHangPanel extends JPanel {
     // =====================================================
     // CONSTRUCTOR
     // =====================================================
-//     public GiaoHangPanel() {
-//         this("NV000012");
-//     }
-
     public GiaoHangPanel(String maNV) {
 
         this.maNV = maNV;
-
 
         setLayout(new BorderLayout());
         setBackground(BG);
@@ -99,6 +91,123 @@ public class GiaoHangPanel extends JPanel {
         tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 17));
         tabbedPane.setBackground(Color.WHITE);
         tabbedPane.setFocusable(false);
+
+        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 17));
+
+        // NỀN TAB
+        tabbedPane.setBackground(Color.WHITE);
+
+        // CHỮ TAB MÀU ĐEN
+        tabbedPane.setForeground(Color.BLACK);
+
+        tabbedPane.setOpaque(true);
+        tabbedPane.setBackground(Color.WHITE);
+
+        tabbedPane.setForeground(Color.BLACK);
+
+        tabbedPane.setOpaque(true);
+
+        // FONT
+        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
+
+        // MÀU NỀN CHUNG
+        tabbedPane.setBackground(Color.WHITE);
+        tabbedPane.setForeground(new Color(40, 40, 40));
+
+        // TAB ACTIVE
+        UIManager.put("TabbedPane.selected", new Color(22, 163, 74));
+
+        // CUSTOM UI
+        tabbedPane.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
+
+                @Override
+                protected void installDefaults() {
+                        super.installDefaults();
+
+                        highlight = new Color(22, 163, 74);
+                        lightHighlight = new Color(22, 163, 74);
+                        shadow = Color.WHITE;
+                        darkShadow = Color.WHITE;
+
+                        tabAreaInsets = new Insets(8, 10, 0, 10);
+                        selectedTabPadInsets = new Insets(0, 0, 0, 0);
+                }
+
+                @Override
+                protected void paintTabBackground(
+                        Graphics g,
+                        int tabPlacement,
+                        int tabIndex,
+                        int x,
+                        int y,
+                        int w,
+                        int h,
+                        boolean isSelected) {
+
+                        Graphics2D g2 = (Graphics2D) g;
+                        g2.setRenderingHint(
+                                RenderingHints.KEY_ANTIALIASING,
+                                RenderingHints.VALUE_ANTIALIAS_ON);
+
+                        if (isSelected) {
+                        g2.setColor(new Color(22, 163, 74)); // xanh lá
+                        } else {
+                        g2.setColor(new Color(230, 230, 230));
+                        }
+
+                        g2.fillRoundRect(x, y + 2, w, h - 2, 12, 12);
+                }
+
+                @Override
+                protected void paintText(
+                        Graphics g,
+                        int tabPlacement,
+                        Font font,
+                        FontMetrics metrics,
+                        int tabIndex,
+                        String title,
+                        Rectangle textRect,
+                        boolean isSelected) {
+
+                        Graphics2D g2 = (Graphics2D) g;
+
+                        g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
+
+                        if (isSelected) {
+                        g2.setColor(Color.WHITE);
+                        } else {
+                        g2.setColor(new Color(60, 60, 60));
+                        }
+
+                        g2.drawString(
+                                title,
+                                textRect.x,
+                                textRect.y + metrics.getAscent());
+                }
+
+                @Override
+                protected void paintFocusIndicator(
+                        Graphics g,
+                        int tabPlacement,
+                        Rectangle[] rects,
+                        int tabIndex,
+                        Rectangle iconRect,
+                        Rectangle textRect,
+                        boolean isSelected) {
+                        // XÓA VIỀN FOCUS
+                }
+
+                @Override
+                protected void paintContentBorder(
+                        Graphics g,
+                        int tabPlacement,
+                        int selectedIndex) {
+
+                        g.setColor(new Color(220, 220, 220));
+                        g.drawLine(0, 0, tabPane.getWidth(), 0);
+                }
+                });
+
         // ============================================================================================================
         // =====================================================
         // PANEL ĐƠN GIAO
@@ -123,17 +232,14 @@ public class GiaoHangPanel extends JPanel {
 
         pnlTopAction.add(lblChoGiao, BorderLayout.WEST);
 
-
         // =====================================================
         // BUTTON PANEL
         // =====================================================
-
         JPanel pnlButton = new JPanel(
                 new FlowLayout(FlowLayout.RIGHT, 12, 0)
         );
 
         pnlButton.setOpaque(false);
-
 
         btnNhanDon = createButton("Nhận đơn", INFO);
         btnThanhCong = createButton("Giao thành công", SUCCESS);
@@ -177,7 +283,7 @@ public class GiaoHangPanel extends JPanel {
 
         // XÓA SCROLLBAR
         scrollChoGiao.setVerticalScrollBarPolicy(
-                JScrollPane.VERTICAL_SCROLLBAR_NEVER
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
         );
 
         scrollChoGiao.setHorizontalScrollBarPolicy(
@@ -200,6 +306,7 @@ public class GiaoHangPanel extends JPanel {
         tableWrapper.add(scrollChoGiao, BorderLayout.CENTER);
 
         pnlChoGiao.add(tableWrapper, BorderLayout.CENTER);
+
         // =======================================================================================================================
         // =====================================================
         // PANEL LỊCH SỬ
@@ -220,13 +327,11 @@ public class GiaoHangPanel extends JPanel {
         // =====================================================
         // TABLE LỊCH SỬ
         // =====================================================
-
         modelLichSu = new DefaultTableModel(
                 new String[]{
                         "Mã ĐH",
                         "Mã KH",
                         "NV Giao",
-
                         "Ngày đặt",
                         "Tổng tiền",
                         "Trạng thái"
@@ -275,6 +380,14 @@ public class GiaoHangPanel extends JPanel {
         tabbedPane.addTab("ĐƠN GIAO HÀNG", pnlChoGiao);
         tabbedPane.addTab("LỊCH SỬ GIAO HÀNG", pnlLichSu);
 
+        // ÉP MÀU CHỮ TAB
+        tabbedPane.setForegroundAt(0, Color.BLACK);
+        tabbedPane.setForegroundAt(1, Color.BLACK);
+
+        // ÉP NỀN TRẮNG
+        tabbedPane.setBackgroundAt(0, Color.WHITE);
+        tabbedPane.setBackgroundAt(1, Color.WHITE);
+
         add(tabbedPane, BorderLayout.CENTER);
 
         // =====================================================
@@ -320,15 +433,13 @@ public class GiaoHangPanel extends JPanel {
 
                 JOptionPane.showMessageDialog(
                         this,
-                        "Nhận đơn thất bại!"
+                        "Nhận đơn thất bại! Đơn đang ở trạng thái đang giao."
                 );
             }
         });
 
         // =====================================================
         // EVENT THÀNH CÔNG
-
-
         // =====================================================
         btnThanhCong.addActionListener(e -> {
 
@@ -364,9 +475,8 @@ public class GiaoHangPanel extends JPanel {
 
                 JOptionPane.showMessageDialog(
                         this,
-                        "Đơn chưa ở trạng thái đang giao"
+                        "Đơn hàng đang ở trạng thái chờ giao hàng"
                 );
-
             }
         });
 
@@ -469,9 +579,10 @@ public class GiaoHangPanel extends JPanel {
                 loadLichSu();
 
             } else {
+
                 JOptionPane.showMessageDialog(
                         this,
-                        "Cập nhật thất bại"
+                         "Đơn hàng đang ở trạng thái chờ giao hàng"
                 );
             }
         });
@@ -491,7 +602,41 @@ public class GiaoHangPanel extends JPanel {
     // =====================================================
     private JButton createButton(String text, Color color) {
 
-        JButton btn = new JButton(text);
+        // JButton btn = new JButton(text);
+         JButton btn = new JButton(text) {
+
+        @Override
+        protected void paintComponent(Graphics g) {
+
+            Graphics2D g2 = (Graphics2D) g.create();
+
+            g2.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON
+            );
+
+            // nền nút
+            g2.setColor(getBackground());
+
+            g2.fillRoundRect(
+                    0,
+                    0,
+                    getWidth(),
+                    getHeight(),
+                    12,
+                    12
+            );
+
+            g2.dispose();
+
+            super.paintComponent(g);
+        }
+
+        @Override
+        protected void paintBorder(Graphics g) {
+            // không vẽ border
+        }
+    };
 
         btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
@@ -510,7 +655,6 @@ public class GiaoHangPanel extends JPanel {
         btn.setBorder(
                 new EmptyBorder(8, 18, 8, 18)
         );
-
         btn.addMouseListener(
                 new java.awt.event.MouseAdapter() {
 
@@ -533,7 +677,27 @@ public class GiaoHangPanel extends JPanel {
                     }
                 }
         );
+        //  // MÀU NỀN
+        //     btn.setBackground(color);
 
+        //     // MÀU CHỮ
+        //     btn.setForeground(Color.BLACK);
+
+        //     btn.setFocusPainted(false);
+
+        //     btn.setContentAreaFilled(false);
+
+        //     btn.setOpaque(false);
+
+        //     btn.setBorderPainted(false);
+
+        //     btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        //     btn.setPreferredSize(new Dimension(170, 42));
+
+        //     btn.setBorder(
+        //             new EmptyBorder(8, 18, 8, 18)
+        //     );
         return btn;
     }
 
@@ -546,7 +710,6 @@ public class GiaoHangPanel extends JPanel {
 
         List<DonHangDTO> list =
                 bus.layDonChoGiao(maNV);
-
 
         for (DonHangDTO dh : list) {
 
@@ -570,7 +733,6 @@ public class GiaoHangPanel extends JPanel {
 
         modelLichSu.setRowCount(0);
 
-
         List<DonHangDTO> list =
                 bus.lichSuGiaoHang(maNV);
 
@@ -590,7 +752,7 @@ public class GiaoHangPanel extends JPanel {
     // =====================================================
 // CUSTOM TABLE
 // =====================================================
-        private void customTables(JTable table) {
+        private void customTable(JTable table) {
 
         // =====================================================
         // TABLE
@@ -761,6 +923,216 @@ public class GiaoHangPanel extends JPanel {
                         );
                     }
                     lbl.setBorder(BorderFactory.createEmptyBorder());
+                    return lbl;
+                }
+            }
+    );
+}
+        // =====================================================
+        // CUSTOM TABLE
+        // =====================================================
+        private void customTables(JTable table) {
+
+        // =====================================================
+        // TABLE
+        // =====================================================
+        table.setRowHeight(44);
+
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+        table.setForeground(new Color(70, 70, 70));
+
+        table.setBackground(Color.WHITE);
+
+        table.setShowVerticalLines(false);
+
+        table.setShowHorizontalLines(false);
+
+        table.setIntercellSpacing(new Dimension(0, 0));
+
+        table.setFocusable(false);
+
+        table.setBorder(null);
+
+        table.setSelectionBackground(
+                new Color(232, 245, 233)
+        );
+
+        table.setSelectionForeground(Color.BLACK);
+
+        // =====================================================
+        // HEADER
+        // =====================================================
+        JTableHeader header = table.getTableHeader();
+
+        header.setBackground(new Color(245, 247, 250));
+
+        header.setForeground(Color.BLACK);
+
+        header.setFont(
+                new Font("Segoe UI", Font.BOLD, 14)
+        );
+
+        // XÓA VIỀN HEADER
+        header.setBorder(BorderFactory.createEmptyBorder());
+
+        UIManager.put(
+                "TableHeader.cellBorder",
+                BorderFactory.createEmptyBorder()
+        );
+
+        header.setPreferredSize(
+                new Dimension(header.getWidth(), 42)
+        );
+
+    // =====================================================
+    // HEADER IN HOA
+    // =====================================================
+    for (int i = 0; i < table.getColumnCount(); i++) {
+
+        String title =
+                table.getColumnName(i).toUpperCase();
+
+        table.getColumnModel()
+                .getColumn(i)
+                .setHeaderValue(title);
+    }
+
+    // =====================================================
+    // CELL RENDERER
+    // =====================================================
+    table.setDefaultRenderer(
+            Object.class,
+            new DefaultTableCellRenderer() {
+
+                @Override
+                public Component getTableCellRendererComponent(
+                        JTable table,
+                        Object value,
+                        boolean isSelected,
+                        boolean hasFocus,
+                        int row,
+                        int column
+                ) {
+
+                    JLabel lbl =
+                            (JLabel) super.getTableCellRendererComponent(
+                                    table,
+                                    value,
+                                    isSelected,
+                                    hasFocus,
+                                    row,
+                                    column
+                            );
+
+                    // =====================================
+                    // FONT
+                    // =====================================
+                    lbl.setFont(
+                            new Font("Segoe UI", Font.PLAIN, 14)
+                    );
+
+                    // =====================================
+                    // PADDING
+                    // =====================================
+                    lbl.setBorder(
+                            new EmptyBorder(0, 12, 0, 12)
+                    );
+
+                    // =====================================
+                    // ALIGN
+                    // =====================================
+                    lbl.setHorizontalAlignment(
+                            SwingConstants.CENTER
+                    );
+
+                    // =====================================
+                    // ROW COLOR
+                    // =====================================
+                    if (!isSelected) {
+
+                        if (row % 2 == 0) {
+
+                            lbl.setBackground(Color.WHITE);
+
+                        } else {
+
+                            lbl.setBackground(
+                                    new Color(248, 249, 251)
+                            );
+                        }
+
+                        lbl.setForeground(
+                                new Color(70, 70, 70)
+                        );
+                    }
+
+                    // =====================================
+                    // MÃ ĐH IN HOA + ĐẬM
+                    // =====================================
+                    if (column == 0 && value != null) {
+
+                        lbl.setText(
+                                value.toString().toUpperCase()
+                        );
+
+                        lbl.setFont(
+                                new Font(
+                                        "Segoe UI",
+                                        Font.BOLD,
+                                        14
+                                )
+                        );
+                    }
+
+                    // =====================================
+                    // TRẠNG THÁI COLOR
+                    // =====================================
+                    int statusColumn =
+                            table.getColumnCount() - 1;
+
+                    if (column == statusColumn
+                            && value != null) {
+
+                        String status =
+                                value.toString();
+
+                        switch (status) {
+
+                            case "Chờ giao hàng":
+
+                                lbl.setForeground(
+                                        new Color(46, 125, 50)
+                                );
+
+                                break;
+
+                            case "Đang giao":
+
+                                lbl.setForeground(
+                                        new Color(2, 136, 209)
+                                );
+
+                                break;
+
+                            case "Giao thành công":
+
+                                lbl.setForeground(
+                                        new Color(56, 142, 60)
+                                );
+
+                                break;
+
+                            case "Giao thất bại":
+
+                                lbl.setForeground(
+                                        new Color(211, 47, 47)
+                                );
+
+                                break;
+                        }
+                    }
+
                     return lbl;
                 }
             }
