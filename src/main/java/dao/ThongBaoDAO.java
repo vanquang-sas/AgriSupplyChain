@@ -16,27 +16,11 @@ public class ThongBaoDAO {
     // 1. Sửa lại hàm lấy danh sách: Lấy thêm cột TrangThaiTB
     public ArrayList<Object[]> getDanhSachThongBao() {
         ArrayList<Object[]> list = new ArrayList<>();
-        // Sử dụng tiền tố AGRIAPP. để đảm bảo đúng Schema
         String sql = "SELECT LoaiTB, NoiDung, TGTao, TrangThaiTB FROM AGRIAPP.THONGBAO ORDER BY TGTao DESC";
 
         try (Connection con = DBConnection.getConnection()) {
             if (con == null) return list;
-            
-            // 1. In thông tin debug cực mạnh
-            System.out.println("====================================================");
-            System.out.println("DEBUG: [ThongBaoDAO] URL: " + con.getMetaData().getURL());
-            System.out.println("DEBUG: [ThongBaoDAO] User: " + con.getMetaData().getUserName());
-            System.out.println("====================================================");
 
-            // 2. Tự động chèn một dòng TEST để kiểm tra đồng bộ
-            String sqlTest = "INSERT INTO AGRIAPP.THONGBAO (LoaiTB, NoiDung, TrangThaiTB, TGTao) " +
-                           "SELECT 'Hệ thống', 'TEST SYNC - " + System.currentTimeMillis() + "', 0, SYSDATE " +
-                           "FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM AGRIAPP.THONGBAO WHERE NoiDung LIKE 'TEST SYNC%')";
-            try (PreparedStatement pstTest = con.prepareStatement(sqlTest)) {
-                pstTest.executeUpdate();
-            }
-
-            // 3. Lấy dữ liệu
             try (PreparedStatement pst = con.prepareStatement(sql);
                  ResultSet rs = pst.executeQuery()) {
                 while (rs.next()) {
@@ -48,12 +32,22 @@ public class ThongBaoDAO {
                     list.add(row);
                 }
             }
-            System.out.println("DEBUG: [ThongBaoDAO] Đã nạp " + list.size() + " dòng từ AGRIAPP.THONGBAO");
         } catch (Exception e) {
-            System.err.println("DEBUG: [ThongBaoDAO] Lỗi: " + e.getMessage());
             e.printStackTrace();
         }
         return list;
+    }
+
+    // 5. Hàm xóa sạch bảng thông báo
+    public void xoaTatCaThongBao() {
+        String sql = "DELETE FROM AGRIAPP.THONGBAO";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement pst = con.prepareStatement(sql)) {
+            pst.executeUpdate();
+            System.out.println("DEBUG: [ThongBaoDAO] Đã xóa sạch bảng THONGBAO.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // 2. Thêm hàm đếm số lượng thông báo chưa đọc (để hiển thị lên nút chuông)

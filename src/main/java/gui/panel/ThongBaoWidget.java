@@ -22,7 +22,7 @@ public class ThongBaoWidget extends JPanel {
 
     public ThongBaoWidget() {
         initComponents();
-        thongBaoBUS.kiemTraHetHan(); // Kiểm tra hết hạn ngay khi mở app
+        // thongBaoBUS.kiemTraHetHan(); // Đã tắt theo yêu cầu để làm lại dữ liệu
         capNhatNutChuong();
         startLiveUpdate(); // Bắt đầu bộ đếm thời gian cập nhật tự động
     }
@@ -30,7 +30,7 @@ public class ThongBaoWidget extends JPanel {
     // Bộ đếm thời gian để tự động cập nhật số lượng thông báo mỗi 30 giây
     private void startLiveUpdate() {
         Timer timer = new Timer(30000, e -> {
-            thongBaoBUS.kiemTraHetHan(); // Quét lại kho xem có gì mới hết hạn/hết hàng không
+            // thongBaoBUS.kiemTraHetHan(); // Đã tắt để tránh tự động chèn thông báo
             capNhatNutChuong();
         });
         timer.start();
@@ -132,9 +132,19 @@ public class ThongBaoWidget extends JPanel {
         popupMenu.setBackground(AppColor.SURFACE);
 
         // Header của Popup
-        JLabel lblTitle = new JLabel("Thông báo hệ thống (ĐÃ ĐỒNG BỘ)", SwingConstants.CENTER);
+        JLabel lblTitle = new JLabel("Thông báo hệ thống", SwingConstants.CENTER);
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 14));
         lblTitle.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Nút xóa tất cả (Mới)
+        JButton btnClear = new JButton("Xóa tất cả");
+        btnClear.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        btnClear.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnClear.addActionListener(e -> {
+            thongBaoBUS.xoaTatCaThongBao();
+            loadDuLieuThongBao();
+            capNhatNutChuong();
+        });
 
         // Panel chứa các dòng thông báo (cho vào JScrollPane để cuộn)
         panelMessages = new JPanel();
@@ -145,9 +155,14 @@ public class ThongBaoWidget extends JPanel {
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16); // Lăn chuột mượt hơn
         
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(AppColor.SURFACE);
+        headerPanel.add(lblTitle, BorderLayout.CENTER);
+        headerPanel.add(btnClear, BorderLayout.EAST);
+
         JPanel mainPopupPanel = new JPanel(new BorderLayout());
         mainPopupPanel.setBackground(AppColor.SURFACE);
-        mainPopupPanel.add(lblTitle, BorderLayout.NORTH);
+        mainPopupPanel.add(headerPanel, BorderLayout.NORTH);
         mainPopupPanel.add(scrollPane, BorderLayout.CENTER);
         
         popupMenu.add(mainPopupPanel);

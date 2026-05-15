@@ -25,4 +25,8 @@ public class ThongBaoBUS {
     public void kiemTraHetHan() {
         thongBaoDAO.kiemTraHetHan();
     }
+
+    public void xoaTatCaThongBao() {
+        thongBaoDAO.xoaTatCaThongBao();
+    }
 }
