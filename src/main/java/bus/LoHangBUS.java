@@ -54,6 +54,24 @@ public class LoHangBUS {
         return loHangDAO.getAllLoHang();
     }
 
+    public List<LoHangDTO> getLichSuLoHang(String maNV) {
+        if (maNV == null || maNV.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return loHangDAO.getLoHangByNhanVien(maNV);
+    }
+
+    public List<LoHangDTO> getLichSuLoHang() {
+        if (!Session.isLogged()) {
+            return new ArrayList<>();
+        }
+        NhanVienDTO currentNv = nhanVienDAO.getByUsername(Session.currentUser.getUsername());
+        if (currentNv == null || currentNv.getMaNV() == null || currentNv.getMaNV().trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return getLichSuLoHang(currentNv.getMaNV());
+    }
+
     public boolean yeuCauNhapKho(String maLH) {
         if (maLH == null || maLH.trim().isEmpty()) {
             return false;

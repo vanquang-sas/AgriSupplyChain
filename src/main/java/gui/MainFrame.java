@@ -45,6 +45,7 @@ public class MainFrame extends JFrame {
     private TonKhoPanel pnlTonKho;
     private ThongKePanel pnlThongKe;
     private LoHangPanel pnlLoHang;
+    private LichSuLoHangPanel pnlLichSuLoHang;
 
     public MainFrame() {
         initComponents();
@@ -140,6 +141,7 @@ public class MainFrame extends JFrame {
         JButton btnDonHang = createMenuButton("📜", "Đơn hàng", "DonHang");
         JButton btnGiaoHang = createMenuButton("🚚", "Giao hàng", "GiaoHang");
         JButton btnLoHang = createMenuButton("🧾", "Lô hàng nhập", "LoHang");
+        JButton btnLichSuLoHang = createMenuButton("🕘", "Lịch sử nhập hàng", "LichSuLoHang");
         
         JButton btnCuaHang = createMenuButton("🛒", "Cửa hàng Nông sản", "TrangChu");
 
@@ -193,6 +195,7 @@ public class MainFrame extends JFrame {
                 menuPanel.add(btnNhaCungCap); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 menuPanel.add(btnSanPham); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 menuPanel.add(btnLoHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+                menuPanel.add(btnLichSuLoHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 defaultActiveBtn = btnNhaCungCap;
             } else if (cv.contains("giao hàng")) { // NV GIAO HÀNG
                 menuPanel.add(buildSectionLabel("VẬN CHUYỂN"));
@@ -384,6 +387,8 @@ public class MainFrame extends JFrame {
         pnlLoHang = new LoHangPanel();
 
         // Thêm vào CardLayout với tên gọi tương ứng
+        pnlLichSuLoHang = new LichSuLoHangPanel();
+        
         contentPanel.add(createPlaceholder("🏠", "Trang chủ", "Dashboard tổng quan"), "TrangChu");
         contentPanel.add(pnlSanPham, "SanPham");
         contentPanel.add(pnlKhachHang, "KhachHang");
@@ -399,6 +404,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(pnlXuatKho, "XuatKho");
         contentPanel.add(pnlTonKho, "TonKho");
         contentPanel.add(pnlLoHang, "LoHang");
+        contentPanel.add(pnlLichSuLoHang, "LichSuLoHang");
     }
 
     // Hàm tạo nút menu với giao diện Capsule (Viên thuốc) hiện đại

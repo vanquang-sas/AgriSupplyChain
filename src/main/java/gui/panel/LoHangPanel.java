@@ -187,8 +187,8 @@ public class LoHangPanel extends JPanel {
         JPanel leftPanel = buildTableWrapper();
         JPanel rightPanel = buildDetailCard();
         
-        // [FIX] Điều chỉnh lại chiều rộng (rút ngắn bảng chi tiết xuống 480px để nhường chỗ cho bảng Lô hàng)
-        rightPanel.setPreferredSize(new Dimension(480, 0)); 
+        // Adjust detail panel width to align with other panels' layout
+        rightPanel.setPreferredSize(new Dimension(420, 0)); 
 
         splitWrapper.add(leftPanel, BorderLayout.CENTER);
         splitWrapper.add(rightPanel, BorderLayout.EAST);
@@ -525,7 +525,7 @@ public class LoHangPanel extends JPanel {
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
-        btn.setPreferredSize(new Dimension(130, 36));
+        btn.setPreferredSize(new Dimension(100, 36));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;
     }
@@ -569,6 +569,9 @@ public class LoHangPanel extends JPanel {
         List<LoHangDTO> list = loHangBUS.getAll();
         currentDataList.clear();
         for (LoHangDTO lh : list) {
+            if (lh.getTrangThaiLH() != null && lh.getTrangThaiLH().equalsIgnoreCase("Đã nhập kho")) {
+                continue;
+            }
             if (keyword == null || keyword.isEmpty()) {
                 currentDataList.add(lh);
             } else {
@@ -582,7 +585,7 @@ public class LoHangPanel extends JPanel {
             }
         }
         loadTableData();
-        updateStats(list);
+        updateStats(currentDataList);
         clearSelection();
     }
 

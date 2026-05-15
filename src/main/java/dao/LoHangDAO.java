@@ -124,6 +124,38 @@ public class LoHangDAO {
         return list;
     }
 
+    public List<LoHangDTO> getLoHangByNhanVien(String maNV) {
+        List<LoHangDTO> list = new ArrayList<>();
+        if (maNV == null || maNV.trim().isEmpty()) {
+            return list;
+        }
+
+        String sql = "SELECT LH.MaLH, LH.MaNCC, N.TenNCC, LH.MaNV, LH.TGNhap, LH.TongTien, LH.TrangThaiLH " +
+                     "FROM LOHANG LH LEFT JOIN NHACUNGCAP N ON LH.MaNCC = N.MaNCC " +
+                     "WHERE LH.MaNV = ? ORDER BY LH.TGNhap DESC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maNV);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    LoHangDTO lh = new LoHangDTO();
+                    lh.setMaLH(rs.getString("MaLH"));
+                    lh.setMaNCC(rs.getString("MaNCC"));
+                    lh.setTenNCC(rs.getString("TenNCC"));
+                    lh.setMaNV(rs.getString("MaNV"));
+                    lh.setTgNhap(rs.getDate("TGNhap"));
+                    lh.setTongTien(rs.getDouble("TongTien"));
+                    lh.setTrangThaiLH(rs.getString("TrangThaiLH"));
+                    list.add(lh);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
     // 4. Yêu cầu nhập kho
     public boolean yeuCauNhapKho(String maLH) {
         try (Connection conn = DBConnection.getConnection();
