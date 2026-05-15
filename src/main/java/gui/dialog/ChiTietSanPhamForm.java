@@ -8,6 +8,7 @@ import util.AppColor;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import gui.component.RoundedImageLabel;
 
 public class ChiTietSanPhamForm extends JDialog {
 
@@ -20,7 +21,8 @@ public class ChiTietSanPhamForm extends JDialog {
     private JLabel lblDonViTinh;
     private JLabel lblBaoQuan;
 
-    private JLabel lblHinhAnh;
+    // private JLabel lblHinhAnh;
+    private RoundedImageLabel lblHinhAnh;
 
     private JButton btnThemGio;
 
@@ -65,148 +67,143 @@ public class ChiTietSanPhamForm extends JDialog {
         pnlCenter.setBackground(BG);
 
         pnlMain.add(pnlCenter, BorderLayout.CENTER);
-
-        // =====================================
-        // HÌNH ẢNH
-        // =====================================
-        lblHinhAnh = new JLabel();
+    // =====================================
+    // HÌNH ẢNH
+    // =====================================
+        lblHinhAnh = new RoundedImageLabel(30); // 30 là độ bo góc
 
         lblHinhAnh.setHorizontalAlignment(SwingConstants.CENTER);
+        lblHinhAnh.setPreferredSize(new Dimension(320,240));
 
-        lblHinhAnh.setPreferredSize(new Dimension(240, 240));
-
-
-        // load ảnh
         try {
-            String tenAnh = sp.getHinhAnh();
-            // ImageIcon icon = new ImageIcon( getClass().getResource("/images/" + tenAnh));
-            String icon = "src/main/resources/images/" + sp.getMaSP() + ".jpg";
+            String duongDanAnh = "src/main/resources/images/" + sp.getMaSP() + ".jpg";
+
+            ImageIcon icon = new ImageIcon(duongDanAnh);
 
             // Image img = icon.getImage().getScaledInstance(
-            //         250,
-            //         250,
+            //         240,
+            //         240,
             //         Image.SCALE_SMOOTH
             // );
 
-            lblHinhAnh.setIcon(new ImageIcon(icon));
+            // lblHinhAnh.setIcon(new ImageIcon(img));
+                lblHinhAnh.setIcon(icon);
 
         } catch (Exception e) {
-
             lblHinhAnh.setText("Không có ảnh");
             lblHinhAnh.setForeground(Color.BLACK);
         }
 
-        pnlCenter.add(lblHinhAnh, BorderLayout.WEST);
+            pnlCenter.add(lblHinhAnh, BorderLayout.WEST);
+                // =====================================
+                // THÔNG TIN
+                // =====================================
+                JPanel pnlInfo = new JPanel(new GridLayout(8, 2, 10, 15));
 
-        // =====================================
-        // THÔNG TIN
-        // =====================================
-        JPanel pnlInfo = new JPanel(new GridLayout(8, 2, 10, 15));
+                pnlInfo.setBackground(BG);
 
-        pnlInfo.setBackground(BG);
+                pnlCenter.add(pnlInfo, BorderLayout.CENTER);
 
-        pnlCenter.add(pnlInfo, BorderLayout.CENTER);
+                // Mã SP
+                pnlInfo.add(createLabel("Mã sản phẩm:", true));
 
-        // Mã SP
-        pnlInfo.add(createLabel("Mã sản phẩm:", true));
+                lblMaSP = createLabel(sp.getMaSP(), false);
 
-        lblMaSP = createLabel(sp.getMaSP(), false);
+                pnlInfo.add(lblMaSP);
 
-        pnlInfo.add(lblMaSP);
+                // Tên SP
+                pnlInfo.add(createLabel("Tên sản phẩm:", true));
 
-        // Tên SP
-        pnlInfo.add(createLabel("Tên sản phẩm:", true));
+                lblTenSP = createLabel(sp.getTenSP(), false);
 
-        lblTenSP = createLabel(sp.getTenSP(), false);
+                pnlInfo.add(lblTenSP);
 
-        pnlInfo.add(lblTenSP);
+                // Loại SP
+            pnlInfo.add(createLabel("Mã loại:", true));
 
-        // Loại SP
-        pnlInfo.add(createLabel("Mã loại:", true));
+            lblLoai = createLabel(sp.getMaLSP(), false);
 
-        lblLoai = createLabel(sp.getMaLSP(), false);
+            pnlInfo.add(lblLoai);
 
-        pnlInfo.add(lblLoai);
+            // Chất lượng
+            pnlInfo.add(createLabel("Chất lượng:", true));
 
-        // Chất lượng
-        pnlInfo.add(createLabel("Chất lượng:", true));
+            lblChatLuong = createLabel(sp.getChatLuong(), false);
 
-        lblChatLuong = createLabel(sp.getChatLuong(), false);
+            pnlInfo.add(lblChatLuong);
 
-        pnlInfo.add(lblChatLuong);
+            // Giá mua
+            pnlInfo.add(createLabel("Giá mua:", true));
 
-        // Giá mua
-        pnlInfo.add(createLabel("Giá mua:", true));
-
-        lblGiaMua = createLabel(
-                String.format("%,.0f VNĐ", sp.getGiaMua()),
-                false
-        );
-
-        pnlInfo.add(lblGiaMua);
-
-        // Giá bán
-        pnlInfo.add(createLabel("Giá bán:", true));
-
-        lblGiaBan = createLabel(
-                String.format("%,.0f VNĐ", sp.getGiaBan()),
-                false
-        );
-
-        pnlInfo.add(lblGiaBan);
-
-        // Đơn vị tính
-        pnlInfo.add(createLabel("Đơn vị tính:", true));
-
-        lblDonViTinh = createLabel(sp.getDonViTinh(), false);
-
-        pnlInfo.add(lblDonViTinh);
-
-        // Bảo quản
-        pnlInfo.add(createLabel("Bảo quản:", true));
-
-        lblBaoQuan = createLabel(sp.getBaoQuan(), false);
-
-        pnlInfo.add(lblBaoQuan);
-
-        // =====================================
-        // BUTTON
-        // =====================================
-        JPanel pnlBottom = new JPanel();
-        pnlBottom.setBackground(BG);
-
-        // dùng component thay vì JButton thường
-        btnThemGio = new RoundedButton("Thêm vào giỏ hàng", AppColor.PRIMARY);
-
-        pnlBottom.add(btnThemGio);
-        pnlMain.add(pnlBottom, BorderLayout.SOUTH);
-
-        // =====================================
-        // EVENT
-        // =====================================
-        btnThemGio.addActionListener(e -> {
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Đã thêm vào giỏ hàng:\n" + sp.getTenSP()
+            lblGiaMua = createLabel(
+                    String.format("%,.0f VNĐ", sp.getGiaMua()),
+                    false
             );
-        });
-    }
 
-    // =====================================
-    // CUSTOM LABEL
-    // =====================================
-    private JLabel createLabel(String text, boolean bold) {
+            pnlInfo.add(lblGiaMua);
 
-        JLabel lbl = new JLabel(text);
+            // Giá bán
+            pnlInfo.add(createLabel("Giá bán:", true));
 
-        lbl.setFont(new Font(
-                "Segoe UI",
-                bold ? Font.BOLD : Font.PLAIN,
-                16
-        ));
-        // ÉP MÀU CHỮ ĐEN
-        lbl.setForeground(Color.BLACK); 
-        return lbl;
-    }
+            lblGiaBan = createLabel(
+                    String.format("%,.0f VNĐ", sp.getGiaBan()),
+                    false
+            );
+
+            pnlInfo.add(lblGiaBan);
+
+            // Đơn vị tính
+            pnlInfo.add(createLabel("Đơn vị tính:", true));
+
+            lblDonViTinh = createLabel(sp.getDonViTinh(), false);
+
+            pnlInfo.add(lblDonViTinh);
+
+            // Bảo quản
+            pnlInfo.add(createLabel("Bảo quản:", true));
+
+            lblBaoQuan = createLabel(sp.getBaoQuan(), false);
+
+            pnlInfo.add(lblBaoQuan);
+
+            // =====================================
+            // BUTTON
+            // =====================================
+            JPanel pnlBottom = new JPanel();
+            pnlBottom.setBackground(BG);
+
+            // dùng component thay vì JButton thường
+            btnThemGio = new RoundedButton("Thêm vào giỏ hàng", AppColor.PRIMARY);
+
+            pnlBottom.add(btnThemGio);
+            pnlMain.add(pnlBottom, BorderLayout.SOUTH);
+
+            // =====================================
+            // EVENT
+            // =====================================
+            btnThemGio.addActionListener(e -> {
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Đã thêm vào giỏ hàng:\n" + sp.getTenSP()
+                );
+            });
+        }
+
+        // =====================================
+        // CUSTOM LABEL
+        // =====================================
+        private JLabel createLabel(String text, boolean bold) {
+
+            JLabel lbl = new JLabel(text);
+
+            lbl.setFont(new Font(
+                    "Segoe UI",
+                    bold ? Font.BOLD : Font.PLAIN,
+                    16
+            ));
+            // ÉP MÀU CHỮ ĐEN
+            lbl.setForeground(Color.BLACK); 
+            return lbl;
+        }
 }
