@@ -2,22 +2,19 @@
 --                              PHẦN 5: TẠO PROCEDURE
 -- ====================================================================================
 
-
--- Cập nhật giá một sản phẩm
+-- ------------------------------------------------------------------------------------
+-- 1. QUẢN LÝ SẢN PHẨM & GIÁ
+-- ------------------------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE SP_CAPNHAT_GIA (
     p_MaSP IN VARCHAR2,
     p_GiaMuaMoi IN NUMBER,
     p_GiaBanMoi IN NUMBER
-)
-IS
-    v_MaGia VARCHAR2(10);
+) IS
 BEGIN
-
     UPDATE SANPHAM
     SET GiaMua = p_GiaMuaMoi,
         GiaBan = p_GiaBanMoi
     WHERE MaSP = p_MaSP;
-
     COMMIT;
 EXCEPTION
     WHEN OTHERS THEN
@@ -26,165 +23,6 @@ EXCEPTION
 END;
 /
 
--- ================================= Bảng THAMSO =================================
--- Cập nhật tham số
-CREATE OR REPLACE PROCEDURE SP_CAPNHAT_THAMSO (
-    p_MaTS IN VARCHAR2,
-    p_GiaTri IN NUMBER,
-    p_MoTa IN NVARCHAR2
-) IS
-BEGIN
-    UPDATE THAMSO 
-    SET GiaTri = NVL(p_GiaTri, GiaTri),
-        MoTa = NVL(p_MoTa, MoTa)
-    WHERE MaTS = p_MaTS;
-    COMMIT;
-END;
-/
-
--- ================================= Bảng THONGBAO =================================
--- Đánh dấu đã đọc thông báo
-CREATE OR REPLACE PROCEDURE SP_DOC_THONGBAO (p_MaTB IN VARCHAR2) IS
-BEGIN
-    UPDATE THONGBAO SET TrangThaiTB = 1 WHERE MaTB = p_MaTB;
-    COMMIT;
-END;
-/
-
--- ================================= Bảng TAIKHOAN =================================
--- Thêm tài khoản
-CREATE OR REPLACE PROCEDURE SP_THEM_TAIKHOAN (
-    p_Username IN NVARCHAR2,
-    p_Password IN VARCHAR2,
-    p_LoaiTK IN NUMBER
-) IS
-BEGIN
-    -- TrangThaiTK mặc định là 1 (Hoạt động), TGTao mặc định SYSDATE
-    INSERT INTO TAIKHOAN (Username, Password, LoaiTK, TrangThaiTK) 
-    VALUES (p_Username, p_Password, p_LoaiTK, 1);
-    COMMIT;
-END;
-/
-
--- Đổi mật khẩu
-CREATE OR REPLACE PROCEDURE SP_DOI_PASSWORD (
-    p_Username IN NVARCHAR2,
-    p_NewPassword IN VARCHAR2
-) IS
-BEGIN
-    UPDATE TAIKHOAN SET Password = p_NewPassword WHERE Username = p_Username;
-    COMMIT;
-END;
-/
-
--- Khoá tài khoản
-CREATE OR REPLACE PROCEDURE SP_KHOA_TAIKHOAN (p_Username IN NVARCHAR2) IS
-BEGIN
-    UPDATE TAIKHOAN SET TrangThaiTK = 0 WHERE Username = p_Username;
-    COMMIT;
-END;
-/
-
--- ================================= Bảng KHACHHANG =================================
-CREATE OR REPLACE PROCEDURE SP_THEM_KH (
-    p_Username IN NVARCHAR2, p_TenKH IN NVARCHAR2, 
-    p_LoaiKH IN NVARCHAR2, p_DiaChi IN NVARCHAR2, 
-    p_SDT IN VARCHAR2, p_Email IN NVARCHAR2
-) IS
-BEGIN
-    INSERT INTO KHACHHANG (Username, TenKH, LoaiKH, DiaChi, SDT, Email)
-    VALUES (p_Username, p_TenKH, p_LoaiKH, p_DiaChi, p_SDT, p_Email);
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_CAPNHAT_KH (
-    p_MaKH IN VARCHAR2, p_TenKH IN NVARCHAR2, p_LoaiKH IN NVARCHAR2, 
-    p_DiaChi IN NVARCHAR2, p_SDT IN VARCHAR2, p_Email IN NVARCHAR2
-) IS
-BEGIN
-    UPDATE KHACHHANG
-    SET TenKH = NVL(p_TenKH, TenKH), LoaiKH = NVL(p_LoaiKH, LoaiKH),
-        DiaChi = NVL(p_DiaChi, DiaChi), SDT = NVL(p_SDT, SDT), Email = NVL(p_Email, Email)
-    WHERE MaKH = p_MaKH;
-    COMMIT;
-END;
-/
-
--- ================================= Bảng NHANVIEN =================================
-CREATE OR REPLACE PROCEDURE SP_THEM_NV (
-    p_Username IN NVARCHAR2, p_TenNV IN NVARCHAR2, 
-    p_ChucVu IN NVARCHAR2, p_SDT IN VARCHAR2, p_Luong IN NUMBER
-) IS
-BEGIN
-    INSERT INTO NHANVIEN (Username, TenNV, ChucVu, SDT, Luong)
-    VALUES (p_Username, p_TenNV, p_ChucVu, p_SDT, p_Luong);
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_CAPNHAT_NV (
-    p_MaNV IN VARCHAR2, p_TenNV IN NVARCHAR2, p_ChucVu IN NVARCHAR2, 
-    p_SDT IN VARCHAR2, p_Luong IN NUMBER
-) IS
-BEGIN
-    UPDATE NHANVIEN
-    SET TenNV = NVL(p_TenNV, TenNV), ChucVu = NVL(p_ChucVu, ChucVu),
-        SDT = NVL(p_SDT, SDT), Luong = NVL(p_Luong, Luong)
-    WHERE MaNV = p_MaNV;
-    COMMIT;
-END;
-/
-
--- ================================= Bảng NHACUNGCAP =================================
-CREATE OR REPLACE PROCEDURE SP_THEM_NCC (
-    p_TenNCC IN NVARCHAR2, p_DiaChi IN NVARCHAR2, 
-    p_SDT IN VARCHAR2, p_Email IN VARCHAR2, p_ChungNhanCL IN VARCHAR2
-) IS
-BEGIN
-    INSERT INTO NHACUNGCAP (TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac)
-    VALUES (p_TenNCC, p_DiaChi, p_SDT, p_Email, p_ChungNhanCL, 1);
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_CAPNHAT_NCC (
-    p_MaNCC IN VARCHAR2, p_TenNCC IN NVARCHAR2, p_DiaChi IN NVARCHAR2, 
-    p_SDT IN VARCHAR2, p_Email IN VARCHAR2, p_ChungNhanCL IN VARCHAR2
-) IS
-BEGIN
-    UPDATE NHACUNGCAP
-    SET TenNCC = NVL(p_TenNCC, TenNCC), DiaChi = NVL(p_DiaChi, DiaChi),
-        SDT = NVL(p_SDT, SDT), Email = NVL(p_Email, Email), 
-        ChungNhanCL = NVL(p_ChungNhanCL, ChungNhanCL)
-    WHERE MaNCC = p_MaNCC;
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_NGUNG_HOPTAC (p_MaNCC IN VARCHAR2) IS
-BEGIN
-    UPDATE NHACUNGCAP SET TrangThaiHopTac = 0 WHERE MaNCC = p_MaNCC;
-    COMMIT;
-END;
-/
-
--- ================================= Bảng LOAISANPHAM =================================
-CREATE OR REPLACE PROCEDURE SP_THEM_LSP (p_TenLSP IN NVARCHAR2, p_MoTa IN NVARCHAR2) IS
-BEGIN
-    INSERT INTO LOAISANPHAM (TenLSP, MoTa) VALUES (p_TenLSP, p_MoTa);
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_CAPNHAT_LSP (p_MaLSP IN VARCHAR2, p_TenLSP IN NVARCHAR2, p_MoTa IN NVARCHAR2) IS
-BEGIN
-    UPDATE LOAISANPHAM SET TenLSP = NVL(p_TenLSP, TenLSP), MoTa = NVL(p_MoTa, MoTa) WHERE MaLSP = p_MaLSP;
-    COMMIT;
-END;
-/
-
--- ================================= Bảng SANPHAM =================================
 CREATE OR REPLACE PROCEDURE SP_THEM_SP (
     p_TenSP IN NVARCHAR2, p_MaLSP IN VARCHAR2, p_ChatLuong IN NVARCHAR2,
     p_GiaMua IN NUMBER, p_GiaBan IN NUMBER, p_DonViTinh IN NVARCHAR2, p_BaoQuan IN NVARCHAR2
@@ -201,7 +39,6 @@ CREATE OR REPLACE PROCEDURE SP_CAPNHAT_SP (
     p_GiaMua IN NUMBER, p_GiaBan IN NUMBER, p_DonViTinh IN NVARCHAR2, p_BaoQuan IN NVARCHAR2
 ) IS
 BEGIN
-    -- Việc lưu lịch sử giá đã có TRG_SP_LUU_LSG
     UPDATE SANPHAM
     SET TenSP = NVL(p_TenSP, TenSP), MaLSP = NVL(p_MaLSP, MaLSP), ChatLuong = NVL(p_ChatLuong, ChatLuong),
         GiaMua = NVL(p_GiaMua, GiaMua), GiaBan = NVL(p_GiaBan, GiaBan), 
@@ -211,126 +48,9 @@ BEGIN
 END;
 /
 
--- ================================= Bảng KHO =================================
-CREATE OR REPLACE PROCEDURE SP_THEM_KHO (p_TenKho IN NVARCHAR2, p_LoaiKho IN NVARCHAR2, p_DiaChi IN NVARCHAR2, p_MoTa IN NVARCHAR2) IS
-BEGIN
-    INSERT INTO KHO (TenKho, LoaiKho, DiaChi, MoTa) VALUES (p_TenKho, p_LoaiKho, p_DiaChi, p_MoTa);
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_CAPNHAT_KHO (p_MaKho IN VARCHAR2, p_TenKho IN NVARCHAR2, p_LoaiKho IN NVARCHAR2, p_DiaChi IN NVARCHAR2, p_MoTa IN NVARCHAR2) IS
-BEGIN
-    UPDATE KHO 
-    SET TenKho = NVL(p_TenKho, TenKho), LoaiKho = NVL(p_LoaiKho, LoaiKho), 
-        DiaChi = NVL(p_DiaChi, DiaChi), MoTa = NVL(p_MoTa, MoTa) 
-    WHERE MaKho = p_MaKho;
-    COMMIT;
-END;
-/
-
--- ================================= Bảng LOHANG =================================
-CREATE OR REPLACE PROCEDURE SP_THEM_LH (p_MaNCC IN VARCHAR2, p_MaNV IN VARCHAR2) IS
-BEGIN
-    -- TongTien được TRG_CTLH_TONGTIEN cập nhật, TrangThaiLH mặc định 'Chờ kiểm duyệt'
-    INSERT INTO LOHANG (MaNCC, MaNV) VALUES (p_MaNCC, p_MaNV);
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_CAPNHAT_LH (p_MaLH IN VARCHAR2, p_MaNV IN VARCHAR2, p_TrangThaiLH IN NVARCHAR2) IS
-BEGIN
-    -- Chỉ cho phép cập nhật nhân viên phụ trách hoặc Trạng thái
-    UPDATE LOHANG SET MaNV = NVL(p_MaNV, MaNV), TrangThaiLH = NVL(p_TrangThaiLH, TrangThaiLH) WHERE MaLH = p_MaLH;
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_XOA_LH (p_MaLH IN VARCHAR2) IS
-    v_TrangThai NVARCHAR2(50);
-BEGIN
-    SELECT TrangThaiLH INTO v_TrangThai FROM LOHANG WHERE MaLH = p_MaLH;
-    IF v_TrangThai = 'Đã nhập kho' THEN
-        RAISE_APPLICATION_ERROR(-20020, 'Không thể xoá lô hàng đã nhập kho!');
-    END IF;
-    -- Cần xoá chi tiết trước (toàn vẹn dữ liệu)
-    DELETE FROM CHITIETLOHANG WHERE MaLH = p_MaLH;
-    DELETE FROM LOHANG WHERE MaLH = p_MaLH;
-    COMMIT;
-END;
-/
-
--- ================================= Bảng CHITIETLOHANG =================================
-CREATE OR REPLACE PROCEDURE SP_THEM_CTLH (p_MaLH IN VARCHAR2, p_MaSP IN VARCHAR2, p_SoLuong IN NUMBER) IS
-BEGIN
-    -- GiaMua và ThanhTien sẽ do TRG_CTLH_THANHTIEN tự điền
-    INSERT INTO CHITIETLOHANG (MaLH, MaSP, SoLuong) VALUES (p_MaLH, p_MaSP, p_SoLuong);
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_CAPNHAT_CTLH (p_MaCTLH IN VARCHAR2, p_SoLuong IN NUMBER) IS
-BEGIN
-    -- Chỉ cho phép cập nhật số lượng (Trigger sẽ tự tính lại thành tiền và tổng tiền)
-    UPDATE CHITIETLOHANG SET SoLuong = NVL(p_SoLuong, SoLuong) WHERE MaCTLH = p_MaCTLH;
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_XOA_CTLH (p_MaCTLH IN VARCHAR2) IS
-BEGIN
-    DELETE FROM CHITIETLOHANG WHERE MaCTLH = p_MaCTLH;
-    COMMIT;
-END;
-/
-
--- ================================= Bảng DONHANG =================================
-CREATE OR REPLACE PROCEDURE SP_THEM_DH (
-    p_MaKH IN VARCHAR2, 
-    p_MaNV IN VARCHAR2, 
-    p_DiaChiGiaoHang IN NVARCHAR2, 
-    p_PhiVanChuyen IN NUMBER,
-    p_PhuongThucTT IN NVARCHAR2 
-) IS
-BEGIN
-    -- Khởi tạo đơn hàng mới. 
-    -- Tiền hàng và Giảm giá bằng 0. Do chưa có hàng nên Tổng tiền tạm thời chính bằng phí vận chuyển.
-    INSERT INTO DONHANG (
-        MaKH, MaNV, DiaChiGiaoHang, PhiVanChuyen, 
-        TongTienHang, GiamGia, TongTien, 
-        TrangThaiDH, PhuongThucTT, TrangThaiTT
-    )
-    VALUES (
-        p_MaKH, p_MaNV, p_DiaChiGiaoHang, p_PhiVanChuyen, 
-        0, 0, p_PhiVanChuyen, 
-        'Đã đặt', p_PhuongThucTT, 0
-    );
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_CAPNHAT_DH (
-    p_MaDH IN VARCHAR2, 
-    p_DiaChiGiaoHang IN NVARCHAR2, 
-    p_TGGiaoYC IN DATE,      -- Đổi từ TGGiaoDK sang TGGiaoYC theo PDF
-    p_TGGiaoTT IN DATE,      -- Thêm cột thời gian giao thực tế
-    p_TrangThaiDH IN NVARCHAR2,
-    p_TrangThaiTT IN NUMBER, -- Thêm cập nhật trạng thái thanh toán
-    p_LyDoHuy IN NVARCHAR2   -- Thêm cập nhật lý do hủy nếu có
-) IS
-BEGIN
-    UPDATE DONHANG 
-    SET DiaChiGiaoHang = NVL(p_DiaChiGiaoHang, DiaChiGiaoHang), 
-        TGGiaoYC = NVL(p_TGGiaoYC, TGGiaoYC),
-        TGGiaoTT = NVL(p_TGGiaoTT, TGGiaoTT), 
-        TrangThaiDH = NVL(p_TrangThaiDH, TrangThaiDH),
-        TrangThaiTT = NVL(p_TrangThaiTT, TrangThaiTT),
-        LyDoHuy = NVL(p_LyDoHuy, LyDoHuy)
-    WHERE MaDH = p_MaDH;
-    COMMIT;
-END;
-/
-
+-- ------------------------------------------------------------------------------------
+-- 2. QUẢN LÝ ĐƠN HÀNG & HUỶ ĐƠN
+-- ------------------------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE SP_HUY_DH (
     p_MaDH IN VARCHAR2,
     p_LyDoHuy IN NVARCHAR2
@@ -339,20 +59,15 @@ CREATE OR REPLACE PROCEDURE SP_HUY_DH (
 BEGIN
     SELECT TrangThaiDH INTO v_TrangThaiDH FROM DONHANG WHERE MaDH = p_MaDH;
     
-    -- Nếu đơn đã hoàn thành hoặc đã huỷ trước đó rồi thì không cho phép huỷ nữa
     IF v_TrangThaiDH IN ('Hoàn thành', 'Đã huỷ') THEN
         RAISE_APPLICATION_ERROR(-20030, 'Không thể huỷ đơn hàng đã hoàn thành hoặc đã huỷ!');
     END IF;
 
-    -- 1. Cập nhật trạng thái Đơn hàng và ghi lại lý do
     UPDATE DONHANG 
     SET TrangThaiDH = 'Đã huỷ',
         LyDoHuy = p_LyDoHuy
     WHERE MaDH = p_MaDH;
 
-    -- 2. Cập nhật trạng thái Xuất kho (nếu có)
-    -- Thao tác này sẽ tự động kích hoạt Trigger TRG_XK_CAPNHAT_TONKHO
-    -- Trigger sẽ tự tính toán việc hoàn trả SLKhaDung và SLConLai vào bảng TONKHO
     UPDATE XUATKHO 
     SET TrangThaiXK = 'Đã huỷ', 
         TGCapNhat = SYSDATE
@@ -366,59 +81,28 @@ EXCEPTION
 END;
 /
 
--- ================================= Bảng CHITIETDONHANG =================================
-CREATE OR REPLACE PROCEDURE SP_THEM_CTDH (p_MaDH IN VARCHAR2, p_MaSP IN VARCHAR2, p_SoLuong IN NUMBER) IS
-BEGIN
-    -- GiaBan và ThanhTien sẽ do TRG_CTDH_THANHTIEN tự điền
-    INSERT INTO CHITIETDONHANG (MaDH, MaSP, SoLuong) VALUES (p_MaDH, p_MaSP, p_SoLuong);
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_CAPNHAT_CTDH (p_MaCTDH IN VARCHAR2, p_SoLuong IN NUMBER) IS
-BEGIN
-    UPDATE CHITIETDONHANG SET SoLuong = NVL(p_SoLuong, SoLuong) WHERE MaCTDH = p_MaCTDH;
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_XOA_CTDH (p_MaCTDH IN VARCHAR2) IS
-BEGIN
-    DELETE FROM CHITIETDONHANG WHERE MaCTDH = p_MaCTDH;
-    COMMIT;
-END;
-/
-
--- ================================= NHẬP KHO =================================
--- NHẬP KHO: Chuyển toàn bộ Chi tiết lô hàng vào Tồn kho
-CREATE OR REPLACE PROCEDURE SP_YEUCAU_NHAPKHO (
-    p_MaLH IN VARCHAR2
-) IS
+-- ------------------------------------------------------------------------------------
+-- 3. QUẢN LÝ NHẬP KHO & XÁC NHẬN VỊ TRÍ
+-- ------------------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_YEUCAU_NHAPKHO (p_MaLH IN VARCHAR2) IS
     v_TrangThaiLH NVARCHAR2(50);
 BEGIN
     SELECT TrangThaiLH INTO v_TrangThaiLH FROM LOHANG WHERE MaLH = p_MaLH;
-    
     IF v_TrangThaiLH IN ('Chờ nhập kho', 'Đã nhập kho') THEN
         RAISE_APPLICATION_ERROR(-20022, 'Lô hàng này đã được yêu cầu hoặc đã hoàn tất nhập kho!');
     END IF;
-
-    -- Đổi trạng thái để báo hiệu cho bộ phận Kho
     UPDATE LOHANG SET TrangThaiLH = 'Chờ nhập kho' WHERE MaLH = p_MaLH;
-    
     COMMIT;
 EXCEPTION 
-    WHEN OTHERS THEN
-        ROLLBACK;
-        RAISE;
+    WHEN OTHERS THEN ROLLBACK; RAISE;
 END;
 /
 
--- Nhân viên kho xác nhập sau khi xếp hàng vào kho
 CREATE OR REPLACE PROCEDURE SP_XACNHAN_VITRI_CTLH (
-p_MaCTLH IN VARCHAR2,
-    p_MaKho IN VARCHAR2,       -- Truyền từ ComboBox Kho trên giao diện
-    p_TGHetHan IN DATE,        -- Truyền từ DatePicker trên giao diện
-    p_ViTri IN NVARCHAR2       -- Truyền từ ô Text Vị trí trên giao diện
+    p_MaCTLH IN VARCHAR2,
+    p_MaKho IN VARCHAR2,
+    p_TGHetHan IN DATE,
+    p_ViTri IN NVARCHAR2
 ) IS
     v_MaLH VARCHAR2(10);
     v_MaSP VARCHAR2(10);
@@ -427,176 +111,87 @@ p_MaCTLH IN VARCHAR2,
     v_LoaiKho NVARCHAR2(100);
     v_TonTai NUMBER;
     v_ChuaXepXong NUMBER;
-    v_TrangThaiLH NVARCHAR2(50);
 BEGIN
-    -- 1. Lấy thông tin Chi tiết lô hàng và Yêu cầu bảo quản của sản phẩm
     SELECT CTLH.MaLH, CTLH.MaSP, CTLH.SoLuong, SP.BaoQuan 
     INTO v_MaLH, v_MaSP, v_SoLuong, v_BaoQuan
-    FROM CHITIETLOHANG CTLH
-    JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
+    FROM CHITIETLOHANG CTLH JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
     WHERE CTLH.MaCTLH = p_MaCTLH;
 
-    -- Kiểm tra trạng thái Lô hàng (Chỉ xử lý khi đang chờ nhập kho)
-    SELECT TrangThaiLH INTO v_TrangThaiLH FROM LOHANG WHERE MaLH = v_MaLH;
-    IF v_TrangThaiLH != 'Chờ nhập kho' THEN
-        RAISE_APPLICATION_ERROR(-20026, 'Lô hàng không ở trạng thái Chờ nhập kho!');
-    END IF;
-
-    -- 2. ĐỐI CHIẾU AN TOÀN: Kiểm tra Kho nhân viên chọn có khớp chuẩn bảo quản không
     SELECT LoaiKho INTO v_LoaiKho FROM KHO WHERE MaKho = p_MaKho;
     IF v_LoaiKho != v_BaoQuan THEN
-        RAISE_APPLICATION_ERROR(-20028, 'Bảo quản sai quy cách! Sản phẩm ' || v_MaSP || ' yêu cầu kho [' || v_BaoQuan || '] nhưng bạn lại chọn kho [' || v_LoaiKho || '].');
+        RAISE_APPLICATION_ERROR(-20028, 'Bảo quản sai quy cách! Yêu cầu [' || v_BaoQuan || '] nhưng chọn kho [' || v_LoaiKho || '].');
     END IF;
 
-    -- 3. Kiểm tra chống nhập đúp (1 mã chi tiết chỉ được cất 1 lần)
     SELECT COUNT(*) INTO v_TonTai FROM TONKHO WHERE MaCTLH = p_MaCTLH;
     IF v_TonTai > 0 THEN
-        RAISE_APPLICATION_ERROR(-20027, 'Sản phẩm của chi tiết lô hàng này đã được xác nhận cất vào kho rồi!');
+        RAISE_APPLICATION_ERROR(-20027, 'Chi tiết lô hàng này đã được nhập kho rồi!');
     END IF;
 
-    -- 4. INSERT dữ liệu chính thức vào bảng Tồn Kho
     INSERT INTO TONKHO (MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri)
     VALUES (p_MaKho, p_MaCTLH, v_SoLuong, v_SoLuong, SYSDATE, p_TGHetHan, p_ViTri);
 
-    -- 5. TỰ ĐỘNG ĐÓNG LÔ HÀNG: Đếm xem Lô hàng này còn sản phẩm nào chưa cất không?
-    SELECT COUNT(*) INTO v_ChuaXepXong
-    FROM CHITIETLOHANG C
-    WHERE C.MaLH = v_MaLH 
-      AND C.MaCTLH NOT IN (SELECT MaCTLH FROM TONKHO);
+    SELECT COUNT(*) INTO v_ChuaXepXong FROM CHITIETLOHANG C
+    WHERE C.MaLH = v_MaLH AND C.MaCTLH NOT IN (SELECT MaCTLH FROM TONKHO);
 
     IF v_ChuaXepXong = 0 THEN
-        -- Nếu tất cả đã cất xong -> Cập nhật Lô hàng hoàn tất
         UPDATE LOHANG SET TrangThaiLH = 'Đã nhập kho' WHERE MaLH = v_MaLH;
     END IF;
-
-    -- Không COMMIT và EXCEPTION ROLLBACK ở đây.
-    -- Vì NẾU COMMIT dữ liệu sẽ được lưu ngay vào DB và có thể dẫn đến bị trùng
-    -- Vì hệ thống sẽ lưu nhiều dòng cùng một lúc (Batch), nếu xảy ra lỗi ở dòng số 3, 
-    -- hệ thống phải huỷ (rollback) toàn bộ các dòng 1 và 2 đã chạy trước đó để tránh tình trạng dữ liệu lưu nửa vời.
+    COMMIT;
 END;
 /
 
--- ================================= XUẤT KHO =================================
+-- ------------------------------------------------------------------------------------
+-- 4. QUẢN LÝ XUẤT KHO & GIAO HÀNG
+-- ------------------------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE SP_YEUCAU_XUATKHO (p_MaDH IN VARCHAR2) IS
     v_SoLuongCan NUMBER;
     v_SoLuongXuat NUMBER;
     v_TrangThaiDH NVARCHAR2(50);
 BEGIN
     SELECT TrangThaiDH INTO v_TrangThaiDH FROM DONHANG WHERE MaDH = p_MaDH;
-    
-    -- Kiểm tra đơn hàng có đủ điều kiện để phân bổ hàng không
     IF v_TrangThaiDH IN ('Đang giao', 'Hoàn thành', 'Đã huỷ') THEN
         RAISE_APPLICATION_ERROR(-20023, 'Trạng thái đơn hàng không hợp lệ!');
     END IF;
 
-    -- Duyệt từng sản phẩm trong chi tiết đơn hàng
     FOR rec_CTDH IN (SELECT MaCTDH, MaSP, SoLuong FROM CHITIETDONHANG WHERE MaDH = p_MaDH) LOOP
         v_SoLuongCan := rec_CTDH.SoLuong;
-
-        -- Tìm hàng theo FEFO (Hết hạn trước xuất trước) và FIFO (Nhập trước xuất trước)
         FOR rec_TK IN (
-            SELECT TK.MaTonKho, TK.SLKhaDung 
-            FROM TONKHO TK
+            SELECT TK.MaTonKho, TK.SLKhaDung FROM TONKHO TK
             JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH
-            WHERE CTLH.MaSP = rec_CTDH.MaSP 
-              AND TK.SLKhaDung > 0 
-              AND TK.TGHetHan >= TRUNC(SYSDATE)
-            ORDER BY TK.TGHetHan ASC, TK.TGNhapKho ASC
-            FOR UPDATE -- Thêm dòng này để lock record
+            WHERE CTLH.MaSP = rec_CTDH.MaSP AND TK.SLKhaDung > 0 AND TK.TGHetHan >= TRUNC(SYSDATE)
+            ORDER BY TK.TGHetHan ASC, TK.TGNhapKho ASC FOR UPDATE
         ) LOOP
             EXIT WHEN v_SoLuongCan = 0;
-
             IF rec_TK.SLKhaDung >= v_SoLuongCan THEN
-                v_SoLuongXuat := v_SoLuongCan;
-                v_SoLuongCan := 0;
+                v_SoLuongXuat := v_SoLuongCan; v_SoLuongCan := 0;
             ELSE
-                v_SoLuongXuat := rec_TK.SLKhaDung;
-                v_SoLuongCan := v_SoLuongCan - rec_TK.SLKhaDung;
+                v_SoLuongXuat := rec_TK.SLKhaDung; v_SoLuongCan := v_SoLuongCan - rec_TK.SLKhaDung;
             END IF;
-
-            -- Insert với MaNV để NULL và trạng thái 'Tạm giữ'
-            -- Trigger sẽ tự động trừ SLKhaDung trong bảng TONKHO
             INSERT INTO XUATKHO (MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) 
             VALUES (rec_CTDH.MaCTDH, rec_TK.MaTonKho, NULL, v_SoLuongXuat, SYSDATE, 'Tạm giữ');
-            
         END LOOP;
-
-        IF v_SoLuongCan > 0 THEN
-            RAISE_APPLICATION_ERROR(-20024, 'Kho không đủ hàng cho sản phẩm: ' || rec_CTDH.MaSP);
-        END IF;
+        IF v_SoLuongCan > 0 THEN RAISE_APPLICATION_ERROR(-20024, 'Kho không đủ hàng cho: ' || rec_CTDH.MaSP); END IF;
     END LOOP;
-
     COMMIT;
 EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK;
-        RAISE;
+    WHEN OTHERS THEN ROLLBACK; RAISE;
 END;
 /
 
--- Nhân viên xác nhận xuất kho để lấy hàng giao cho khách
-CREATE OR REPLACE PROCEDURE SP_XACNHAN_XUATKHO (
-    p_MaDH IN VARCHAR2, 
-    p_MaNV IN VARCHAR2
-) IS
+CREATE OR REPLACE PROCEDURE SP_XACNHAN_XUATKHO (p_MaDH IN VARCHAR2, p_MaNV IN VARCHAR2) IS
 BEGIN
-    -- 1. Cập nhật trạng thái xuất kho thành 'Đã xuất' và lưu MaNV
-    -- Trigger sẽ tự động trừ SLConLai (hàng thực tế rời kho)
-    UPDATE XUATKHO 
-    SET TrangThaiXK = 'Đã xuất', 
-        MaNV = p_MaNV, 
-        TGCapNhat = SYSDATE
-    WHERE MaCTDH IN (SELECT MaCTDH FROM CHITIETDONHANG WHERE MaDH = p_MaDH)
-      AND TrangThaiXK = 'Tạm giữ';
-
-    -- 2. Cập nhật trạng thái đơn hàng sang 'Chờ giao hàng'
-    UPDATE DONHANG 
-    SET TrangThaiDH = 'Chờ giao hàng'
-    WHERE MaDH = p_MaDH;
-
+    UPDATE XUATKHO SET TrangThaiXK = 'Đã xuất', MaNV = p_MaNV, TGCapNhat = SYSDATE
+    WHERE MaCTDH IN (SELECT MaCTDH FROM CHITIETDONHANG WHERE MaDH = p_MaDH) AND TrangThaiXK = 'Tạm giữ';
+    UPDATE DONHANG SET TrangThaiDH = 'Chờ giao hàng' WHERE MaDH = p_MaDH;
     COMMIT;
 EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK;
-        RAISE;
+    WHEN OTHERS THEN ROLLBACK; RAISE;
 END;
 /
 
--- Nhân viên giao hàng bấm xác nhận giao hàng
-CREATE OR REPLACE PROCEDURE SP_XACNHAN_GIAOHANG (
-    p_MaDH IN VARCHAR2, 
-    p_MaNV_GiaoHang IN VARCHAR2
-) IS
-BEGIN
-    UPDATE DONHANG 
-    SET MaNV = p_MaNV_GiaoHang
-    WHERE MaDH = p_MaDH;
-
-    COMMIT;
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK;
-        RAISE;
-END;
-/
-
--- Nhân viên giao hàng bấm xác nhận giao hàng THÀNH CÔNG
-CREATE OR REPLACE PROCEDURE SP_GIAOHANG_THANHCONG (
-    p_MaDH IN VARCHAR2, 
-    p_MaNV_GiaoHang IN VARCHAR2
-) IS
-BEGIN
-    UPDATE DONHANG 
-    SET TrangThaiDH = 'Hoàn thành'
-    WHERE MaDH = p_MaDH;
-
-    COMMIT;
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK;
-        RAISE;
-END;
-/
+-- ------------------------------------------------------------------------------------
+-- 5. QUẢN LÝ THÔNG BÁO & KIỂM TRA HỆ THỐNG
+-- ------------------------------------------------------------------------------------
 
 -- ================================= KIỂM TRA HẾT HẠN HÀNG NGÀY =================================
 -- Procedure này quét toàn bộ kho để cập nhật trạng thái Hết hạn/Sắp hết hạn 
@@ -607,81 +202,56 @@ CREATE OR REPLACE PROCEDURE SP_KIEMTRA_HETHAN_THONGBAO IS
     v_MinTonKho NUMBER;
     v_NgayHienTai DATE := TRUNC(SYSDATE);
 BEGIN
-    -- 1. Lấy cấu hình từ bảng THAMSO
-    BEGIN
-        SELECT GiaTri INTO v_SoNgayHSD FROM THAMSO WHERE TenTS = 'CANHBAO_HETHAN';
-    EXCEPTION WHEN NO_DATA_FOUND THEN v_SoNgayHSD := 7;
-    END;
+    -- 1. Lấy cấu hình
+    BEGIN SELECT GiaTri INTO v_SoNgayHSD FROM THAMSO WHERE TenTS = 'CANHBAO_HETHAN'; EXCEPTION WHEN NO_DATA_FOUND THEN v_SoNgayHSD := 7; END;
+    BEGIN SELECT GiaTri INTO v_MinTonKho FROM THAMSO WHERE TenTS = 'MIN_TONKHO'; EXCEPTION WHEN NO_DATA_FOUND THEN v_MinTonKho := 20; END;
 
-    BEGIN
-        SELECT GiaTri INTO v_MinTonKho FROM THAMSO WHERE TenTS = 'MIN_TONKHO';
-    EXCEPTION WHEN NO_DATA_FOUND THEN v_MinTonKho := 20;
-    END;
+    -- 2. Cập nhật HẾT HẠN
+    UPDATE TONKHO SET TrangThai = N'Hết hạn', SLKhaDung = 0 WHERE TGHetHan < v_NgayHienTai AND TrangThai <> N'Hết hạn';
+    -- 3. Cập nhật SẮP HẾT HẠN
+    UPDATE TONKHO SET TrangThai = N'Sắp hết hạn' WHERE TGHetHan >= v_NgayHienTai AND (TGHetHan - v_NgayHienTai) <= v_SoNgayHSD AND TrangThai = N'Còn hạn';
 
-    -- 2. Cập nhật trạng thái HẾT HẠN trong bảng TONKHO
-    UPDATE TONKHO SET TrangThai = N'Hết hạn', SLKhaDung = 0
-    WHERE TGHetHan < v_NgayHienTai AND TrangThai <> N'Hết hạn';
-
-    -- 3. Cập nhật trạng thái SẮP HẾT HẠN trong bảng TONKHO
-    UPDATE TONKHO SET TrangThai = N'Sắp hết hạn'
-    WHERE TGHetHan >= v_NgayHienTai AND (TGHetHan - v_NgayHienTai) <= v_SoNgayHSD AND TrangThai = N'Còn hạn';
-
-    -- 4. Chèn thông báo HẾT HẠN (theo lô)
+    -- 4. Thông báo Hết hạn (Lô)
     FOR tk IN (
-        SELECT TK.MaTonKho, SP.TenSP, TK.TGHetHan
-        FROM TONKHO TK
-        JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH
-        JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
-        WHERE TK.TrangThai = N'Hết hạn'
+        SELECT TK.MaTonKho, SP.TenSP, TK.TGHetHan FROM TONKHO TK JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP WHERE TK.TrangThai = N'Hết hạn'
     ) LOOP
         DECLARE 
             v_Msg NVARCHAR2(500) := N'Lô ' || tk.MaTonKho || N' của SP ' || tk.TenSP || N' đã HẾT HẠN vào ngày ' || TO_CHAR(tk.TGHetHan, 'DD/MM/YYYY');
             v_Count NUMBER;
         BEGIN
             SELECT COUNT(*) INTO v_Count FROM THONGBAO WHERE NoiDung = v_Msg;
-            IF v_Count = 0 THEN
-                INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao)
-                VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Hết hạn', v_Msg, 0, SYSDATE);
-            END IF;
+            IF v_Count = 0 THEN INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao) VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Hết hạn', v_Msg, 0, SYSDATE); END IF;
         END;
     END LOOP;
 
-    -- 5. Chèn thông báo SẮP HẾT HẠN (theo lô)
+    -- 5. Thông báo Sắp hết hạn (Lô)
     FOR tk IN (
-        SELECT TK.MaTonKho, SP.TenSP, TK.TGHetHan
-        FROM TONKHO TK
-        JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH
-        JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
-        WHERE TK.TrangThai = N'Sắp hết hạn'
+        SELECT TK.MaTonKho, SP.TenSP, TK.TGHetHan FROM TONKHO TK JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP WHERE TK.TrangThai = N'Sắp hết hạn'
     ) LOOP
         DECLARE 
             v_Msg NVARCHAR2(500) := N'Lô ' || tk.MaTonKho || N' của SP ' || tk.TenSP || N' sẽ hết hạn vào ' || TO_CHAR(tk.TGHetHan, 'DD/MM/YYYY');
             v_Count NUMBER;
         BEGIN
             SELECT COUNT(*) INTO v_Count FROM THONGBAO WHERE NoiDung = v_Msg;
-            IF v_Count = 0 THEN
-                INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao)
-                VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Sắp hết hạn', v_Msg, 0, SYSDATE);
-            END IF;
+            IF v_Count = 0 THEN INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao) VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Sắp hết hạn', v_Msg, 0, SYSDATE); END IF;
         END;
     END LOOP;
 
-    -- 6. **FIX: QUÉT TỒN KHO - TÍNH TỔNG CHO MỖI SẢN PHẨM (BỎ ĐIỀU KIỆN HẠNCHẾ)**
+    -- 6. TÍNH TỔNG TỒN KHO CHO MỖI SẢN PHẨM 
+    -- (Đã xóa bỏ logic ép hàng hết hạn về 0. Giờ hệ thống tính tổng theo số lượng vật lý thực tế)
     FOR rec IN (
-        SELECT SP.MaSP, SP.TenSP, SUM(TK.SLConLai) as TongTon
-        FROM TONKHO TK
-        JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH
-        JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
-        WHERE TK.TrangThai <> N'Hết hạn'  -- ✅ Đây là chìa khóa: Chỉ tính các lô CÒN HẠNHỢP LỆ
+        SELECT SP.MaSP, SP.TenSP, 
+               NVL(SUM(TK.SLConLai), 0) AS TongTon
+        FROM SANPHAM SP
+        LEFT JOIN CHITIETLOHANG CTLH ON SP.MaSP = CTLH.MaSP
+        LEFT JOIN TONKHO TK ON CTLH.MaCTLH = TK.MaCTLH
         GROUP BY SP.MaSP, SP.TenSP
-        HAVING SUM(TK.SLConLai) IS NOT NULL  -- ✅ FIX: Chấp nhận tất cả giá trị từ 0 trở lên
     ) LOOP
         DECLARE
             v_Msg NVARCHAR2(500);
             v_Type NVARCHAR2(50);
             v_Count NUMBER;
         BEGIN
-            -- ✅ FIX: Thêm điều kiện kiểm tra đủ rõ ràng
             IF rec.TongTon <= 0 THEN
                 v_Type := N'Hết hàng';
                 v_Msg := N'CẢNH BÁO: Sản phẩm [' || rec.TenSP || N'] đã HẾT HÀNG hoàn toàn. Yêu cầu nhập hàng mới ngay!';
@@ -689,14 +259,18 @@ BEGIN
                 v_Type := N'Sắp hết hàng';
                 v_Msg := N'Thông báo: Sản phẩm [' || rec.TenSP || N'] sắp hết hàng. Hiện chỉ còn ' || rec.TongTon || N' đơn vị. Yêu cầu nhập thêm hàng!';
             ELSE
-                -- ✅ FIX: RETURN để thoát vòng lặp nếu không cần thông báo
-                CONTINUE;
+                CONTINUE; 
             END IF;
 
-            SELECT COUNT(*) INTO v_Count FROM THONGBAO WHERE NoiDung = v_Msg;
+            -- Logic chống trùng lặp theo ngày
+            SELECT COUNT(*) INTO v_Count 
+            FROM THONGBAO 
+            WHERE LoaiTB = v_Type 
+              AND NoiDung LIKE N'%[' || rec.TenSP || N']%'
+              AND TRUNC(TGTao) = TRUNC(SYSDATE);
             
             IF v_Count = 0 THEN
-                INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao)
+                INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao) 
                 VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), v_Type, v_Msg, 0, SYSDATE);
             END IF;
         END;
