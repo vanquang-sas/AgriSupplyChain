@@ -17,6 +17,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
@@ -28,16 +29,19 @@ public class LoHangPanel extends JPanel {
 
     private final LoHangBUS loHangBUS = new LoHangBUS();
     private final SanPhamBUS sanPhamBUS = new SanPhamBUS();
+    private List<LoHangDTO> currentDataList = new ArrayList<>();
+
     private JTable table;
     private DefaultTableModel tableModel;
     private ModernSearchField searchField;
     private JLabel lblTongLH, lblChoNhap, lblDaNhap;
+    
     private JTable detailTable;
     private DefaultTableModel detailModel;
     private JLabel lblDetailTitle;
     private String selectedMaLH;
 
-    private static final String[] COLUMNS = {"MÃ LH", "NHÀ CUNG CẤP", "TRẠNG THÁI"};
+    private static final String[] COLUMNS = {"", "MÃ LH", "NHÀ CUNG CẤP", "TRẠNG THÁI"};
 
     public LoHangPanel() {
         setLayout(new BorderLayout());
@@ -149,7 +153,7 @@ public class LoHangPanel extends JPanel {
         JButton btnTaoLoHang = createActionButton("Tạo lô hàng", AppColor.SUCCESS, AppColor.SUCCESS_HOVER, AppColor.SUCCESS_ACTIVE);
         JButton btnNhapKho = createActionButton("Yêu cầu nhập kho", AppColor.WARNING, AppColor.WARNING_HOVER, AppColor.WARNING_ACTIVE);
         JButton btnXoaLoHang = createActionButton("Xóa lô hàng", new Color(220, 38, 38), new Color(239, 68, 68), new Color(185, 28, 28));
-        JButton btnRefresh = createIconButton("↻");
+        JButton btnRefresh = createIconButton("icons/refresh.svg");
 
         btnGroup.add(btnTaoLoHang);
         btnGroup.add(btnNhapKho);
@@ -176,14 +180,23 @@ public class LoHangPanel extends JPanel {
         toolBar.add(btnGroup, BorderLayout.WEST);
         toolBar.add(searchGroup, BorderLayout.EAST);
 
-        JPanel centerPanel = new JPanel(new BorderLayout(0, 16));
-        centerPanel.setOpaque(false);
-        centerPanel.add(buildTableWrapper(), BorderLayout.CENTER);
-        centerPanel.add(buildDetailCard(), BorderLayout.SOUTH);
+        JPanel splitWrapper = new JPanel(new BorderLayout(16, 0));
+        splitWrapper.setOpaque(false);
+        splitWrapper.setBorder(new EmptyBorder(0, 16, 16, 16));
+
+        JPanel leftPanel = buildTableWrapper();
+        JPanel rightPanel = buildDetailCard();
+        
+        // [FIX] Điều chỉnh lại chiều rộng (rút ngắn bảng chi tiết xuống 480px để nhường chỗ cho bảng Lô hàng)
+        rightPanel.setPreferredSize(new Dimension(480, 0)); 
+
+        splitWrapper.add(leftPanel, BorderLayout.CENTER);
+        splitWrapper.add(rightPanel, BorderLayout.EAST);
 
         card.add(toolBar, BorderLayout.NORTH);
-        card.add(centerPanel, BorderLayout.CENTER);
+        card.add(splitWrapper, BorderLayout.CENTER);
 
+        // Action Listeners
         btnTaoLoHang.addActionListener(e -> {
             LoHangForm dialog = new LoHangForm(SwingUtilities.getWindowAncestor(this));
             dialog.setVisible(true);
@@ -191,31 +204,33 @@ public class LoHangPanel extends JPanel {
         });
 
         btnNhapKho.addActionListener(e -> {
-            if (selectedMaLH == null) {
+            List<String> listMa = getSelectedItems();
+            if (listMa.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Vui lòng chọn lô hàng trước khi yêu cầu nhập kho.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            if (loHangBUS.yeuCauNhapKho(selectedMaLH)) {
-                JOptionPane.showMessageDialog(this, "Đã gửi yêu cầu nhập kho", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                loadData(null);
-            } else {
-                JOptionPane.showMessageDialog(this, "Gửi yêu cầu nhập kho thất bại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            int success = 0;
+            for (String ma : listMa) {
+                if (loHangBUS.yeuCauNhapKho(ma)) success++;
             }
+            JOptionPane.showMessageDialog(this, "Đã gửi yêu cầu nhập kho cho " + success + " lô hàng.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            loadData(null);
         });
 
         btnXoaLoHang.addActionListener(e -> {
-            if (selectedMaLH == null) {
+            List<String> listMa = getSelectedItems();
+            if (listMa.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Vui lòng chọn lô hàng cần xóa.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            int option = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn xóa lô hàng " + selectedMaLH + " không?", "Xác nhận", JOptionPane.YES_NO_OPTION);
+            int option = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn xóa " + listMa.size() + " lô hàng đã chọn không?", "Xác nhận", JOptionPane.YES_NO_OPTION);
             if (option == JOptionPane.YES_OPTION) {
-                if (loHangBUS.xoaLoHang(selectedMaLH)) {
-                    JOptionPane.showMessageDialog(this, "Đã xóa lô hàng.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                    loadData(null);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Xóa lô hàng thất bại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                int success = 0;
+                for (String ma : listMa) {
+                    if (loHangBUS.xoaLoHang(ma)) success++;
                 }
+                JOptionPane.showMessageDialog(this, "Đã xóa thành công " + success + " lô hàng.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                loadData(null);
             }
         });
 
@@ -223,13 +238,28 @@ public class LoHangPanel extends JPanel {
         return card;
     }
 
+    private List<String> getSelectedItems() {
+        List<String> listMa = new ArrayList<>();
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            if (Boolean.TRUE.equals(tableModel.getValueAt(i, 0))) {
+                listMa.add(tableModel.getValueAt(i, 1).toString());
+            }
+        }
+        if (listMa.isEmpty() && table.getSelectedRow() >= 0) {
+            listMa.add(tableModel.getValueAt(table.getSelectedRow(), 1).toString());
+        }
+        return listMa;
+    }
+
     private JPanel buildTableWrapper() {
         JPanel tableWrapper = new JPanel(new BorderLayout());
         tableWrapper.setOpaque(false);
-        tableWrapper.setBorder(new EmptyBorder(0, 16, 16, 16));
 
         tableModel = new DefaultTableModel(COLUMNS, 0) {
-            @Override public boolean isCellEditable(int row, int column) { return false; }
+            @Override public boolean isCellEditable(int row, int column) { return column == 0; }
+            @Override public Class<?> getColumnClass(int columnIndex) {
+                return (columnIndex == 0) ? Boolean.class : String.class;
+            }
         };
 
         table = new JTable(tableModel);
@@ -247,14 +277,32 @@ public class LoHangPanel extends JPanel {
         header.setPreferredSize(new Dimension(0, 52));
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(209, 213, 219)));
 
-        DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
-        headerRenderer.setHorizontalAlignment(SwingConstants.LEFT);
-        headerRenderer.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        headerRenderer.setBackground(new Color(243, 244, 246));
-        headerRenderer.setBorder(new EmptyBorder(0, 16, 0, 0));
+        DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean isS, boolean hasF, int r, int c) {
+                Component comp = super.getTableCellRendererComponent(t, v, isS, hasF, r, c);
+                comp.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                comp.setBackground(new Color(243, 244, 246));
+                ((JLabel) comp).setBorder(new EmptyBorder(0, 16, 0, 8));
+                return comp;
+            }
+        };
         for (int i = 0; i < COLUMNS.length; i++) {
             table.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
         }
+
+        // [FIX] Căn chỉnh độ rộng từng cột một cách cụ thể để cột Trạng Thái luôn hiển thị đẹp
+        table.getColumnModel().getColumn(0).setPreferredWidth(50);  // Checkbox
+        table.getColumnModel().getColumn(1).setPreferredWidth(100); // Mã LH
+        table.getColumnModel().getColumn(2).setPreferredWidth(200); // Nhà cung cấp
+        table.getColumnModel().getColumn(3).setPreferredWidth(150); // Trạng thái
+
+        ZebraHoverRenderer zebraRdr = new ZebraHoverRenderer(table);
+        for (int i = 1; i < COLUMNS.length; i++) {
+            if (i != 3) table.getColumnModel().getColumn(i).setCellRenderer(zebraRdr);
+        }
+        table.getColumnModel().getColumn(0).setCellRenderer(new ZebraCheckBoxRenderer(table));
+        table.getColumnModel().getColumn(3).setCellRenderer(new BadgeRenderer(table));
 
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createEmptyBorder());
@@ -264,7 +312,7 @@ public class LoHangPanel extends JPanel {
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting() && table.getSelectedRow() >= 0) {
-                    selectedMaLH = tableModel.getValueAt(table.getSelectedRow(), 0).toString();
+                    selectedMaLH = tableModel.getValueAt(table.getSelectedRow(), 1).toString();
                     showLoHangDetails(selectedMaLH);
                 }
             }
@@ -285,7 +333,7 @@ public class LoHangPanel extends JPanel {
         lblDetailTitle.setForeground(AppColor.TEXT_PRIMARY);
         detailCard.add(lblDetailTitle, BorderLayout.NORTH);
 
-        detailModel = new DefaultTableModel(new Object[]{"Mã SP", "Tên SP", "Giá mua", "Số lượng", "Thành tiền"}, 0) {
+        detailModel = new DefaultTableModel(new Object[]{"Mã SP", "Tên SP", "Giá mua", "SL", "Thành tiền"}, 0) {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
 
@@ -304,13 +352,29 @@ public class LoHangPanel extends JPanel {
         detailHeader.setPreferredSize(new Dimension(0, 46));
         detailHeader.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(209, 213, 219)));
 
-        DefaultTableCellRenderer detailHeaderRenderer = new DefaultTableCellRenderer();
-        detailHeaderRenderer.setHorizontalAlignment(SwingConstants.LEFT);
-        detailHeaderRenderer.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        detailHeaderRenderer.setBackground(new Color(243, 244, 246));
-        detailHeaderRenderer.setBorder(new EmptyBorder(0, 16, 0, 0));
+        // [FIX] Bê nguyên code style của bảng Lô Hàng xuống đây cho bảng Chi tiết đồng bộ
+        DefaultTableCellRenderer detailHeaderRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean isS, boolean hasF, int r, int c) {
+                Component comp = super.getTableCellRendererComponent(t, v, isS, hasF, r, c);
+                comp.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Đồng bộ font size 14
+                comp.setBackground(new Color(243, 244, 246));
+                ((JLabel) comp).setBorder(new EmptyBorder(0, 16, 0, 8)); // Đồng bộ padding
+                return comp;
+            }
+        };
         for (int i = 0; i < detailTable.getColumnCount(); i++) {
             detailTable.getColumnModel().getColumn(i).setHeaderRenderer(detailHeaderRenderer);
+        }
+
+        // Căn chỉnh độ rộng các cột bảng chi tiết cho gọn
+        detailTable.getColumnModel().getColumn(0).setPreferredWidth(60);
+        detailTable.getColumnModel().getColumn(1).setPreferredWidth(160);
+        detailTable.getColumnModel().getColumn(3).setPreferredWidth(30);
+
+        ZebraHoverRenderer detailZebraRdr = new ZebraHoverRenderer(detailTable);
+        for(int i = 0; i < detailTable.getColumnCount(); i++) {
+            detailTable.getColumnModel().getColumn(i).setCellRenderer(detailZebraRdr);
         }
 
         JScrollPane detailScroll = new JScrollPane(detailTable);
@@ -321,83 +385,97 @@ public class LoHangPanel extends JPanel {
         return detailCard;
     }
 
-    private JPanel createInputGroup(String labelText, JComponent inputComp) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setOpaque(false);
-
-        JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        label.setForeground(AppColor.TEXT_SECONDARY);
-        label.setBorder(new EmptyBorder(0, 0, 8, 0));
-
-        inputComp.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        inputComp.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(AppColor.BORDER), new EmptyBorder(8, 12, 8, 12)));
-        inputComp.setPreferredSize(new Dimension(0, 40));
-
-        panel.add(label);
-        panel.add(inputComp);
-        return panel;
-    }
-
     private JButton createActionButton(String text, Color bg, Color hoverColor, Color activeColor) {
-        JButton btn = new JButton(text);
+        JButton btn = new JButton(text) {
+            private Color current = bg;
+            {
+                addMouseListener(new MouseAdapter() {
+                    @Override public void mouseEntered(MouseEvent e)  { current = hoverColor; repaint(); }
+                    @Override public void mouseExited(MouseEvent e)   { current = bg; repaint(); }
+                    @Override public void mousePressed(MouseEvent e)  { current = activeColor; repaint(); }
+                    @Override public void mouseReleased(MouseEvent e) { current = hoverColor; repaint(); }
+                });
+            }
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(current);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btn.setForeground(Color.WHITE);
-        btn.setBackground(bg);
-        btn.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
         btn.setFocusPainted(false);
-        btn.setOpaque(true);
-        btn.addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e) { btn.setBackground(hoverColor); }
-            @Override public void mouseExited(MouseEvent e) { btn.setBackground(bg); }
-            @Override public void mousePressed(MouseEvent e) { btn.setBackground(activeColor); }
-            @Override public void mouseReleased(MouseEvent e) { btn.setBackground(bg); }
-        });
+        btn.setPreferredSize(new Dimension(130, 36));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;
     }
 
-    private JButton createIconButton(String symbol) {
-        JButton btn = new JButton(symbol);
-        btn.setFont(new Font("Segoe UI Symbol", Font.BOLD, 16));
-        btn.setBackground(Color.WHITE);
-        btn.setForeground(AppColor.TEXT_PRIMARY);
-        btn.setBorder(BorderFactory.createLineBorder(AppColor.BORDER));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    private JButton createIconButton(String svgPath) {
+        JButton btn = new JButton();
+        try {
+            btn.setIcon(new com.formdev.flatlaf.extras.FlatSVGIcon(svgPath, 18, 18));
+        } catch (Throwable ex) {
+            btn.setText("↻");
+            btn.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        }
+        btn.setPreferredSize(new Dimension(36, 36));
+        btn.setContentAreaFilled(false);
         btn.setFocusPainted(false);
-        btn.setPreferredSize(new Dimension(40, 40));
+        btn.setBorderPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.addMouseListener(new MouseAdapter() {
+            @Override public void mouseEntered(MouseEvent e) { btn.putClientProperty("hover", true); btn.repaint(); }
+            @Override public void mouseExited(MouseEvent e) { btn.putClientProperty("hover", false); btn.repaint(); }
+        });
+        btn.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                boolean isHovered = Boolean.TRUE.equals(c.getClientProperty("hover"));
+                g2.setColor(isHovered ? new Color(243, 244, 246) : Color.WHITE);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 10, 10);
+                g2.setColor(new Color(209, 213, 219));
+                g2.setStroke(new BasicStroke(1.2f));
+                g2.drawRoundRect(1, 1, c.getWidth() - 3, c.getHeight() - 3, 10, 10);
+                g2.dispose();
+                super.paint(g, c);
+            }
+        });
         return btn;
     }
 
     private void loadData(String keyword) {
         List<LoHangDTO> list = loHangBUS.getAll();
-        List<LoHangDTO> filtered = new ArrayList<>();
-
+        currentDataList.clear();
         for (LoHangDTO lh : list) {
             if (keyword == null || keyword.isEmpty()) {
-                filtered.add(lh);
+                currentDataList.add(lh);
             } else {
                 String lower = keyword.toLowerCase();
                 if (lh.getMaLH().toLowerCase().contains(lower)
                         || (lh.getTenNCC() != null && lh.getTenNCC().toLowerCase().contains(lower))
                         || (lh.getMaNCC() != null && lh.getMaNCC().toLowerCase().contains(lower))
                         || (lh.getTrangThaiLH() != null && lh.getTrangThaiLH().toLowerCase().contains(lower))) {
-                    filtered.add(lh);
+                    currentDataList.add(lh);
                 }
             }
         }
-
-        loadTableData(filtered);
+        loadTableData();
         updateStats(list);
         clearSelection();
     }
 
-    private void loadTableData(List<LoHangDTO> list) {
-        DefaultTableModel model = (DefaultTableModel) table.getModel();
-        model.setRowCount(0);
-        for (LoHangDTO lh : list) {
-            model.addRow(new Object[]{
+    private void loadTableData() {
+        tableModel.setRowCount(0);
+        for (LoHangDTO lh : currentDataList) {
+            tableModel.addRow(new Object[]{
+                    false,
                     lh.getMaLH(),
                     lh.getTenNCC() != null ? lh.getTenNCC() : lh.getMaNCC(),
                     lh.getTrangThaiLH()
@@ -412,11 +490,8 @@ public class LoHangPanel extends JPanel {
         for (LoHangDTO lh : list) {
             String status = lh.getTrangThaiLH();
             if (status != null) {
-                if (status.equalsIgnoreCase("Đã nhập kho")) {
-                    completed++;
-                } else {
-                    pending++;
-                }
+                if (status.equalsIgnoreCase("Đã nhập kho")) completed++;
+                else pending++;
             }
         }
         lblTongLH.setText(String.valueOf(total));
@@ -434,17 +509,12 @@ public class LoHangPanel extends JPanel {
     private void showLoHangDetails(String maLH) {
         lblDetailTitle.setText("Chi tiết lô hàng " + maLH);
         detailModel.setRowCount(0);
-
-        if (maLH == null || maLH.trim().isEmpty()) {
-            return;
-        }
-
+        if (maLH == null || maLH.trim().isEmpty()) return;
         List<ChiTietLoHangDTO> details = loHangBUS.getChiTietLoHang(maLH);
         if (details == null || details.isEmpty()) {
             detailModel.addRow(new Object[]{"", "Chưa có sản phẩm", "", "", ""});
             return;
         }
-
         DecimalFormat df = new DecimalFormat("#,###");
         for (ChiTietLoHangDTO item : details) {
             detailModel.addRow(new Object[]{
@@ -458,46 +528,38 @@ public class LoHangPanel extends JPanel {
     }
 
     private String findProductNameByMaSP(String maSP) {
-        if (maSP == null) {
-            return "";
-        }
+        if (maSP == null) return "";
         for (SanPhamDTO sp : sanPhamBUS.getAll()) {
-            if (maSP.equals(sp.getMaSP())) {
-                return sp.getTenSP();
-            }
+            if (maSP.equals(sp.getMaSP())) return sp.getTenSP();
         }
         return "";
     }
 
+    // --- INNER CLASSES (RENDERERS & COMPONENTS) ---
+    
     static class ModernSearchField extends JTextField {
         private final String placeholder;
         private boolean isHovered = false;
-
         public ModernSearchField(String placeholder) {
             this.placeholder = placeholder;
             setOpaque(false);
             setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 36));
             setFont(new Font("Segoe UI", Font.PLAIN, 13));
             setForeground(AppColor.TEXT_PRIMARY);
-
             addMouseListener(new MouseAdapter() {
                 @Override public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
                 @Override public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
             });
-
             addFocusListener(new FocusAdapter() {
                 @Override public void focusGained(FocusEvent e) { repaint(); }
                 @Override public void focusLost(FocusEvent e) { isHovered = false; repaint(); }
             });
         }
-
         @Override protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
             g2.setColor(Color.WHITE);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
-
             if (isFocusOwner()) {
                 g2.setColor(AppColor.PRIMARY);
                 g2.setStroke(new BasicStroke(1.5f));
@@ -509,20 +571,16 @@ public class LoHangPanel extends JPanel {
                 g2.setStroke(new BasicStroke(1f));
             }
             g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 12, 12);
-
             super.paintComponent(g);
-
             if (getText().isEmpty() && !isFocusOwner()) {
                 g2.setColor(new Color(156, 163, 175));
                 FontMetrics fm = g.getFontMetrics();
                 int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
                 g2.drawString(placeholder, 16, y);
             }
-
             g2.setColor(new Color(156, 163, 175));
-            int iconSize = 14;
             int x = getWidth() - 24;
-            int y = (getHeight() - iconSize) / 2;
+            int y = (getHeight() - 14) / 2;
             g2.setStroke(new BasicStroke(2f));
             g2.drawOval(x, y, 10, 10);
             g2.drawLine(x + 8, y + 8, x + 13, y + 13);
@@ -533,7 +591,6 @@ public class LoHangPanel extends JPanel {
     static class RoundedPanel extends JPanel {
         private final int arc;
         RoundedPanel(int arc) { this.arc = arc; setOpaque(false); }
-
         @Override protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -545,6 +602,71 @@ public class LoHangPanel extends JPanel {
             g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 5, getHeight() - 5, arc, arc));
             g2.dispose();
             super.paintComponent(g);
+        }
+    }
+
+    static class ZebraCheckBoxRenderer extends JCheckBox implements TableCellRenderer {
+        ZebraCheckBoxRenderer(JTable tbl) { setHorizontalAlignment(SwingConstants.CENTER); setOpaque(true); }
+        @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean isS, boolean hasF, int r, int c) {
+            setSelected(v != null && (Boolean) v);
+            setBackground(isS ? new Color(220, 252, 231) : (r % 2 == 0 ? Color.WHITE : new Color(250, 250, 250)));
+            return this;
+        }
+    }
+
+    static class ZebraHoverRenderer extends DefaultTableCellRenderer {
+        private int hoverRow = -1;
+        ZebraHoverRenderer(JTable tbl) {
+            tbl.addMouseMotionListener(new MouseMotionAdapter() {
+                @Override public void mouseMoved(MouseEvent e) { int r = tbl.rowAtPoint(e.getPoint()); if (r != hoverRow) { hoverRow = r; tbl.repaint(); } }
+            });
+            tbl.addMouseListener(new MouseAdapter() { @Override public void mouseExited(MouseEvent e) { hoverRow = -1; tbl.repaint(); } });
+        }
+        @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
+            super.getTableCellRendererComponent(t, v, s, f, r, c);
+            setBorder(new EmptyBorder(0, 16, 0, 8));
+            setFont(new Font("Segoe UI", c == 1 ? Font.BOLD : Font.PLAIN, 13));
+            setForeground(AppColor.TEXT_PRIMARY); 
+            setBackground(s ? new Color(220, 252, 231) : (r == hoverRow ? new Color(240, 253, 244) : (r % 2 == 0 ? Color.WHITE : new Color(250, 250, 250))));
+            return this;
+        }
+    }
+
+    static class BadgeRenderer extends DefaultTableCellRenderer {
+        private int hoverRow = -1;
+        public BadgeRenderer(JTable tbl) {
+            tbl.addMouseMotionListener(new MouseMotionAdapter() {
+                @Override public void mouseMoved(MouseEvent e) { int r = tbl.rowAtPoint(e.getPoint()); if (r != hoverRow) { hoverRow = r; tbl.repaint(); } }
+            });
+            tbl.addMouseListener(new MouseAdapter() { @Override public void mouseExited(MouseEvent e) { hoverRow = -1; tbl.repaint(); } });
+        }
+        @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
+            JPanel cell = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 8));
+            cell.setOpaque(true);
+            if (s)                  cell.setBackground(new Color(220, 252, 231));
+            else if (r == hoverRow) cell.setBackground(new Color(240, 253, 244));
+            else if (r % 2 == 0)    cell.setBackground(Color.WHITE);
+            else                    cell.setBackground(new Color(250, 250, 250));
+            String status = (v == null) ? "" : v.toString();
+            Color badgeBg, badgeFg;
+            if (status.equalsIgnoreCase("Đã nhập kho")) {
+                badgeBg = new Color(0xD1FAE5); badgeFg = new Color(0x065F46);
+            } else if (status.equalsIgnoreCase("Chờ nhập kho") || status.equalsIgnoreCase("Đang chờ nhập")) {
+                badgeBg = new Color(0xFEF3C7); badgeFg = new Color(0xD97706);
+            } else {
+                badgeBg = new Color(0xF3F4F6); badgeFg = new Color(0x374151);
+            }
+            JLabel badge = new JLabel(status) {
+                @Override protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(badgeBg); g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 20, 20));
+                    super.paintComponent(g2);
+                }
+            };
+            badge.setFont(new Font("Segoe UI", Font.BOLD, 11)); badge.setForeground(badgeFg);
+            badge.setOpaque(false); badge.setBorder(new EmptyBorder(3, 10, 3, 10));
+            cell.add(badge); return cell;
         }
     }
 }

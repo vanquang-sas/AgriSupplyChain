@@ -17,6 +17,7 @@ import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,14 +44,14 @@ public class LoHangForm extends JDialog {
 
     public LoHangForm(Window parent) {
         super(parent, "Tạo lô hàng nhập mới", ModalityType.APPLICATION_MODAL);
-        setSize(1000, 680);
+        setSize(1100, 720); // Tăng form lên một chút để rộng rãi hơn
         setLocationRelativeTo(parent);
         initComponents();
     }
 
     private void initComponents() {
         JPanel main = new JPanel(new BorderLayout(20, 20));
-        main.setBorder(new EmptyBorder(20, 20, 20, 20));
+        main.setBorder(new EmptyBorder(20, 24, 20, 24));
         main.setBackground(AppColor.BACKGROUND);
         setContentPane(main);
 
@@ -66,7 +67,7 @@ public class LoHangForm extends JDialog {
         JPanel infoCard = new JPanel(new BorderLayout());
         infoCard.setOpaque(true);
         infoCard.setBackground(AppColor.SURFACE);
-        infoCard.setBorder(new EmptyBorder(18, 18, 18, 18));
+        infoCard.setBorder(new EmptyBorder(18, 20, 18, 20));
         infoCard.add(buildInfoPanel(), BorderLayout.CENTER);
 
         content.add(infoCard, BorderLayout.NORTH);
@@ -78,22 +79,62 @@ public class LoHangForm extends JDialog {
     }
 
     private JPanel buildInfoPanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 2, 24, 0));
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setOpaque(false);
 
-        JPanel left = new JPanel(new GridLayout(3, 1, 12, 12));
-        left.setOpaque(false);
-        left.add(createInputGroup("Nhà cung cấp (*)", buildSupplierCombo()));
-        left.add(createInputGroup("Tên sản phẩm", txtTenSP = createReadonlyField()));
-        left.add(createInputGroup("Giá mua (VNĐ)", txtGiaMua = createReadonlyField()));
+        // 1. Dòng 1: Thông tin chung (Nhà cung cấp)
+        JPanel topInfo = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        topInfo.setOpaque(false);
+        cbNCC = (JComboBox<NhaCungCapDTO>) buildSupplierCombo();
+        cbNCC.setPreferredSize(new Dimension(350, 38));
+        topInfo.add(createInputGroup("Chọn Nhà Cung Cấp (*):", cbNCC));
+        
+        // Spacer
+        panel.add(topInfo);
+        panel.add(Box.createVerticalStrut(16));
+        panel.add(new JSeparator());
+        panel.add(Box.createVerticalStrut(16));
 
-        JPanel right = new JPanel(new GridLayout(2, 1, 12, 12));
-        right.setOpaque(false);
-        right.add(createInputGroup("Số lượng nhập (*)", txtSoLuong = createTextField("1")));
-        right.add(buildButtonRow());
+        // 2. Dòng 2: Hướng dẫn
+        JPanel instructPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        instructPanel.setOpaque(false);
+        JLabel lblInstruct = new JLabel("💡 Hướng dẫn: Click chọn sản phẩm ở Bảng Danh sách (bên trái) để điền thông tin nhập hàng.");
+        lblInstruct.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+        lblInstruct.setForeground(new Color(0x2563EB)); // Màu xanh dương nổi bật
+        instructPanel.add(lblInstruct);
+        panel.add(instructPanel);
+        panel.add(Box.createVerticalStrut(12));
 
-        panel.add(left);
-        panel.add(right);
+        // 3. Dòng 3: Chi tiết thao tác nhập item
+        JPanel itemInputRow = new JPanel(new GridBagLayout());
+        itemInputRow.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 0, 0, 16);
+        gbc.weightx = 0.3;
+
+        txtTenSP = createReadonlyField();
+        txtTenSP.setText("--- Vui lòng chọn sản phẩm ---"); // PLACEHOLDER
+        txtTenSP.setForeground(new Color(156, 163, 175)); // Chữ xám
+        
+        txtGiaMua = createReadonlyField();
+        txtSoLuong = createTextField("1");
+
+        gbc.gridx = 0; itemInputRow.add(createInputGroup("Tên sản phẩm:", txtTenSP), gbc);
+        gbc.weightx = 0.2;
+        gbc.gridx = 1; itemInputRow.add(createInputGroup("Giá mua (VNĐ):", txtGiaMua), gbc);
+        gbc.weightx = 0.1;
+        gbc.gridx = 2; itemInputRow.add(createInputGroup("SL Nhập:", txtSoLuong), gbc);
+        
+        // Buttons Thêm/Xóa
+        gbc.weightx = 0;
+        gbc.gridx = 3; 
+        gbc.insets = new Insets(24, 0, 0, 0); // Đẩy button xuống bằng hàng với Textfield
+        itemInputRow.add(buildButtonRow(), gbc);
+
+        panel.add(itemInputRow);
+        
         return panel;
     }
 
@@ -101,16 +142,22 @@ public class LoHangForm extends JDialog {
         JPanel panel = new JPanel(new GridLayout(1, 2, 20, 0));
         panel.setOpaque(false);
 
+        // Bảng 1: Danh sách SP
         JPanel productCard = new JPanel(new BorderLayout(12, 12));
         productCard.setBackground(AppColor.SURFACE);
         productCard.setBorder(new EmptyBorder(16, 16, 16, 16));
-        productCard.add(new JLabel("Danh sách sản phẩm"), BorderLayout.NORTH);
+        JLabel lblTitle1 = new JLabel("Danh sách Sản phẩm");
+        lblTitle1.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        productCard.add(lblTitle1, BorderLayout.NORTH);
         productCard.add(new JScrollPane(buildProductTable()), BorderLayout.CENTER);
 
+        // Bảng 2: Chi tiết lô hàng
         JPanel orderCard = new JPanel(new BorderLayout(12, 12));
         orderCard.setBackground(AppColor.SURFACE);
         orderCard.setBorder(new EmptyBorder(16, 16, 16, 16));
-        orderCard.add(new JLabel("Chi tiết lô hàng"), BorderLayout.NORTH);
+        JLabel lblTitle2 = new JLabel("Chi tiết Lô hàng (Sản phẩm đã chọn)");
+        lblTitle2.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        orderCard.add(lblTitle2, BorderLayout.NORTH);
         orderCard.add(new JScrollPane(buildOrderTable()), BorderLayout.CENTER);
         orderCard.add(buildOrderFooter(), BorderLayout.SOUTH);
 
@@ -123,8 +170,11 @@ public class LoHangForm extends JDialog {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         panel.setOpaque(false);
 
-        RoundedButton btnCreate = new RoundedButton("Nhập hàng", AppColor.PRIMARY);
-        RoundedButton btnClose = new RoundedButton("Hủy", new Color(107, 114, 128));
+        RoundedButton btnCreate = new RoundedButton("Tạo Yêu Cầu Nhập Hàng", AppColor.PRIMARY);
+        btnCreate.setPreferredSize(new Dimension(200, 42));
+        
+        RoundedButton btnClose = new RoundedButton("Hủy bỏ", new Color(107, 114, 128));
+        btnClose.setPreferredSize(new Dimension(120, 42));
 
         btnCreate.addActionListener(e -> onCreateOrder());
         btnClose.addActionListener(e -> dispose());
@@ -135,11 +185,14 @@ public class LoHangForm extends JDialog {
     }
 
     private JPanel buildButtonRow() {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         row.setOpaque(false);
 
-        RoundedButton btnAdd = new RoundedButton("Thêm vào lô", AppColor.INFO);
+        RoundedButton btnAdd = new RoundedButton("Thêm >>", AppColor.SUCCESS);
+        btnAdd.setPreferredSize(new Dimension(100, 36));
+        
         RoundedButton btnRemove = new RoundedButton("Xóa dòng", new Color(220, 38, 38));
+        btnRemove.setPreferredSize(new Dimension(100, 36));
 
         btnAdd.addActionListener(e -> addSelectedProduct());
         btnRemove.addActionListener(e -> removeSelectedOrderLine());
@@ -152,41 +205,26 @@ public class LoHangForm extends JDialog {
     private JPanel buildOrderFooter() {
         JPanel footer = new JPanel(new BorderLayout());
         footer.setOpaque(false);
+        footer.setBorder(new EmptyBorder(12, 0, 0, 0));
+        
         lblTotal = new JLabel("Tổng tiền: 0 VNĐ");
-        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lblTotal.setForeground(AppColor.TEXT_PRIMARY);
+        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        lblTotal.setForeground(new Color(220, 38, 38)); // Màu đỏ cho nổi bật
         footer.add(lblTotal, BorderLayout.EAST);
         return footer;
     }
 
     private JScrollPane buildProductTable() {
-        productModel = new DefaultTableModel(new Object[]{"Mã SP", "Tên SP", "Loại", "Giá mua", "Đơn vị"}, 0) {
+        productModel = new DefaultTableModel(new Object[]{"Mã SP", "Tên SP", "Giá mua", "Đơn vị"}, 0) {
             @Override public boolean isCellEditable(int row, int col) { return false; }
         };
         tblProducts = new JTable(productModel);
-        tblProducts.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tblProducts.setRowHeight(38);
-        tblProducts.setShowVerticalLines(false);
-        tblProducts.setShowHorizontalLines(true);
-        tblProducts.setGridColor(new Color(229, 231, 235));
-        tblProducts.setBackground(Color.WHITE);
-        tblProducts.setSelectionBackground(new Color(220, 252, 231));
-        tblProducts.setSelectionForeground(AppColor.TEXT_PRIMARY);
-        tblProducts.setFocusable(false);
-        tblProducts.setIntercellSpacing(new Dimension(0, 0));
+        setupTableStyle(tblProducts);
 
-        JTableHeader productHeader = tblProducts.getTableHeader();
-        productHeader.setPreferredSize(new Dimension(0, 46));
-        productHeader.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(209, 213, 219)));
-
-        DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
-        headerRenderer.setHorizontalAlignment(SwingConstants.LEFT);
-        headerRenderer.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        headerRenderer.setBackground(new Color(243, 244, 246));
-        headerRenderer.setBorder(new EmptyBorder(0, 16, 0, 0));
-        for (int i = 0; i < tblProducts.getColumnCount(); i++) {
-            tblProducts.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
-        }
+        // Căn chỉnh độ rộng
+        tblProducts.getColumnModel().getColumn(0).setPreferredWidth(70);
+        tblProducts.getColumnModel().getColumn(1).setPreferredWidth(180);
+        tblProducts.getColumnModel().getColumn(2).setPreferredWidth(100);
 
         tblProducts.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
@@ -194,53 +232,79 @@ public class LoHangForm extends JDialog {
                     int row = tblProducts.getSelectedRow();
                     String maSP = productModel.getValueAt(row, 0).toString();
                     String tenSP = productModel.getValueAt(row, 1).toString();
-                    String giaMua = productModel.getValueAt(row, 3).toString();
+                    String giaMua = productModel.getValueAt(row, 2).toString();
+                    
+                    // Xóa placeholder, chuyển màu chữ thành đen
+                    txtTenSP.setForeground(AppColor.TEXT_PRIMARY);
                     txtTenSP.setText(tenSP);
-                    txtGiaMua.setText(giaMua);
+                    
+                    txtGiaMua.setText(giaMua.replace(",", "")); // Bỏ dấu phẩy hiển thị để dễ đọc
+                    txtSoLuong.setText("1");
                     selectedProduct = findProductByMaSP(maSP);
                 }
             }
         });
 
         JScrollPane scroll = new JScrollPane(tblProducts);
-        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.setBorder(BorderFactory.createLineBorder(new Color(229, 231, 235)));
         scroll.getViewport().setBackground(Color.WHITE);
         return scroll;
     }
 
     private JScrollPane buildOrderTable() {
-        orderModel = new DefaultTableModel(new Object[]{"Mã SP", "Tên SP", "Giá mua", "Số lượng", "Thành tiền"}, 0) {
+        orderModel = new DefaultTableModel(new Object[]{"Mã SP", "Tên SP", "Giá mua", "SL", "Thành tiền"}, 0) {
             @Override public boolean isCellEditable(int row, int col) { return false; }
         };
         tblOrder = new JTable(orderModel);
-        tblOrder.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tblOrder.setRowHeight(36);
-        tblOrder.setShowVerticalLines(false);
-        tblOrder.setShowHorizontalLines(true);
-        tblOrder.setGridColor(new Color(229, 231, 235));
-        tblOrder.setBackground(Color.WHITE);
-        tblOrder.setSelectionBackground(new Color(220, 252, 231));
-        tblOrder.setSelectionForeground(AppColor.TEXT_PRIMARY);
-        tblOrder.setFocusable(false);
-        tblOrder.setIntercellSpacing(new Dimension(0, 0));
+        setupTableStyle(tblOrder);
 
-        JTableHeader orderHeader = tblOrder.getTableHeader();
-        orderHeader.setPreferredSize(new Dimension(0, 46));
-        orderHeader.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(209, 213, 219)));
-
-        DefaultTableCellRenderer orderHeaderRenderer = new DefaultTableCellRenderer();
-        orderHeaderRenderer.setHorizontalAlignment(SwingConstants.LEFT);
-        orderHeaderRenderer.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        orderHeaderRenderer.setBackground(new Color(243, 244, 246));
-        orderHeaderRenderer.setBorder(new EmptyBorder(0, 16, 0, 0));
-        for (int i = 0; i < tblOrder.getColumnCount(); i++) {
-            tblOrder.getColumnModel().getColumn(i).setHeaderRenderer(orderHeaderRenderer);
-        }
+        // Căn chỉnh độ rộng
+        tblOrder.getColumnModel().getColumn(0).setPreferredWidth(60);
+        tblOrder.getColumnModel().getColumn(1).setPreferredWidth(150);
+        tblOrder.getColumnModel().getColumn(3).setPreferredWidth(40); // Cột SL ngắn lại
 
         JScrollPane scroll = new JScrollPane(tblOrder);
-        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.setBorder(BorderFactory.createLineBorder(new Color(229, 231, 235)));
         scroll.getViewport().setBackground(Color.WHITE);
         return scroll;
+    }
+
+    // --- HÀM CHUẨN HÓA STYLE CHO BẢNG ---
+    private void setupTableStyle(JTable table) {
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.setRowHeight(42); // Tăng chiều cao row
+        table.setShowVerticalLines(false);
+        table.setShowHorizontalLines(true);
+        table.setGridColor(new Color(229, 231, 235));
+        table.setBackground(Color.WHITE);
+        table.setSelectionBackground(new Color(220, 252, 231));
+        table.setSelectionForeground(AppColor.TEXT_PRIMARY);
+        table.setFocusable(false);
+        table.setIntercellSpacing(new Dimension(0, 0));
+
+        JTableHeader header = table.getTableHeader();
+        header.setPreferredSize(new Dimension(0, 46));
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(209, 213, 219)));
+
+        DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean isS, boolean hasF, int r, int c) {
+                Component comp = super.getTableCellRendererComponent(t, v, isS, hasF, r, c);
+                comp.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                comp.setBackground(new Color(243, 244, 246));
+                ((JLabel) comp).setBorder(new EmptyBorder(0, 16, 0, 8));
+                return comp;
+            }
+        };
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
+        }
+
+        // Apply ZebraHoverRenderer
+        ZebraHoverRenderer zebra = new ZebraHoverRenderer(table);
+        for(int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(zebra);
+        }
     }
 
     private Component buildSupplierCombo() {
@@ -254,6 +318,7 @@ public class LoHangForm extends JDialog {
                 if (value instanceof NhaCungCapDTO) {
                     setText(((NhaCungCapDTO) value).getTenNCC());
                 }
+                setBorder(new EmptyBorder(4, 8, 4, 8));
                 return this;
             }
         });
@@ -263,16 +328,24 @@ public class LoHangForm extends JDialog {
     private JTextField createTextField(String placeholder) {
         JTextField field = new JTextField(placeholder);
         field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        field.setPreferredSize(new Dimension(200, 36));
+        field.setPreferredSize(new Dimension(200, 38));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(209, 213, 219)),
+            BorderFactory.createEmptyBorder(0, 8, 0, 8)
+        ));
         return field;
     }
 
     private JTextField createReadonlyField() {
         JTextField field = new JTextField();
         field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        field.setPreferredSize(new Dimension(200, 36));
+        field.setPreferredSize(new Dimension(200, 38));
         field.setEditable(false);
-        field.setBackground(new Color(249, 250, 251));
+        field.setBackground(new Color(243, 244, 246));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(209, 213, 219)),
+            BorderFactory.createEmptyBorder(0, 8, 0, 8)
+        ));
         return field;
     }
 
@@ -283,7 +356,7 @@ public class LoHangForm extends JDialog {
         JLabel lbl = new JLabel(labelText);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lbl.setForeground(AppColor.TEXT_SECONDARY);
-        lbl.setBorder(new EmptyBorder(0, 0, 8, 0));
+        lbl.setBorder(new EmptyBorder(0, 0, 6, 0));
         panel.add(lbl);
         panel.add(inputComp);
         return panel;
@@ -303,12 +376,12 @@ public class LoHangForm extends JDialog {
 
     private void loadProductList() {
         productModel.setRowCount(0);
+        DecimalFormat df = new DecimalFormat("#,###");
         for (SanPhamDTO sp : sanPhamBUS.getAll()) {
             productModel.addRow(new Object[]{
                     sp.getMaSP(),
                     sp.getTenSP(),
-                    sp.getTenLSP(),
-                    String.format("%,.0f", sp.getGiaMua()),
+                    df.format(sp.getGiaMua()),
                     sp.getDonViTinh()
             });
         }
@@ -325,7 +398,7 @@ public class LoHangForm extends JDialog {
 
     private void addSelectedProduct() {
         if (selectedProduct == null) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn sản phẩm trước khi thêm.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn sản phẩm ở bảng bên trái trước khi thêm.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
         double quantity;
@@ -355,7 +428,7 @@ public class LoHangForm extends JDialog {
     private void removeSelectedOrderLine() {
         int row = tblOrder.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng cần xóa.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn một dòng bên bảng Chi tiết lô hàng để xóa.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
         String maSP = orderModel.getValueAt(row, 0).toString();
@@ -384,24 +457,68 @@ public class LoHangForm extends JDialog {
     private void onCreateOrder() {
         NhaCungCapDTO supplier = (NhaCungCapDTO) cbNCC.getSelectedItem();
         if (supplier == null) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn Nhà cung cấp.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn Nhà cung cấp ở trên cùng.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
         if (orderItems.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng thêm ít nhất một sản phẩm vào lô hàng.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng thêm ít nhất một sản phẩm vào chi tiết lô hàng.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         try {
             boolean success = loHangBUS.createLoHang(supplier.getMaNCC(), orderItems);
             if (success) {
-                JOptionPane.showMessageDialog(this, "Tạo lô hàng thành công. Lô hàng đang chờ nhập kho.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Tạo lô hàng thành công. Lô hàng đã được đưa vào danh sách chờ nhập kho.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "Tạo lô hàng thất bại. Vui lòng thử lại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Lỗi khi tạo lô hàng: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // --- INNER CLASS CHUẨN HÓA RENDERER ---
+    static class ZebraHoverRenderer extends DefaultTableCellRenderer {
+        private int hoverRow = -1;
+
+        ZebraHoverRenderer(JTable tbl) {
+            tbl.addMouseMotionListener(new MouseMotionAdapter() {
+                @Override
+                public void mouseMoved(MouseEvent e) {
+                    int r = tbl.rowAtPoint(e.getPoint());
+                    if (r != hoverRow) {
+                        hoverRow = r;
+                        tbl.repaint();
+                    }
+                }
+            });
+            tbl.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    hoverRow = -1;
+                    tbl.repaint();
+                }
+            });
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
+            super.getTableCellRendererComponent(t, v, s, f, r, c);
+            setBorder(new EmptyBorder(0, 16, 0, 8));
+            setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            setForeground(AppColor.TEXT_PRIMARY);
+
+            if (s) {
+                setBackground(new Color(220, 252, 231));
+            } else if (r == hoverRow) {
+                setBackground(new Color(240, 253, 244));
+            } else if (r % 2 == 0) {
+                setBackground(Color.WHITE);
+            } else {
+                setBackground(new Color(250, 250, 250));
+            }
+            return this;
         }
     }
 }
