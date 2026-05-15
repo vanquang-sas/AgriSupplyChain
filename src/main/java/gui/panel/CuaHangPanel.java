@@ -16,7 +16,7 @@ import java.util.List;
 import gui.component.WrapLayout;
 public class CuaHangPanel extends JPanel {
 
-    private String maKH;
+    // private String maKH;
 
     // =========================================
     // BUS
@@ -38,15 +38,15 @@ public class CuaHangPanel extends JPanel {
 
     private JScrollPane scrollPane;
 
-    public CuaHangPanel(String maKH) {
+    public CuaHangPanel() {
 
-        this.maKH = maKH;
+        // this.maKH = maKH;
 
         initComponents();
 
         initEvents();
 
-        loadData(bus.getAllSanPham(maKH));
+        loadData(bus.getAllSanPham());
     }
 
     // =========================================
@@ -269,7 +269,7 @@ public class CuaHangPanel extends JPanel {
 
             cboLoai.setSelectedIndex(0);
 
-            loadData(bus.getAllSanPham(maKH));
+            loadData(bus.getAllSanPham());
         });
     }
 
@@ -282,7 +282,8 @@ public class CuaHangPanel extends JPanel {
 
         for (SanPhamDTO sp : list) {
 
-            ProductCard card = new ProductCard(sp,maKH);
+            // ProductCard card = new ProductCard(sp,maKH);
+            ProductCard card = new ProductCard(sp);
 
             pnlProducts.add(card);
         }
@@ -307,7 +308,7 @@ public class CuaHangPanel extends JPanel {
         if (!keyword.isEmpty()) {
 
             List<SanPhamDTO> list =
-                    bus.timKiem(keyword, maKH);
+                    bus.timKiem(keyword);
 
             if (!loai.equals("Tất cả")) {
 
@@ -325,7 +326,7 @@ public class CuaHangPanel extends JPanel {
         else if (!loai.equals("Tất cả")) {
 
             loadData(
-                    bus.locTheoLoai(loai, maKH)
+                    bus.locTheoLoai(loai)
             );
         }
 
@@ -335,7 +336,7 @@ public class CuaHangPanel extends JPanel {
         else {
 
             loadData(
-                    bus.getAllSanPham(maKH)
+                    bus.getAllSanPham()
             );
         }
     }

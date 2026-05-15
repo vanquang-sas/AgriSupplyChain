@@ -383,7 +383,8 @@ public class MainFrame extends JFrame {
         pnlDonHang = new DonHangPanel();
         pnlGiaoHang = new GiaoHangPanel(Session.maNV);
         // THEM DONG NAY
-        pnlCuaHang = new CuaHangPanel(Session.maKH);
+        // pnlCuaHang = new CuaHangPanel(Session.maKH);
+        pnlCuaHang = new CuaHangPanel();
         //
         pnlLoaiSanPham = new LoaiSanPhamPanel();
         pnlSanPham = new SanPhamPanel();

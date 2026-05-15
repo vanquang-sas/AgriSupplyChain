@@ -16,7 +16,7 @@ public class ProductCard extends JPanel {
 
     private SanPhamDTO sp;
     private CuaHangBUS bus = new CuaHangBUS();
-    private String maKH;
+//     private String maKH;
 
     // =========================
     // UI
@@ -26,10 +26,10 @@ public class ProductCard extends JPanel {
     private Color borderColor =
             new Color(230,230,230);
 
-    public ProductCard(SanPhamDTO sp, String maKH) {
+    public ProductCard(SanPhamDTO sp) {
 
         this.sp = sp;
-        this.maKH = maKH;
+        // this.maKH = maKH;
 
         setOpaque(false);
 
@@ -525,8 +525,7 @@ public class ProductCard extends JPanel {
         // lấy FULL dữ liệu từ DB
         SanPhamDTO fullSP =
                 bus.getById(
-                        sp.getMaSP(),
-                        maKH
+                        sp.getMaSP()
                 );
 
         ChiTietSanPhamForm dialog =
