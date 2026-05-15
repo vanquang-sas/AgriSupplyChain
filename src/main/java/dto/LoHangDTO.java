@@ -4,6 +4,7 @@ import java.util.Date;
 public class LoHangDTO {
     private String maLH;
     private String maNCC;
+    private String tenNCC;
     private String maNV;
     private Date tgNhap;
     private double tongTien;
@@ -11,8 +12,8 @@ public class LoHangDTO {
 
     public LoHangDTO() {}
 
-    public LoHangDTO(String maLH, String maNCC, String maNV, Date tgNhap, double tongTien, String trangThaiLH) {
-        this.maLH = maLH; this.maNCC = maNCC; this.maNV = maNV; 
+    public LoHangDTO(String maLH, String maNCC, String tenNCC, String maNV, Date tgNhap, double tongTien, String trangThaiLH) {
+        this.maLH = maLH; this.maNCC = maNCC; this.tenNCC = tenNCC; this.maNV = maNV; 
         this.tgNhap = tgNhap; this.tongTien = tongTien; this.trangThaiLH = trangThaiLH;
     }
 
@@ -20,6 +21,8 @@ public class LoHangDTO {
     public void setMaLH(String maLH) { this.maLH = maLH; }
     public String getMaNCC() { return maNCC; }
     public void setMaNCC(String maNCC) { this.maNCC = maNCC; }
+    public String getTenNCC() { return tenNCC; }
+    public void setTenNCC(String tenNCC) { this.tenNCC = tenNCC; }
     public String getMaNV() { return maNV; }
     public void setMaNV(String maNV) { this.maNV = maNV; }
     public Date getTgNhap() { return tgNhap; }

@@ -45,11 +45,6 @@ public class LoHangDAO {
                 }
             }
 
-            try (CallableStatement cs = conn.prepareCall("{call SP_YEUCAU_NHAPKHO(?)}")) {
-                cs.setString(1, maLH);
-                cs.execute();
-            }
-
             conn.commit();
             return true;
         } catch (Exception e) {
@@ -105,19 +100,23 @@ public class LoHangDAO {
     public List<LoHangDTO> getAllLoHang() {
         List<LoHangDTO> list = new ArrayList<>();
 
-        try {
-            Connection conn = DBConnection.getConnection();
-            CallableStatement cs = conn.prepareCall("{call SP_GET_ALL_LOHANG}");
-            ResultSet rs = cs.executeQuery();
-
+        String sql = "SELECT LH.MaLH, LH.MaNCC, N.TenNCC, LH.MaNV, LH.TGNhap, LH.TongTien, LH.TrangThaiLH " +
+                     "FROM LOHANG LH LEFT JOIN NHACUNGCAP N ON LH.MaNCC = N.MaNCC " +
+                     "ORDER BY LH.TGNhap DESC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 LoHangDTO lh = new LoHangDTO();
                 lh.setMaLH(rs.getString("MaLH"));
                 lh.setMaNCC(rs.getString("MaNCC"));
-                lh.setTrangThaiLH(rs.getString("TrangThai"));
+                lh.setTenNCC(rs.getString("TenNCC"));
+                lh.setMaNV(rs.getString("MaNV"));
+                lh.setTgNhap(rs.getDate("TGNhap"));
+                lh.setTongTien(rs.getDouble("TongTien"));
+                lh.setTrangThaiLH(rs.getString("TrangThaiLH"));
                 list.add(lh);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -126,15 +125,52 @@ public class LoHangDAO {
     }
 
     // 4. Yêu cầu nhập kho
-    public boolean yeuCauNhapKho(int maLH) {
-        try {
-            Connection conn = DBConnection.getConnection();
-            CallableStatement cs = conn.prepareCall("{call SP_YEUCAU_NHAPKHO(?)}");
-            cs.setInt(1, maLH);
-            return cs.executeUpdate() > 0;
+    public boolean yeuCauNhapKho(String maLH) {
+        try (Connection conn = DBConnection.getConnection();
+             CallableStatement cs = conn.prepareCall("{call SP_YEUCAU_NHAPKHO(?)}")) {
+            cs.setString(1, maLH);
+            cs.execute();
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public boolean xoaLoHang(String maLH) {
+        try (Connection conn = DBConnection.getConnection();
+             CallableStatement cs = conn.prepareCall("{call SP_XOA_LH(?)}")) {
+            cs.setString(1, maLH);
+            cs.execute();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public List<ChiTietLoHangDTO> getChiTietLoHang(String maLH) {
+        List<ChiTietLoHangDTO> list = new ArrayList<>();
+        String sql = "SELECT MaCTLH, MaLH, MaSP, GiaMua, SoLuong, ThanhTien " +
+                     "FROM CHITIETLOHANG WHERE MaLH = ? ORDER BY MaCTLH";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maLH);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ChiTietLoHangDTO item = new ChiTietLoHangDTO();
+                    item.setMaCTLH(rs.getString("MaCTLH"));
+                    item.setMaLH(rs.getString("MaLH"));
+                    item.setMaSP(rs.getString("MaSP"));
+                    item.setGiaMua(rs.getDouble("GiaMua"));
+                    item.setSoLuong(rs.getDouble("SoLuong"));
+                    item.setThanhTien(rs.getDouble("ThanhTien"));
+                    list.add(item);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }

@@ -11,7 +11,9 @@ import util.AppColor;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -31,7 +33,6 @@ public class LoHangForm extends JDialog {
     private DefaultTableModel productModel;
     private DefaultTableModel orderModel;
 
-    private JTextField txtMaSP;
     private JTextField txtTenSP;
     private JTextField txtGiaMua;
     private JTextField txtSoLuong;
@@ -62,7 +63,13 @@ public class LoHangForm extends JDialog {
         content.setOpaque(false);
         main.add(content, BorderLayout.CENTER);
 
-        content.add(buildInfoPanel(), BorderLayout.NORTH);
+        JPanel infoCard = new JPanel(new BorderLayout());
+        infoCard.setOpaque(true);
+        infoCard.setBackground(AppColor.SURFACE);
+        infoCard.setBorder(new EmptyBorder(18, 18, 18, 18));
+        infoCard.add(buildInfoPanel(), BorderLayout.CENTER);
+
+        content.add(infoCard, BorderLayout.NORTH);
         content.add(buildTablesPanel(), BorderLayout.CENTER);
         content.add(buildActionPanel(), BorderLayout.SOUTH);
 
@@ -74,10 +81,9 @@ public class LoHangForm extends JDialog {
         JPanel panel = new JPanel(new GridLayout(1, 2, 24, 0));
         panel.setOpaque(false);
 
-        JPanel left = new JPanel(new GridLayout(4, 1, 12, 12));
+        JPanel left = new JPanel(new GridLayout(3, 1, 12, 12));
         left.setOpaque(false);
         left.add(createInputGroup("Nhà cung cấp (*)", buildSupplierCombo()));
-        left.add(createInputGroup("Mã sản phẩm", txtMaSP = createReadonlyField()));
         left.add(createInputGroup("Tên sản phẩm", txtTenSP = createReadonlyField()));
         left.add(createInputGroup("Giá mua (VNĐ)", txtGiaMua = createReadonlyField()));
 
@@ -160,6 +166,28 @@ public class LoHangForm extends JDialog {
         tblProducts = new JTable(productModel);
         tblProducts.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tblProducts.setRowHeight(38);
+        tblProducts.setShowVerticalLines(false);
+        tblProducts.setShowHorizontalLines(true);
+        tblProducts.setGridColor(new Color(229, 231, 235));
+        tblProducts.setBackground(Color.WHITE);
+        tblProducts.setSelectionBackground(new Color(220, 252, 231));
+        tblProducts.setSelectionForeground(AppColor.TEXT_PRIMARY);
+        tblProducts.setFocusable(false);
+        tblProducts.setIntercellSpacing(new Dimension(0, 0));
+
+        JTableHeader productHeader = tblProducts.getTableHeader();
+        productHeader.setPreferredSize(new Dimension(0, 46));
+        productHeader.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(209, 213, 219)));
+
+        DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
+        headerRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+        headerRenderer.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        headerRenderer.setBackground(new Color(243, 244, 246));
+        headerRenderer.setBorder(new EmptyBorder(0, 16, 0, 0));
+        for (int i = 0; i < tblProducts.getColumnCount(); i++) {
+            tblProducts.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
+        }
+
         tblProducts.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
                 if (tblProducts.getSelectedRow() >= 0) {
@@ -167,14 +195,17 @@ public class LoHangForm extends JDialog {
                     String maSP = productModel.getValueAt(row, 0).toString();
                     String tenSP = productModel.getValueAt(row, 1).toString();
                     String giaMua = productModel.getValueAt(row, 3).toString();
-                    txtMaSP.setText(maSP);
                     txtTenSP.setText(tenSP);
                     txtGiaMua.setText(giaMua);
                     selectedProduct = findProductByMaSP(maSP);
                 }
             }
         });
-        return new JScrollPane(tblProducts);
+
+        JScrollPane scroll = new JScrollPane(tblProducts);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.getViewport().setBackground(Color.WHITE);
+        return scroll;
     }
 
     private JScrollPane buildOrderTable() {
@@ -184,7 +215,32 @@ public class LoHangForm extends JDialog {
         tblOrder = new JTable(orderModel);
         tblOrder.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tblOrder.setRowHeight(36);
-        return new JScrollPane(tblOrder);
+        tblOrder.setShowVerticalLines(false);
+        tblOrder.setShowHorizontalLines(true);
+        tblOrder.setGridColor(new Color(229, 231, 235));
+        tblOrder.setBackground(Color.WHITE);
+        tblOrder.setSelectionBackground(new Color(220, 252, 231));
+        tblOrder.setSelectionForeground(AppColor.TEXT_PRIMARY);
+        tblOrder.setFocusable(false);
+        tblOrder.setIntercellSpacing(new Dimension(0, 0));
+
+        JTableHeader orderHeader = tblOrder.getTableHeader();
+        orderHeader.setPreferredSize(new Dimension(0, 46));
+        orderHeader.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(209, 213, 219)));
+
+        DefaultTableCellRenderer orderHeaderRenderer = new DefaultTableCellRenderer();
+        orderHeaderRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+        orderHeaderRenderer.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        orderHeaderRenderer.setBackground(new Color(243, 244, 246));
+        orderHeaderRenderer.setBorder(new EmptyBorder(0, 16, 0, 0));
+        for (int i = 0; i < tblOrder.getColumnCount(); i++) {
+            tblOrder.getColumnModel().getColumn(i).setHeaderRenderer(orderHeaderRenderer);
+        }
+
+        JScrollPane scroll = new JScrollPane(tblOrder);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.getViewport().setBackground(Color.WHITE);
+        return scroll;
     }
 
     private Component buildSupplierCombo() {

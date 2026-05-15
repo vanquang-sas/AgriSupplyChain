@@ -7,6 +7,7 @@ import dto.LoHangDTO;
 import dto.NhanVienDTO;
 import util.Session;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LoHangBUS {
@@ -53,7 +54,24 @@ public class LoHangBUS {
         return loHangDAO.getAllLoHang();
     }
 
-    public boolean yeuCauNhapKho(int maLH) {
+    public boolean yeuCauNhapKho(String maLH) {
+        if (maLH == null || maLH.trim().isEmpty()) {
+            return false;
+        }
         return loHangDAO.yeuCauNhapKho(maLH);
+    }
+
+    public boolean xoaLoHang(String maLH) {
+        if (maLH == null || maLH.trim().isEmpty()) {
+            return false;
+        }
+        return loHangDAO.xoaLoHang(maLH);
+    }
+
+    public List<ChiTietLoHangDTO> getChiTietLoHang(String maLH) {
+        if (maLH == null || maLH.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return loHangDAO.getChiTietLoHang(maLH);
     }
 }
