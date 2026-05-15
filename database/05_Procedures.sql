@@ -192,13 +192,10 @@ END;
 -- ------------------------------------------------------------------------------------
 -- 5. QUẢN LÝ THÔNG BÁO & KIỂM TRA HỆ THỐNG
 -- ------------------------------------------------------------------------------------
-CREATE OR REPLACE PROCEDURE SP_DOC_THONGBAO (p_MaTB IN VARCHAR2) IS
-BEGIN
-    UPDATE THONGBAO SET TrangThaiTB = 1 WHERE MaTB = p_MaTB;
-    COMMIT;
-END;
-/
-
+-- ================================= KIỂM TRA HẾT HẠN HÀNG NGÀY =================================
+-- Procedure này quét toàn bộ kho để cập nhật trạng thái Hết hạn/Sắp hết hạn 
+-- và sinh thông báo nếu cần. Nên được gọi khi khởi động ứng dụng.
+-- ================================= KIỂM TRA HẾT HẠN HÀNG NGÀY =================================
 CREATE OR REPLACE PROCEDURE SP_KIEMTRA_HETHAN_THONGBAO IS
     v_SoNgayHSD NUMBER;
     v_MinTonKho NUMBER;
@@ -208,59 +205,76 @@ BEGIN
     BEGIN SELECT GiaTri INTO v_SoNgayHSD FROM THAMSO WHERE TenTS = 'CANHBAO_HETHAN'; EXCEPTION WHEN NO_DATA_FOUND THEN v_SoNgayHSD := 7; END;
     BEGIN SELECT GiaTri INTO v_MinTonKho FROM THAMSO WHERE TenTS = 'MIN_TONKHO'; EXCEPTION WHEN NO_DATA_FOUND THEN v_MinTonKho := 20; END;
 
-    -- 2. Cập nhật trạng thái lô hàng
+    -- 2. Cập nhật HẾT HẠN
     UPDATE TONKHO SET TrangThai = N'Hết hạn', SLKhaDung = 0 WHERE TGHetHan < v_NgayHienTai AND TrangThai <> N'Hết hạn';
+    -- 3. Cập nhật SẮP HẾT HẠN
     UPDATE TONKHO SET TrangThai = N'Sắp hết hạn' WHERE TGHetHan >= v_NgayHienTai AND (TGHetHan - v_NgayHienTai) <= v_SoNgayHSD AND TrangThai = N'Còn hạn';
 
-    -- 3. Thông báo Hết hạn / Sắp hết hạn (Theo lô)
+    -- 4. Thông báo Hết hạn (Lô)
     FOR tk IN (
-        SELECT TK.MaTonKho, SP.TenSP, TK.TGHetHan, TK.TrangThai
-        FROM TONKHO TK JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
-        WHERE TK.TrangThai IN (N'Hết hạn', N'Sắp hết hạn')
+        SELECT TK.MaTonKho, SP.TenSP, TK.TGHetHan FROM TONKHO TK JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP WHERE TK.TrangThai = N'Hết hạn'
     ) LOOP
         DECLARE 
-            v_Msg NVARCHAR2(500);
+            v_Msg NVARCHAR2(500) := N'Lô ' || tk.MaTonKho || N' của SP ' || tk.TenSP || N' đã HẾT HẠN vào ngày ' || TO_CHAR(tk.TGHetHan, 'DD/MM/YYYY');
             v_Count NUMBER;
         BEGIN
-            IF tk.TrangThai = N'Hết hạn' THEN
-                v_Msg := N'Lô ' || tk.MaTonKho || N' của SP ' || tk.TenSP || N' đã HẾT HẠN vào ngày ' || TO_CHAR(tk.TGHetHan, 'DD/MM/YYYY');
-            ELSE
-                v_Msg := N'Lô ' || tk.MaTonKho || N' của SP ' || tk.TenSP || N' sẽ hết hạn vào ' || TO_CHAR(tk.TGHetHan, 'DD/MM/YYYY');
-            END IF;
-            
-            SELECT COUNT(*) INTO v_Count FROM THONGBAO WHERE TRIM(NoiDung) = TRIM(v_Msg);
-            IF v_Count = 0 THEN
-                INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao)
-                VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), tk.TrangThai, v_Msg, 0, SYSDATE);
-            END IF;
+            SELECT COUNT(*) INTO v_Count FROM THONGBAO WHERE NoiDung = v_Msg;
+            IF v_Count = 0 THEN INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao) VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Hết hạn', v_Msg, 0, SYSDATE); END IF;
         END;
     END LOOP;
 
-    -- 4. Thông báo Hết hàng / Sắp hết hàng (Theo tổng tồn kho sản phẩm)
+    -- 5. Thông báo Sắp hết hạn (Lô)
+    FOR tk IN (
+        SELECT TK.MaTonKho, SP.TenSP, TK.TGHetHan FROM TONKHO TK JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP WHERE TK.TrangThai = N'Sắp hết hạn'
+    ) LOOP
+        DECLARE 
+            v_Msg NVARCHAR2(500) := N'Lô ' || tk.MaTonKho || N' của SP ' || tk.TenSP || N' sẽ hết hạn vào ' || TO_CHAR(tk.TGHetHan, 'DD/MM/YYYY');
+            v_Count NUMBER;
+        BEGIN
+            SELECT COUNT(*) INTO v_Count FROM THONGBAO WHERE NoiDung = v_Msg;
+            IF v_Count = 0 THEN INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao) VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Sắp hết hạn', v_Msg, 0, SYSDATE); END IF;
+        END;
+    END LOOP;
+
+    -- 6. TÍNH TỔNG TỒN KHO CHO MỖI SẢN PHẨM 
+    -- (Đã xóa bỏ logic ép hàng hết hạn về 0. Giờ hệ thống tính tổng theo số lượng vật lý thực tế)
     FOR rec IN (
-        SELECT SP.TenSP, SUM(TK.SLConLai) as TongTon
-        FROM TONKHO TK JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
-        WHERE TK.TrangThai <> N'Hết hạn' GROUP BY SP.TenSP
-        HAVING SUM(TK.SLConLai) <= 0 OR SUM(TK.SLConLai) < v_MinTonKho
+        SELECT SP.MaSP, SP.TenSP, 
+               NVL(SUM(TK.SLConLai), 0) AS TongTon
+        FROM SANPHAM SP
+        LEFT JOIN CHITIETLOHANG CTLH ON SP.MaSP = CTLH.MaSP
+        LEFT JOIN TONKHO TK ON CTLH.MaCTLH = TK.MaCTLH
+        GROUP BY SP.MaSP, SP.TenSP
     ) LOOP
         DECLARE
-            v_Msg NVARCHAR2(500); v_Type NVARCHAR2(50); v_Count NUMBER;
+            v_Msg NVARCHAR2(500);
+            v_Type NVARCHAR2(50);
+            v_Count NUMBER;
         BEGIN
             IF rec.TongTon <= 0 THEN
                 v_Type := N'Hết hàng';
                 v_Msg := N'CẢNH BÁO: Sản phẩm [' || rec.TenSP || N'] đã HẾT HÀNG hoàn toàn. Yêu cầu nhập hàng mới ngay!';
-            ELSE
+            ELSIF rec.TongTon < v_MinTonKho THEN
                 v_Type := N'Sắp hết hàng';
                 v_Msg := N'Thông báo: Sản phẩm [' || rec.TenSP || N'] sắp hết hàng. Hiện chỉ còn ' || rec.TongTon || N' đơn vị. Yêu cầu nhập thêm hàng!';
+            ELSE
+                CONTINUE; 
             END IF;
 
-            SELECT COUNT(*) INTO v_Count FROM THONGBAO WHERE TRIM(NoiDung) = TRIM(v_Msg);
+            -- Logic chống trùng lặp theo ngày
+            SELECT COUNT(*) INTO v_Count 
+            FROM THONGBAO 
+            WHERE LoaiTB = v_Type 
+              AND NoiDung LIKE N'%[' || rec.TenSP || N']%'
+              AND TRUNC(TGTao) = TRUNC(SYSDATE);
+            
             IF v_Count = 0 THEN
-                INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao)
+                INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao) 
                 VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), v_Type, v_Msg, 0, SYSDATE);
             END IF;
         END;
     END LOOP;
+
     COMMIT;
 END;
 /

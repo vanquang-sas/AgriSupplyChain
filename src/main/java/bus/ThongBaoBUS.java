@@ -13,20 +13,16 @@ public class ThongBaoBUS {
     public ArrayList<Object[]> getDanhSachThongBao() {
         return thongBaoDAO.getDanhSachThongBao();
     }
-    
+
     public int getSoLuongChuaDoc() {
         return thongBaoDAO.getSoLuongChuaDoc();
     }
-    
+
     public void danhDauDaDocTatCa() {
         thongBaoDAO.danhDauDaDocTatCa();
     }
     
-    public void kiemTraHetHan() {
-        thongBaoDAO.kiemTraHetHan();
-    }
-
-    public void xoaTatCaThongBao() {
-        thongBaoDAO.xoaTatCaThongBao();
+    public void kiemTraHeThong() {
+        thongBaoDAO.kiemTraHeThong();
     }
 }
