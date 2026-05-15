@@ -132,7 +132,7 @@ public class ThongBaoWidget extends JPanel {
         popupMenu.setBackground(AppColor.SURFACE);
 
         // Header của Popup
-        JLabel lblTitle = new JLabel("Thông báo hệ thống", SwingConstants.CENTER);
+        JLabel lblTitle = new JLabel("Thông báo hệ thống (ĐÃ ĐỒNG BỘ)", SwingConstants.CENTER);
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 14));
         lblTitle.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -162,6 +162,7 @@ public class ThongBaoWidget extends JPanel {
             });
 
             // 2. Cập nhật DB thành đã đọc và xóa số trên nút chuông
+            System.out.println("DEBUG: [ThongBaoWidget] Đánh dấu tất cả là đã đọc...");
             thongBaoBUS.danhDauDaDocTatCa();
             capNhatNutChuong();
         });
@@ -188,6 +189,7 @@ public class ThongBaoWidget extends JPanel {
         // 2. Xóa danh sách cũ trên giao diện và nạp danh sách mới
         panelMessages.removeAll();
         ArrayList<Object[]> list = thongBaoBUS.getDanhSachThongBao();
+        System.out.println("DEBUG: [ThongBaoWidget] Đã nạp " + list.size() + " thông báo từ BUS.");
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
         if (list == null || list.isEmpty()) {
