@@ -44,7 +44,7 @@ public class LoHangForm extends JDialog {
 
     public LoHangForm(Window parent) {
         super(parent, "Tạo lô hàng nhập mới", ModalityType.APPLICATION_MODAL);
-        setSize(1100, 720); // Tăng form lên một chút để rộng rãi hơn
+        setSize(1100, 720); 
         setLocationRelativeTo(parent);
         initComponents();
     }
@@ -90,7 +90,6 @@ public class LoHangForm extends JDialog {
         cbNCC.setPreferredSize(new Dimension(350, 38));
         topInfo.add(createInputGroup("Chọn Nhà Cung Cấp (*):", cbNCC));
         
-        // Spacer
         panel.add(topInfo);
         panel.add(Box.createVerticalStrut(16));
         panel.add(new JSeparator());
@@ -101,7 +100,7 @@ public class LoHangForm extends JDialog {
         instructPanel.setOpaque(false);
         JLabel lblInstruct = new JLabel("💡 Hướng dẫn: Click chọn sản phẩm ở Bảng Danh sách (bên trái) để điền thông tin nhập hàng.");
         lblInstruct.setFont(new Font("Segoe UI", Font.ITALIC, 14));
-        lblInstruct.setForeground(new Color(0x2563EB)); // Màu xanh dương nổi bật
+        lblInstruct.setForeground(new Color(0x2563EB)); 
         instructPanel.add(lblInstruct);
         panel.add(instructPanel);
         panel.add(Box.createVerticalStrut(12));
@@ -115,8 +114,8 @@ public class LoHangForm extends JDialog {
         gbc.weightx = 0.3;
 
         txtTenSP = createReadonlyField();
-        txtTenSP.setText("--- Vui lòng chọn sản phẩm ---"); // PLACEHOLDER
-        txtTenSP.setForeground(new Color(156, 163, 175)); // Chữ xám
+        txtTenSP.setText("--- Vui lòng chọn sản phẩm ---"); 
+        txtTenSP.setForeground(new Color(156, 163, 175)); 
         
         txtGiaMua = createReadonlyField();
         txtSoLuong = createTextField("1");
@@ -127,10 +126,9 @@ public class LoHangForm extends JDialog {
         gbc.weightx = 0.1;
         gbc.gridx = 2; itemInputRow.add(createInputGroup("SL Nhập:", txtSoLuong), gbc);
         
-        // Buttons Thêm/Xóa
         gbc.weightx = 0;
         gbc.gridx = 3; 
-        gbc.insets = new Insets(24, 0, 0, 0); // Đẩy button xuống bằng hàng với Textfield
+        gbc.insets = new Insets(24, 0, 0, 0); 
         itemInputRow.add(buildButtonRow(), gbc);
 
         panel.add(itemInputRow);
@@ -170,8 +168,9 @@ public class LoHangForm extends JDialog {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         panel.setOpaque(false);
 
-        RoundedButton btnCreate = new RoundedButton("Tạo Yêu Cầu Nhập Hàng", AppColor.PRIMARY);
-        btnCreate.setPreferredSize(new Dimension(200, 42));
+        // Đã sửa text button cho đúng luồng tạo lô hàng
+        RoundedButton btnCreate = new RoundedButton("Tạo lô hàng", AppColor.PRIMARY);
+        btnCreate.setPreferredSize(new Dimension(160, 42));
         
         RoundedButton btnClose = new RoundedButton("Hủy bỏ", new Color(107, 114, 128));
         btnClose.setPreferredSize(new Dimension(120, 42));
@@ -209,7 +208,7 @@ public class LoHangForm extends JDialog {
         
         lblTotal = new JLabel("Tổng tiền: 0 VNĐ");
         lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTotal.setForeground(new Color(220, 38, 38)); // Màu đỏ cho nổi bật
+        lblTotal.setForeground(new Color(220, 38, 38)); 
         footer.add(lblTotal, BorderLayout.EAST);
         return footer;
     }
@@ -221,7 +220,6 @@ public class LoHangForm extends JDialog {
         tblProducts = new JTable(productModel);
         setupTableStyle(tblProducts);
 
-        // Căn chỉnh độ rộng
         tblProducts.getColumnModel().getColumn(0).setPreferredWidth(70);
         tblProducts.getColumnModel().getColumn(1).setPreferredWidth(180);
         tblProducts.getColumnModel().getColumn(2).setPreferredWidth(100);
@@ -234,11 +232,10 @@ public class LoHangForm extends JDialog {
                     String tenSP = productModel.getValueAt(row, 1).toString();
                     String giaMua = productModel.getValueAt(row, 2).toString();
                     
-                    // Xóa placeholder, chuyển màu chữ thành đen
                     txtTenSP.setForeground(AppColor.TEXT_PRIMARY);
                     txtTenSP.setText(tenSP);
                     
-                    txtGiaMua.setText(giaMua.replace(",", "")); // Bỏ dấu phẩy hiển thị để dễ đọc
+                    txtGiaMua.setText(giaMua.replace(",", "")); 
                     txtSoLuong.setText("1");
                     selectedProduct = findProductByMaSP(maSP);
                 }
@@ -258,10 +255,9 @@ public class LoHangForm extends JDialog {
         tblOrder = new JTable(orderModel);
         setupTableStyle(tblOrder);
 
-        // Căn chỉnh độ rộng
         tblOrder.getColumnModel().getColumn(0).setPreferredWidth(60);
         tblOrder.getColumnModel().getColumn(1).setPreferredWidth(150);
-        tblOrder.getColumnModel().getColumn(3).setPreferredWidth(40); // Cột SL ngắn lại
+        tblOrder.getColumnModel().getColumn(3).setPreferredWidth(40); 
 
         JScrollPane scroll = new JScrollPane(tblOrder);
         scroll.setBorder(BorderFactory.createLineBorder(new Color(229, 231, 235)));
@@ -269,10 +265,9 @@ public class LoHangForm extends JDialog {
         return scroll;
     }
 
-    // --- HÀM CHUẨN HÓA STYLE CHO BẢNG ---
     private void setupTableStyle(JTable table) {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setRowHeight(42); // Tăng chiều cao row
+        table.setRowHeight(42); 
         table.setShowVerticalLines(false);
         table.setShowHorizontalLines(true);
         table.setGridColor(new Color(229, 231, 235));
@@ -300,7 +295,6 @@ public class LoHangForm extends JDialog {
             table.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
         }
 
-        // Apply ZebraHoverRenderer
         ZebraHoverRenderer zebra = new ZebraHoverRenderer(table);
         for(int i = 0; i < table.getColumnCount(); i++) {
             table.getColumnModel().getColumn(i).setCellRenderer(zebra);
@@ -468,7 +462,8 @@ public class LoHangForm extends JDialog {
         try {
             boolean success = loHangBUS.createLoHang(supplier.getMaNCC(), orderItems);
             if (success) {
-                JOptionPane.showMessageDialog(this, "Tạo lô hàng thành công. Lô hàng đã được đưa vào danh sách chờ nhập kho.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                // Đã sửa lại thông báo đúng với luồng "Chờ kiểm duyệt"
+                JOptionPane.showMessageDialog(this, "Tạo lô hàng thành công. Trạng thái hiện tại: 'Chờ kiểm duyệt'.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "Tạo lô hàng thất bại. Vui lòng thử lại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -478,7 +473,6 @@ public class LoHangForm extends JDialog {
         }
     }
 
-    // --- INNER CLASS CHUẨN HÓA RENDERER ---
     static class ZebraHoverRenderer extends DefaultTableCellRenderer {
         private int hoverRow = -1;
 

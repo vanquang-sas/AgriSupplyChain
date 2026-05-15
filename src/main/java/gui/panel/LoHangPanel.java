@@ -209,11 +209,24 @@ public class LoHangPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Vui lòng chọn lô hàng trước khi yêu cầu nhập kho.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            int success = 0;
-            for (String ma : listMa) {
-                if (loHangBUS.yeuCauNhapKho(ma)) success++;
+            if (!showConfirmYeuCauNhapKho(listMa)) {
+                return;
             }
-            JOptionPane.showMessageDialog(this, "Đã gửi yêu cầu nhập kho cho " + success + " lô hàng.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            int success = 0;
+            StringBuilder errors = new StringBuilder();
+            for (String ma : listMa) {
+                try {
+                    if (loHangBUS.yeuCauNhapKho(ma)) success++;
+                } catch (Exception ex) {
+                    errors.append("Lô hàng ").append(ma).append(": ").append(extractDbErrorMessage(ex)).append("\n");
+                }
+            }
+            if (success > 0) {
+                JOptionPane.showMessageDialog(this, "Đã gửi yêu cầu nhập kho cho " + success + " lô hàng.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            }
+            if (errors.length() > 0) {
+                JOptionPane.showMessageDialog(this, errors.toString().trim(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
             loadData(null);
         });
 
@@ -226,10 +239,20 @@ public class LoHangPanel extends JPanel {
             int option = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn xóa " + listMa.size() + " lô hàng đã chọn không?", "Xác nhận", JOptionPane.YES_NO_OPTION);
             if (option == JOptionPane.YES_OPTION) {
                 int success = 0;
+                StringBuilder errors = new StringBuilder();
                 for (String ma : listMa) {
-                    if (loHangBUS.xoaLoHang(ma)) success++;
+                    try {
+                        if (loHangBUS.xoaLoHang(ma)) success++;
+                    } catch (Exception ex) {
+                        errors.append("Lô hàng ").append(ma).append(": ").append(extractDbErrorMessage(ex)).append("\n");
+                    }
                 }
-                JOptionPane.showMessageDialog(this, "Đã xóa thành công " + success + " lô hàng.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                if (success > 0) {
+                    JOptionPane.showMessageDialog(this, "Đã xóa thành công " + success + " lô hàng.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                }
+                if (errors.length() > 0) {
+                    JOptionPane.showMessageDialog(this, errors.toString().trim(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
                 loadData(null);
             }
         });
@@ -249,6 +272,98 @@ public class LoHangPanel extends JPanel {
             listMa.add(tableModel.getValueAt(table.getSelectedRow(), 1).toString());
         }
         return listMa;
+    }
+
+    private String extractDbErrorMessage(Throwable error) {
+        if (error == null) return "Đã có lỗi xảy ra.";
+
+        Throwable current = error;
+        String message = null;
+        while (current != null) {
+            if (current.getMessage() != null && !current.getMessage().trim().isEmpty()) {
+                message = current.getMessage().trim();
+            }
+            if (message != null && message.contains("ORA-")) {
+                break;
+            }
+            current = current.getCause();
+        }
+
+        if (message == null || message.isEmpty()) {
+            return "Đã có lỗi xảy ra.";
+        }
+
+        // Tìm thông báo sau ORA-xxxx:
+        int idx = message.indexOf("ORA-");
+        if (idx >= 0) {
+            int colon = message.indexOf(':', idx);
+            if (colon >= 0 && colon + 1 < message.length()) {
+                message = message.substring(colon + 1).trim();
+            } else {
+                message = message.substring(idx).trim();
+            }
+        }
+
+        // Nếu chuỗi chứa Error Message =, lấy phần sau nó
+        int errIdx = message.indexOf("Error Message =");
+        if (errIdx >= 0) {
+            message = message.substring(errIdx + "Error Message =".length()).trim();
+            int colon = message.indexOf(':');
+            if (colon >= 0) {
+                message = message.substring(colon + 1).trim();
+            }
+        }
+
+        // Chỉ giữ dòng đầu tiên và loại bỏ các chi tiết như "at ..."
+        String[] lines = message.split("(\\r\\n|\\n)");
+        if (lines.length > 0) {
+            message = lines[0].trim();
+        }
+        if (message.startsWith("ORA-")) {
+            int colon = message.indexOf(':');
+            if (colon >= 0 && colon + 1 < message.length()) {
+                message = message.substring(colon + 1).trim();
+            }
+        }
+        if (message.startsWith("at ")) {
+            return "Đã có lỗi xảy ra.";
+        }
+
+        return message.isEmpty() ? "Đã có lỗi xảy ra." : message;
+    }
+
+    private boolean showConfirmYeuCauNhapKho(List<String> listMa) {
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
+        panel.setBackground(AppColor.SURFACE);
+        panel.setBorder(new EmptyBorder(12, 12, 12, 12));
+
+        JLabel message = new JLabel("Bạn có chắc muốn yêu cầu nhập hàng cho các lô hàng dưới đây?");
+        message.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        message.setForeground(AppColor.TEXT_PRIMARY);
+        panel.add(message, BorderLayout.NORTH);
+
+        JList<String> list = new JList<>(listMa.toArray(new String[0]));
+        list.setVisibleRowCount(Math.min(listMa.size(), 8));
+        list.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        list.setBackground(Color.WHITE);
+        list.setFixedCellHeight(24);
+        JScrollPane scroll = new JScrollPane(list);
+        scroll.setPreferredSize(new Dimension(320, Math.min(listMa.size() * 24 + 6, 200)));
+        panel.add(scroll, BorderLayout.CENTER);
+
+        Object[] options = {"Tạo", "Huỷ"};
+        int result = JOptionPane.showOptionDialog(
+                this,
+                panel,
+                "Xác nhận yêu cầu nhập kho",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+        return result == JOptionPane.YES_OPTION;
     }
 
     private JPanel buildTableWrapper() {

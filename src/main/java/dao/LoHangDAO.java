@@ -131,10 +131,9 @@ public class LoHangDAO {
             cs.setString(1, maLH);
             cs.execute();
             return true;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
         }
-        return false;
     }
 
     public boolean xoaLoHang(String maLH) {
@@ -143,10 +142,9 @@ public class LoHangDAO {
             cs.setString(1, maLH);
             cs.execute();
             return true;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
         }
-        return false;
     }
 
     public List<ChiTietLoHangDTO> getChiTietLoHang(String maLH) {
