@@ -12,9 +12,7 @@ public class DBConnection {
     public static Connection getConnection() {
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
-            Connection con = DriverManager.getConnection(URL, USER, PASS);
-            System.out.println("DEBUG: [DBConnection] Kết nối thành công tới " + URL + " as " + USER);
-            return con;
+            return DriverManager.getConnection(URL, USER, PASS);
         } catch (ClassNotFoundException | SQLException e) {
             System.err.println("Lỗi kết nối CSDL! Hãy kiểm tra lại DBConnection.java");
             e.printStackTrace();
