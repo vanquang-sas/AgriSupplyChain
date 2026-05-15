@@ -79,19 +79,19 @@ public class ChiTietSanPhamForm extends JDialog {
         // load ảnh
         try {
             String tenAnh = sp.getHinhAnh();
-            ImageIcon icon = new ImageIcon( getClass().getResource("/images/" + tenAnh));
+            // ImageIcon icon = new ImageIcon( getClass().getResource("/images/" + tenAnh));
+            String icon = "src/main/resources/images/" + sp.getMaSP() + ".jpg";
 
-            Image img = icon.getImage().getScaledInstance(
-                    250,
-                    250,
-                    Image.SCALE_SMOOTH
-            );
+            // Image img = icon.getImage().getScaledInstance(
+            //         250,
+            //         250,
+            //         Image.SCALE_SMOOTH
+            // );
 
-            lblHinhAnh.setIcon(new ImageIcon(img));
+            lblHinhAnh.setIcon(new ImageIcon(icon));
 
         } catch (Exception e) {
 
-            // lblHinhAnh.setText("Không có ảnh");
             lblHinhAnh.setText("Không có ảnh");
             lblHinhAnh.setForeground(Color.BLACK);
         }
