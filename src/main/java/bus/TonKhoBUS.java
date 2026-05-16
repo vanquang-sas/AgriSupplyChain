@@ -19,6 +19,14 @@ public class TonKhoBUS {
         return tonKhoDAO.getDanhSachTonKho();
     }
 
+    public ArrayList<Object[]> getDanhSachTonKhoTongHop() {
+        return tonKhoDAO.getDanhSachTonKhoTongHop();
+    }
+
+    public ArrayList<Object[]> getChiTietTonKhoByMaSP(String maSP) {
+        return tonKhoDAO.getChiTietTonKhoByMaSP(maSP);
+    }
+
     public boolean capNhatTonKho(String maTonKho, double soLuongMoi, String viTriMoi) {
         return tonKhoDAO.capNhatTonKho(maTonKho, soLuongMoi, viTriMoi);
     }

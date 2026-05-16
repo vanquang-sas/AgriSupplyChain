@@ -37,5 +37,5 @@ public class MainTextTonKho extends JFrame {
         SwingUtilities.invokeLater(() -> {
             new MainTextTonKho().setVisible(true);
         });
-    } 
+    }
 }

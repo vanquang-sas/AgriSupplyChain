@@ -89,9 +89,6 @@ public class TonKhoPanel extends JPanel {
         cbSort.setPreferredSize(new Dimension(190, 38));
         cbSort.putClientProperty(FlatClientProperties.STYLE, "arc: 15");
 
-        JButton btnEdit = buildButton("Sửa", AppColor.INFO, "/icons/edit.png");
-        JButton btnDelete = buildButton("Xóa", AppColor.ERROR, "/icons/delete.png");
-
         JButton btnRefresh = new JButton("Làm mới");
         btnRefresh.setPreferredSize(new Dimension(100, 38));
         btnRefresh.putClientProperty(FlatClientProperties.STYLE, "arc: 15");
@@ -113,9 +110,6 @@ public class TonKhoPanel extends JPanel {
 
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         leftPanel.setBackground(AppColor.BACKGROUND);
-        leftPanel.add(btnDelete); // Xóa trái
-        leftPanel.add(btnEdit); // Sửa trái
-
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         rightPanel.setBackground(AppColor.BACKGROUND);
         rightPanel.add(txtSearch); // Tìm kiếm phải
@@ -131,8 +125,8 @@ public class TonKhoPanel extends JPanel {
         summaryPanel.setPreferredSize(new Dimension(0, 85));
 
         cardTotal = new SummaryCard("Tổng mặt hàng", AppColor.TEXT_PRIMARY, AppColor.PRIMARY, PRIMARY_LIGHT, "box");
-        cardLowStock = new SummaryCard("Tồn kho thấp", AppColor.WARNING, AppColor.WARNING, WARNING_LIGHT, "warning");
-        cardOutOfStock = new SummaryCard("Cần nhập gấp", AppColor.ERROR, AppColor.ERROR, ERROR_LIGHT, "warning");
+        cardLowStock = new SummaryCard("Sắp hết hạn", AppColor.WARNING, AppColor.WARNING, WARNING_LIGHT, "warning");
+        cardOutOfStock = new SummaryCard("Hết hạn", AppColor.ERROR, AppColor.ERROR, ERROR_LIGHT, "warning");
 
         summaryPanel.add(cardTotal);
         summaryPanel.add(cardLowStock);
@@ -155,25 +149,19 @@ public class TonKhoPanel extends JPanel {
             loadDataToTable(false);
         });
 
-        btnEdit.addActionListener(e -> handleEdit());
-        btnDelete.addActionListener(e -> handleDelete());
-
         // ================= SETUP TABLE (STYLE NHAPKHO) =================
         String[] columnNames = {
-                "Mã Kho", "Tên Sản Phẩm", "Loại", "Nhà Cung Cấp",
-                "Số Lượng", "ĐVT", "Vị Trí", "Cập Nhật", "TG Hết Hạn", "Trạng Thái"
+                "Sản phẩm/Loại", "Mã loại", "Đơn vị tính", "Tổng số lượng tồn", "Trạng thái", "Hành động"
         };
 
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false;
+                return column == 5; // Chỉ cột Hành động có thể edit (click)
             }
 
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex == 4)
-                    return Double.class;
                 return Object.class;
             }
         };
@@ -217,22 +205,16 @@ public class TonKhoPanel extends JPanel {
             @Override
             public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
                 JLabel l = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, r, c);
-
-                l.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                l.setFont(new Font("Segoe UI", Font.BOLD, 13));
                 l.setForeground(AppColor.TEXT_SECONDARY);
                 l.setBackground(AppColor.BACKGROUND);
 
-                // align giống body
-                if (c == 4)
-                    l.setHorizontalAlignment(SwingConstants.RIGHT);
-                else if (c == 7 || c == 8 || c == 9) 
+                if (c == 4 || c == 5)
                     l.setHorizontalAlignment(SwingConstants.CENTER);
                 else
                     l.setHorizontalAlignment(SwingConstants.LEFT);
 
-                // padding đồng nhất
-                l.setBorder(new EmptyBorder(0, 12, 0, 12));
-
+                l.setBorder(new EmptyBorder(0, 15, 0, 15));
                 return l;
             }
         };
@@ -251,105 +233,35 @@ public class TonKhoPanel extends JPanel {
             @Override
             public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
                 JLabel l = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, r, c);
-
                 l.setFont(new Font("Segoe UI", Font.PLAIN, 13));
                 l.setHorizontalAlignment(align);
-
-                // padding đồng nhất toàn bảng
-                l.setBorder(new EmptyBorder(0, 12, 0, 12));
-
+                l.setBorder(new EmptyBorder(0, 15, 0, 15));
+                if (c == 0) {
+                    l.setFont(new Font("Segoe UI", Font.BOLD, 13));
+                    l.setForeground(sel ? AppColor.PRIMARY_ACTIVE : AppColor.TEXT_PRIMARY);
+                }
                 return l;
             }
         }
 
         CustomCellRenderer left = new CustomCellRenderer(SwingConstants.LEFT);
-        CustomCellRenderer right = new CustomCellRenderer(SwingConstants.RIGHT);
+        // CstomCellRenderer right = new CustomCellRenderer(SwingConstants.RIGHT);
 
-        for (int i = 0; i < table.getColumnCount(); i++) {
-            if (i == 4) {
-                table.getColumnModel().getColumn(i).setCellRenderer(right); // Số lượng
-            } else if (i == 9) {
-                table.getColumnModel().getColumn(i).setCellRenderer(new BadgeStatusRenderer());
-            } else {
-                table.getColumnModel().getColumn(i).setCellRenderer(left);
-            }
-        }
+        table.getColumnModel().getColumn(0).setCellRenderer(left);
+        table.getColumnModel().getColumn(1).setCellRenderer(left);
+        table.getColumnModel().getColumn(2).setCellRenderer(left);
+        table.getColumnModel().getColumn(3).setCellRenderer(left);
+        table.getColumnModel().getColumn(4).setCellRenderer(new BadgeStatusRenderer());
 
-        // Định dạng cột cụ thể
-        table.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
-                JLabel l = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, r, c);
-                l.setForeground(sel ? AppColor.PRIMARY_ACTIVE : AppColor.PRIMARY);
-                l.setFont(new Font("Segoe UI", Font.BOLD, 13));
-                l.setBorder(new EmptyBorder(0, 14, 0, 6));
-                return l;
-            }
-        });
+        table.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer());
+        table.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor(new JCheckBox()));
 
-        table.getColumnModel().getColumn(1).setCellRenderer(new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
-                JLabel l = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, r, c);
-                l.setFont(new Font("Segoe UI", Font.BOLD, 13));
-                l.setBorder(new EmptyBorder(0, 10, 0, 6));
-                return l;
-            }
-        });
-
-        DefaultTableCellRenderer readonlyRenderer = new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
-                JLabel l = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, r, c);
-                l.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-                l.setBorder(new EmptyBorder(0, 10, 0, 6));
-                return l;
-            }
-        };
-        for (int i = 2; i <= 6; i++) {
-            if (i != 4) table.getColumnModel().getColumn(i).setCellRenderer(readonlyRenderer);
-        }
-
-        // Renderer canh giữa cho cột Ngày (index 7, 8)
-        DefaultTableCellRenderer centerReadonlyRenderer = new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
-                JLabel l = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, r, c);
-                l.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-                l.setHorizontalAlignment(SwingConstants.CENTER);
-                l.setBorder(new EmptyBorder(0, 10, 0, 6));
-                return l;
-            }
-        };
-        table.getColumnModel().getColumn(7).setCellRenderer(centerReadonlyRenderer);
-        table.getColumnModel().getColumn(8).setCellRenderer(centerReadonlyRenderer);
-
-        // Renderer canh phải cho cột Số Lượng (index 4)
-        DefaultTableCellRenderer numberRenderer = new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
-                JLabel l = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, r, c);
-                l.setFont(new Font("Segoe UI", Font.BOLD, 13));
-                l.setHorizontalAlignment(SwingConstants.RIGHT);
-                l.setBorder(new EmptyBorder(0, 6, 0, 14));
-                return l;
-            }
-        };
-        table.getColumnModel().getColumn(4).setCellRenderer(numberRenderer);
-
-        // Thay đổi thứ tự render
-        table.getColumnModel().getColumn(0).setPreferredWidth(85); // Mã Kho
-        table.getColumnModel().getColumn(1).setPreferredWidth(145); // Tên Sản Phẩm
-        table.getColumnModel().getColumn(2).setPreferredWidth(100); // Loại 
-        table.getColumnModel().getColumn(3).setPreferredWidth(130); // Nhà Cung Cấp
-        table.getColumnModel().getColumn(4).setPreferredWidth(80); // Số Lượng
-        table.getColumnModel().getColumn(5).setPreferredWidth(55); // ĐVT
-        table.getColumnModel().getColumn(6).setPreferredWidth(90); // Vị Trí
-        table.getColumnModel().getColumn(7).setPreferredWidth(105); // Cập Nhật
-        table.getColumnModel().getColumn(8).setPreferredWidth(105); // TG Hết Hạn
-        table.getColumnModel().getColumn(9).setPreferredWidth(95); // Trạng Thái
-
-        table.getColumnModel().getColumn(9).setCellRenderer(new BadgeStatusRenderer());
+        table.getColumnModel().getColumn(0).setPreferredWidth(250);
+        table.getColumnModel().getColumn(1).setPreferredWidth(120);
+        table.getColumnModel().getColumn(2).setPreferredWidth(100);
+        table.getColumnModel().getColumn(3).setPreferredWidth(150);
+        table.getColumnModel().getColumn(4).setPreferredWidth(120);
+        table.getColumnModel().getColumn(5).setPreferredWidth(120);
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -383,319 +295,90 @@ public class TonKhoPanel extends JPanel {
         cbSort.addActionListener(e -> applyFilterAndSort(false));
     }
 
-    private JButton buildButton(String text, Color bg, String iconPath) {
-        JButton btn = new JButton(text);
-        btn.setPreferredSize(new Dimension(90, 38));
-        btn.putClientProperty(FlatClientProperties.STYLE, "arc: 15");
-        btn.setBackground(bg);
-        btn.setForeground(Color.WHITE);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btn.setContentAreaFilled(true); // ✅ Giữ background màu
-        btn.setOpaque(true);
-        btn.setBorderPainted(false); // ✅ Loại bỏ border
-        btn.setFocusPainted(false); // ✅ Loại bỏ focus border
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        try {
-            java.net.URL url = getClass().getResource(iconPath);
-            if (url != null) {
-                ImageIcon icon = new ImageIcon(url);
-                Image img = icon.getImage().getScaledInstance(16, 16, Image.SCALE_SMOOTH);
-                btn.setIcon(new ImageIcon(img));
-                btn.setIconTextGap(8); // ✅ Khoảng cách icon-text
-            }
-        } catch (Exception e) {
+    // ================= CLASS CHO NÚT CHI TIẾT =================
+    class ButtonRenderer extends JPanel implements TableCellRenderer {
+        private JButton btn;
+
+        public ButtonRenderer() {
+            setLayout(new GridBagLayout());
+            setBackground(AppColor.BACKGROUND);
+            btn = new JButton("Chi tiết");
+            btn.setPreferredSize(new Dimension(80, 32));
+            btn.setBackground(AppColor.PRIMARY);
+            btn.setForeground(Color.WHITE);
+            btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            btn.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
+            btn.setFocusPainted(false);
+            btn.setBorderPainted(false);
+            add(btn);
         }
-        return btn;
+
+        @Override
+        public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
+            setBackground(sel ? PRIMARY_LIGHT : (r % 2 == 0 ? AppColor.BACKGROUND : AppColor.SECONDARY_HOVER));
+            return this;
+        }
     }
 
-    // ================= XỬ LÝ SỰ KIỆN =================
-    private void handleEdit() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn một sản phẩm để sửa!", "Thông báo",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
+    class ButtonEditor extends DefaultCellEditor {
+        private JPanel panel;
+        private JButton btn;
+        private boolean isPushed;
+
+        public ButtonEditor(JCheckBox checkBox) {
+            super(checkBox);
+            panel = new JPanel(new GridBagLayout());
+            btn = new JButton("Chi tiết");
+            btn.setPreferredSize(new Dimension(80, 32));
+            btn.setBackground(AppColor.PRIMARY);
+            btn.setForeground(Color.WHITE);
+            btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            btn.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
+            btn.setFocusPainted(false);
+            btn.setBorderPainted(false);
+
+            btn.addActionListener(e -> fireEditingStopped());
+            panel.add(btn);
         }
 
-        int modelRow = table.convertRowIndexToModel(selectedRow);
-        int dataIndex = (currentPage - 1) * rowsPerPage + modelRow;
-        String maTonKho = currentData.get(dataIndex)[10].toString(); // Dùng để thao tác CSDL
-        String maKho = table.getModel().getValueAt(modelRow, 0).toString(); // Hiển thị
-        String tenSP = table.getModel().getValueAt(modelRow, 1).toString();
-        String loai = table.getModel().getValueAt(modelRow, 2) != null ? table.getModel().getValueAt(modelRow, 2).toString() : "";
-        String ncc = table.getModel().getValueAt(modelRow, 3) != null ? table.getModel().getValueAt(modelRow, 3).toString() : "";
-        String soLuongStr = table.getModel().getValueAt(modelRow, 4).toString();
-        String dvt = table.getModel().getValueAt(modelRow, 5) != null ? table.getModel().getValueAt(modelRow, 5).toString() : "";
-        String viTri = table.getModel().getValueAt(modelRow, 6) != null ? table.getModel().getValueAt(modelRow, 6).toString() : "";
-        String capNhat = table.getModel().getValueAt(modelRow, 7) != null ? table.getModel().getValueAt(modelRow, 7).toString() : "";
-        String tgHetHan = table.getModel().getValueAt(modelRow, 8) != null ? table.getModel().getValueAt(modelRow, 8).toString() : "";
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row,
+                int column) {
+            panel.setBackground(table.getSelectionBackground());
+            isPushed = true;
+            return panel;
+        }
 
-        // ✅ Tạo dialog chỉnh sửa
-        JDialog editDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Sửa Tồn Kho", true);
-        editDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        editDialog.setSize(700, 520);
-        editDialog.setLocationRelativeTo(this);
+        @Override
+        public Object getCellEditorValue() {
+            if (isPushed) {
+                int modelRow = table.convertRowIndexToModel(table.getEditingRow());
+                int dataIndex = (currentPage - 1) * rowsPerPage + modelRow;
+                Object[] rowData = currentData.get(dataIndex);
 
-        JPanel mainContainer = new JPanel(new BorderLayout());
-        mainContainer.setBackground(Color.WHITE);
+                String tenSP = rowData[1] != null ? rowData[1].toString() : "";
+                String maSP = rowData[2] != null ? rowData[2].toString() : "";
+                double sl = rowData[4] != null ? (double) rowData[4] : 0;
 
-        // --- Header ---
-        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 25, 15));
-        headerPanel.setBackground(Color.WHITE);
-        headerPanel.setBorder(new MatteBorder(0, 0, 1, 0, new Color(230, 230, 230)));
-        JLabel headerLabel = new JLabel("Thông Tin Tồn Kho");
-        headerLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        headerLabel.setForeground(AppColor.PRIMARY);
-        headerPanel.add(headerLabel);
-        mainContainer.add(headerPanel, BorderLayout.NORTH);
+                SwingUtilities.invokeLater(() -> {
+                    gui.dialog.ChiTietTonKhoDialog dialog = new gui.dialog.ChiTietTonKhoDialog(
+                            (Frame) SwingUtilities.getWindowAncestor(TonKhoPanel.this),
+                            tenSP, maSP, sl, tonKhoBUS);
+                    dialog.setVisible(true);
 
-        // --- Form Content ---
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(new EmptyBorder(15, 25, 15, 25));
-        panel.setBackground(Color.WHITE);
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        // --- CỘT 1 ---
-        // Mã Kho
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.15;
-        JLabel lblMa = new JLabel("Mã Kho:");
-        lblMa.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblMa.setForeground(AppColor.TEXT_PRIMARY);
-        panel.add(lblMa, gbc);
-
-        gbc.gridx = 1; gbc.weightx = 0.35;
-        JTextField txtMa = new JTextField(maKho);
-        txtMa.setEditable(false);
-        txtMa.setPreferredSize(new Dimension(0, 38));
-        txtMa.putClientProperty(FlatClientProperties.STYLE, "arc: 10; margin: 0,10,0,10");
-        txtMa.setBackground(new Color(245, 245, 245));
-        txtMa.setForeground(new Color(100, 100, 100));
-        panel.add(txtMa, gbc);
-
-        // Loại
-        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.15;
-        JLabel lblLoai = new JLabel("Loại:");
-        lblLoai.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblLoai.setForeground(AppColor.TEXT_PRIMARY);
-        panel.add(lblLoai, gbc);
-
-        gbc.gridx = 1; gbc.weightx = 0.35;
-        JTextField txtLoai = new JTextField(loai);
-        txtLoai.setEditable(false);
-        txtLoai.setPreferredSize(new Dimension(0, 38));
-        txtLoai.putClientProperty(FlatClientProperties.STYLE, "arc: 10; margin: 0,10,0,10");
-        txtLoai.setBackground(new Color(245, 245, 245));
-        txtLoai.setForeground(new Color(100, 100, 100));
-        panel.add(txtLoai, gbc);
-
-        // Số Lượng
-        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0.15;
-        JLabel lblSoLuong = new JLabel("Số Lượng (*):");
-        lblSoLuong.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblSoLuong.setForeground(AppColor.PRIMARY);
-        panel.add(lblSoLuong, gbc);
-
-        gbc.gridx = 1; gbc.weightx = 0.35;
-        JTextField txtSoLuong = new JTextField(soLuongStr);
-        txtSoLuong.setPreferredSize(new Dimension(0, 38));
-        txtSoLuong.putClientProperty(FlatClientProperties.STYLE, "arc: 10; margin: 0,10,0,10");
-        panel.add(txtSoLuong, gbc);
-
-        // Vị Trí
-        gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0.15;
-        JLabel lblViTri = new JLabel("Vị Trí (*):");
-        lblViTri.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblViTri.setForeground(AppColor.PRIMARY);
-        panel.add(lblViTri, gbc);
-
-        gbc.gridx = 1; gbc.weightx = 0.35;
-        JTextField txtViTri = new JTextField(viTri);
-        txtViTri.setPreferredSize(new Dimension(0, 38));
-        txtViTri.putClientProperty(FlatClientProperties.STYLE, "arc: 10; margin: 0,10,0,10");
-        panel.add(txtViTri, gbc);
-
-        // --- CỘT 2 ---
-        // Tên Sản Phẩm
-        gbc.gridx = 2; gbc.gridy = 0; gbc.weightx = 0.15;
-        JLabel lblTen = new JLabel("Tên Sản Phẩm:");
-        lblTen.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblTen.setForeground(AppColor.TEXT_PRIMARY);
-        panel.add(lblTen, gbc);
-
-        gbc.gridx = 3; gbc.weightx = 0.35;
-        JTextField txtTen = new JTextField(tenSP);
-        txtTen.setEditable(false);
-        txtTen.setPreferredSize(new Dimension(0, 38));
-        txtTen.putClientProperty(FlatClientProperties.STYLE, "arc: 10; margin: 0,10,0,10");
-        txtTen.setBackground(new Color(245, 245, 245));
-        txtTen.setForeground(new Color(100, 100, 100));
-        panel.add(txtTen, gbc);
-
-        // Nhà Cung Cấp
-        gbc.gridx = 2; gbc.gridy = 1; gbc.weightx = 0.15;
-        JLabel lblNCC = new JLabel("Nhà Cung Cấp:");
-        lblNCC.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblNCC.setForeground(AppColor.TEXT_PRIMARY);
-        panel.add(lblNCC, gbc);
-
-        gbc.gridx = 3; gbc.weightx = 0.35;
-        JTextField txtNCC = new JTextField(ncc);
-        txtNCC.setEditable(false);
-        txtNCC.setPreferredSize(new Dimension(0, 38));
-        txtNCC.putClientProperty(FlatClientProperties.STYLE, "arc: 10; margin: 0,10,0,10");
-        txtNCC.setBackground(new Color(245, 245, 245));
-        txtNCC.setForeground(new Color(100, 100, 100));
-        panel.add(txtNCC, gbc);
-
-        // ĐVT
-        gbc.gridx = 2; gbc.gridy = 2; gbc.weightx = 0.15;
-        JLabel lblDVT = new JLabel("ĐVT:");
-        lblDVT.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblDVT.setForeground(AppColor.TEXT_PRIMARY);
-        panel.add(lblDVT, gbc);
-
-        gbc.gridx = 3; gbc.weightx = 0.35;
-        JTextField txtDVT = new JTextField(dvt);
-        txtDVT.setEditable(false);
-        txtDVT.setPreferredSize(new Dimension(0, 38));
-        txtDVT.putClientProperty(FlatClientProperties.STYLE, "arc: 10; margin: 0,10,0,10");
-        txtDVT.setBackground(new Color(245, 245, 245));
-        txtDVT.setForeground(new Color(100, 100, 100));
-        panel.add(txtDVT, gbc);
-
-        // Cập Nhật
-        gbc.gridx = 2; gbc.gridy = 3; gbc.weightx = 0.15;
-        JLabel lblCapNhat = new JLabel("Cập Nhật:");
-        lblCapNhat.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblCapNhat.setForeground(AppColor.TEXT_PRIMARY);
-        panel.add(lblCapNhat, gbc);
-
-        gbc.gridx = 3; gbc.weightx = 0.35;
-        JTextField txtCapNhat = new JTextField(capNhat);
-        txtCapNhat.setEditable(false);
-        txtCapNhat.setPreferredSize(new Dimension(0, 38));
-        txtCapNhat.putClientProperty(FlatClientProperties.STYLE, "arc: 10; margin: 0,10,0,10");
-        txtCapNhat.setBackground(new Color(245, 245, 245));
-        txtCapNhat.setForeground(new Color(100, 100, 100));
-        panel.add(txtCapNhat, gbc);
-
-        // TG Hết Hạn
-        gbc.gridx = 2; gbc.gridy = 4; gbc.weightx = 0.15;
-        JLabel lblHan = new JLabel("TG Hết Hạn:");
-        lblHan.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblHan.setForeground(AppColor.TEXT_PRIMARY);
-        panel.add(lblHan, gbc);
-
-        gbc.gridx = 3; gbc.weightx = 0.35;
-        JTextField txtHan = new JTextField(tgHetHan);
-        txtHan.setEditable(false);
-        txtHan.setPreferredSize(new Dimension(0, 38));
-        txtHan.putClientProperty(FlatClientProperties.STYLE, "arc: 10; margin: 0,10,0,10");
-        txtHan.setBackground(new Color(245, 245, 245));
-        txtHan.setForeground(new Color(100, 100, 100));
-        panel.add(txtHan, gbc);
-
-        mainContainer.add(panel, BorderLayout.CENTER);
-
-        // --- Panel nút ---
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 12));
-        btnPanel.setBackground(Color.WHITE);
-        btnPanel.setBorder(new MatteBorder(1, 0, 0, 0, new Color(230, 230, 230)));
-
-        JButton btnCancel = new JButton("Hủy");
-        btnCancel.setPreferredSize(new Dimension(100, 40));
-        btnCancel.setBackground(new Color(240, 240, 240)); 
-        btnCancel.setForeground(new Color(100, 100, 100));
-        btnCancel.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnCancel.setFocusPainted(false);
-        btnCancel.setBorderPainted(false);
-        btnCancel.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnCancel.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
-
-        JButton btnSave = new JButton("Lưu Thay Đổi");
-        btnSave.setPreferredSize(new Dimension(140, 40));
-        btnSave.setBackground(AppColor.PRIMARY);
-        btnSave.setForeground(Color.WHITE);
-        btnSave.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnSave.setFocusPainted(false);
-        btnSave.setBorderPainted(false);
-        btnSave.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnSave.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
-
-        btnPanel.add(btnCancel);
-        btnPanel.add(btnSave);
-
-        mainContainer.add(btnPanel, BorderLayout.SOUTH);
-        editDialog.add(mainContainer);
-
-        // ✅ Xử lý nút Lưu
-        btnSave.addActionListener(e -> {
-            try {
-                String soLuongMoi = txtSoLuong.getText().trim();
-                String viTriMoi = txtViTri.getText().trim();
-
-                if (soLuongMoi.isEmpty() || viTriMoi.isEmpty()) {
-                    JOptionPane.showMessageDialog(editDialog, "Vui lòng điền đầy đủ thông tin (*).", "Cảnh báo",
-                            JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-
-                double sl = Double.parseDouble(soLuongMoi);
-                if (sl < 0) {
-                    JOptionPane.showMessageDialog(editDialog, "Số lượng phải >= 0!", "Lỗi",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                // ✅ Gọi method cập nhật từ BUS
-                if (tonKhoBUS.capNhatTonKho(maTonKho, sl, viTriMoi)) {
-                    JOptionPane.showMessageDialog(editDialog, "Cập nhật thành công!", "Thành công",
-                            JOptionPane.INFORMATION_MESSAGE);
-                    editDialog.dispose();
+                    // Reload data after dialog closes to reflect changes (e.g., deleted expired
+                    // products)
                     loadDataToTable(true);
-                } else {
-                    JOptionPane.showMessageDialog(editDialog, "Cập nhật thất bại!", "Lỗi",
-                            JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(editDialog, "Số lượng phải là số!", "Lỗi",
-                        JOptionPane.ERROR_MESSAGE);
+                });
             }
-        });
-
-        // ✅ Xử lý nút Hủy
-        btnCancel.addActionListener(e -> editDialog.dispose());
-
-        editDialog.setVisible(true);
-    }
-
-    private void handleDelete() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn một sản phẩm để xóa!", "Thông báo",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
+            isPushed = false;
+            return "Chi tiết";
         }
-        int modelRow = table.convertRowIndexToModel(selectedRow);
-        int dataIndex = (currentPage - 1) * rowsPerPage + modelRow;
-        String maTonKho = currentData.get(dataIndex)[10].toString();
-        String maKho = table.getModel().getValueAt(modelRow, 0).toString();
 
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "Bạn có chắc chắn muốn xóa dữ liệu tồn kho tại kho " + maKho + "?",
-                "Xác nhận xóa", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-
-        if (confirm == JOptionPane.YES_OPTION) {
-            if (tonKhoBUS.xoaTonKho(maTonKho)) {
-                JOptionPane.showMessageDialog(this, "Đã xóa thành công!");
-                loadDataToTable(true);
-            } else {
-                JOptionPane.showMessageDialog(this, "Xóa thất bại! Có thể mã này đang bị ràng buộc dữ liệu.",
-                        "Lỗi CSDL", JOptionPane.ERROR_MESSAGE);
-            }
+        @Override
+        public boolean stopCellEditing() {
+            isPushed = false;
+            return super.stopCellEditing();
         }
     }
 
@@ -706,10 +389,10 @@ public class TonKhoPanel extends JPanel {
         int outOfStock = 0;
 
         for (Object[] row : originalData) {
-            double slConLai = row[4] != null ? (double) row[4] : 0;
-            if (slConLai == 0) {
+            String status = row.length > 5 && row[5] != null ? row[5].toString() : "";
+            if (status.equals("Hết hạn")) {
                 outOfStock++;
-            } else if (slConLai < 50) {
+            } else if (status.equals("Sắp hết hạn")) {
                 lowStock++;
             }
         }
@@ -723,7 +406,7 @@ public class TonKhoPanel extends JPanel {
     }
 
     private void loadDataToTable(boolean keepCurrentPage) {
-        ArrayList<Object[]> list = tonKhoBUS.getDanhSachTonKho();
+        ArrayList<Object[]> list = tonKhoBUS.getDanhSachTonKhoTongHop();
         originalData = (list != null) ? list : new ArrayList<>();
         updateSummaryCards();
         applyFilterAndSort(keepCurrentPage);
@@ -778,6 +461,9 @@ public class TonKhoPanel extends JPanel {
 
         for (int i = start; i < end; i++) {
             Object[] row = currentData.get(i);
+            String tenSP = row[1] != null ? row[1].toString() : "";
+            String maSP = row[2] != null ? row[2].toString() : "";
+            String dvt = row[3] != null ? row[3].toString() : "";
             double slConLai = row[4] != null ? (double) row[4] : 0;
 
             // ✅ Xóa .0 nếu là số nguyên
@@ -785,10 +471,9 @@ public class TonKhoPanel extends JPanel {
                     ? String.valueOf((long) slConLai)
                     : String.valueOf(slConLai);
 
-            String trangThai = slConLai >= 50 ? "Còn hàng" : (slConLai > 0 ? "Tồn kho thấp" : "Cần nhập gấp");
+            String trangThai = row.length > 5 && row[5] != null ? row[5].toString() : "Còn hạn";
             tableModel.addRow(new Object[] {
-                    row[0], row[1], row[2], row[3], row[4], soLuong, row[6], row[7],
-                    row[8], trangThai
+                    tenSP, maSP, dvt, soLuong, trangThai, "Chi tiết"
             });
         }
     }
@@ -908,13 +593,13 @@ public class TonKhoPanel extends JPanel {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             Color bg, fg;
-            if (txt.equals("Còn hàng")) {
+            if (txt.equals("Còn hạn") || txt.equals("Còn hàng")) {
                 bg = PRIMARY_LIGHT;
                 fg = AppColor.SUCCESS_ACTIVE;
-            } else if (txt.equals("Tồn kho thấp")) {
+            } else if (txt.equals("Sắp hết hạn") || txt.equals("Sắp hết") || txt.equals("Tồn kho thấp")) {
                 bg = WARNING_LIGHT;
                 fg = AppColor.WARNING_ACTIVE;
-            } else { // Hết hàng
+            } else { // Hết hạn hoặc Cần nhập gấp
                 bg = ERROR_LIGHT;
                 fg = AppColor.ERROR;
             }
