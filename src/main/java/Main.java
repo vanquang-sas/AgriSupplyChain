@@ -19,19 +19,19 @@ public class Main {
         // CHẾ ĐỘ TEST: TỰ ĐỘNG ĐĂNG NHẬP
         // ==========================================
         TaiKhoanDTO mockUser = new TaiKhoanDTO();
-        mockUser.setUsername("nvtm01"); 
+        mockUser.setUsername("nvtm01");
 
         mockUser.setLoaiTK(1); // 0: Quản lý, 1: Nhân viên, 2: Khách hàng
-        
+
         Session.currentUser = mockUser;
-        Session.chucVu = "thu mua";
+        Session.chucVu = "kho";
         Session.tenNguoiDung = "Quản trị viên Test";
 
         // Khởi chạy màn hình Đăng nhập tổng
         java.awt.EventQueue.invokeLater(() -> {
             // Mở thẳng MainFrame với quyền Admin
             new MainFrame().setVisible(true);
-            
+
             // Khi nào muốn deploy thật, hãy comment dòng trên và uncomment dòng dưới:
             // new AuthFrame().setVisible(true);
         });
@@ -44,26 +44,26 @@ public class Main {
 // import java.sql.Statement;
 
 // public class Main {
-//     public static void main(String[] args) {
-//         try {
-//             Connection con = DBConnection.getConnection();
+// public static void main(String[] args) {
+// try {
+// Connection con = DBConnection.getConnection();
 
-//             if (con != null) {
-//                 System.out.println("Kết nối thành công!");
+// if (con != null) {
+// System.out.println("Kết nối thành công!");
 
-//                 Statement st = con.createStatement();
-//                 ResultSet rs = st.executeQuery("SELECT USER FROM dual");
+// Statement st = con.createStatement();
+// ResultSet rs = st.executeQuery("SELECT USER FROM dual");
 
-//                 if (rs.next()) {
-//                     System.out.println("Đang kết nối với USER: " + rs.getString(1));
-//                 }
+// if (rs.next()) {
+// System.out.println("Đang kết nối với USER: " + rs.getString(1));
+// }
 
-//             } else {
-//                 System.out.println("Kết nối thất bại!");
-//             }
+// } else {
+// System.out.println("Kết nối thất bại!");
+// }
 
-//         } catch (Exception e) {
-//             e.printStackTrace();
-//         }
-//     }
+// } catch (Exception e) {
+// e.printStackTrace();
+// }
+// }
 // }

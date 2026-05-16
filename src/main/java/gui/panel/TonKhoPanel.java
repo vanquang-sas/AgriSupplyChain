@@ -7,7 +7,9 @@ import util.AppColor;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
+import javax.swing.table.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +27,9 @@ public class TonKhoPanel extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private TonKhoBUS tonKhoBUS = new TonKhoBUS();
-    private JTextField txtSearch;
-    private JComboBox<String> cbSort;
+    private ModernSearchField txtSearch;
+    private OutlineButton btnSort;
+    private String currentSortOpt = "Sắp xếp: Mới nhất";
 
     // ================== CÁC BIẾN CHO PHÂN TRANG ==================
     private List<Object[]> originalData = new ArrayList<>();
@@ -68,52 +71,73 @@ public class TonKhoPanel extends JPanel {
         JPanel topPanel = new JPanel(new BorderLayout(10, 10));
         topPanel.setBackground(AppColor.BACKGROUND);
 
-        txtSearch = new JTextField();
+        txtSearch = new ModernSearchField("Tìm kiếm sản phẩm kho...");
         txtSearch.setPreferredSize(new Dimension(300, 38));
-        txtSearch.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Tìm kiếm sản phẩm kho...");
-        txtSearch.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
-        txtSearch.putClientProperty(FlatClientProperties.STYLE, "arc: 15");
 
-        try {
-            java.net.URL searchUrl = getClass().getResource("/icons/search.png");
-            if (searchUrl != null) {
-                ImageIcon searchIcon = new ImageIcon(searchUrl);
-                Image imgSearch = searchIcon.getImage().getScaledInstance(16, 16, Image.SCALE_SMOOTH);
-                txtSearch.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, new ImageIcon(imgSearch));
-            }
-        } catch (Exception e) {
-        }
+        btnSort = new OutlineButton("Sắp xếp: Mới nhất ▼");
+        btnSort.setPreferredSize(new Dimension(190, 38));
+        
+        JPopupMenu sortMenu = new JPopupMenu();
+        sortMenu.setBackground(Color.WHITE);
+        sortMenu.setBorder(BorderFactory.createLineBorder(new Color(209, 213, 219), 1)); 
 
         String[] sortOptions = { "Sắp xếp: Mới nhất", "Sắp xếp: Số lượng tăng dần", "Sắp xếp: Số lượng giảm dần" };
-        cbSort = new JComboBox<>(sortOptions);
-        cbSort.setPreferredSize(new Dimension(190, 38));
-        cbSort.putClientProperty(FlatClientProperties.STYLE, "arc: 15");
+        for (String opt : sortOptions) {
+            JMenuItem item = createStyledMenuItem(opt);
+            item.addActionListener(e -> {
+                currentSortOpt = opt;
+                btnSort.setText(opt + " ▼");
+                applyFilterAndSort(false);
+            });
+            sortMenu.add(item);
+        }
+        btnSort.addActionListener(e -> sortMenu.show(btnSort, 0, btnSort.getHeight() + 4));
 
         JButton btnRefresh = new JButton("Làm mới");
         btnRefresh.setPreferredSize(new Dimension(100, 38));
-        btnRefresh.putClientProperty(FlatClientProperties.STYLE, "arc: 15");
-        btnRefresh.setBackground(AppColor.BACKGROUND);
-        btnRefresh.setForeground(AppColor.TEXT_SECONDARY);
+        btnRefresh.setBackground(Color.WHITE);
+        btnRefresh.setForeground(new Color(75, 85, 99));
         btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnRefresh.setFocusPainted(false);
+        btnRefresh.setContentAreaFilled(false);
+        btnRefresh.setBorderPainted(false);
         btnRefresh.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         try {
             java.net.URL url = getClass().getResource("/icons/refresh.png");
             if (url != null) {
-                ImageIcon icon = new ImageIcon(url);
-                Image img = icon.getImage().getScaledInstance(16, 16, Image.SCALE_SMOOTH);
+                Image img = new ImageIcon(url).getImage().getScaledInstance(16, 16, Image.SCALE_SMOOTH);
                 btnRefresh.setIcon(new ImageIcon(img));
             }
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
+
+        btnRefresh.addMouseListener(new MouseAdapter() {
+            @Override public void mouseEntered(MouseEvent e) { btnRefresh.putClientProperty("hover", true); btnRefresh.repaint(); }
+            @Override public void mouseExited(MouseEvent e) { btnRefresh.putClientProperty("hover", false); btnRefresh.repaint(); }
+        });
+
+        btnRefresh.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                boolean isHovered = Boolean.TRUE.equals(c.getClientProperty("hover"));
+                g2.setColor(isHovered ? new Color(243, 244, 246) : Color.WHITE);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 10, 10);
+                g2.setColor(new Color(209, 213, 219));
+                g2.setStroke(new BasicStroke(1.2f));
+                g2.drawRoundRect(1, 1, c.getWidth() - 3, c.getHeight() - 3, 10, 10);
+                g2.dispose();
+                super.paint(g, c);
+            }
+        });
 
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         leftPanel.setBackground(AppColor.BACKGROUND);
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         rightPanel.setBackground(AppColor.BACKGROUND);
         rightPanel.add(txtSearch); // Tìm kiếm phải
-        rightPanel.add(cbSort); // Sắp xếp phải (width: 150px)
+        rightPanel.add(btnSort); // Sắp xếp phải (width: 150px)
         rightPanel.add(btnRefresh); // Làm mới phải
 
         topPanel.add(leftPanel, BorderLayout.WEST);
@@ -145,7 +169,8 @@ public class TonKhoPanel extends JPanel {
         // ================= SỰ KIỆN NÚT =================
         btnRefresh.addActionListener(e -> {
             txtSearch.setText("");
-            cbSort.setSelectedIndex(0);
+            currentSortOpt = "Sắp xếp: Mới nhất";
+            btnSort.setText(currentSortOpt + " ▼");
             loadDataToTable(false);
         });
 
@@ -292,7 +317,7 @@ public class TonKhoPanel extends JPanel {
                 applyFilterAndSort(false);
             }
         });
-        cbSort.addActionListener(e -> applyFilterAndSort(false));
+        // Listener moved to menu items
     }
 
     // ================= CLASS CHO NÚT CHI TIẾT =================
@@ -428,7 +453,7 @@ public class TonKhoPanel extends JPanel {
                 currentData.add(row);
         }
 
-        String sortOpt = cbSort.getSelectedItem().toString();
+        String sortOpt = currentSortOpt;
         currentData.sort((row1, row2) -> {
             Double s1 = row1[4] != null ? (Double) row1[4] : 0.0;
             Double s2 = row2[4] != null ? (Double) row2[4] : 0.0;
@@ -481,9 +506,9 @@ public class TonKhoPanel extends JPanel {
     private void renderPaginationButtons() {
         paginationPanel.removeAll();
 
-        JButton btnPrev = new JButton("Trang trước");
+        PageButton btnPrev = new PageButton("Trang trước", false);
         btnPrev.setEnabled(currentPage > 1);
-        btnPrev.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
+        btnPrev.setPreferredSize(new Dimension(100, 36));
         btnPrev.addActionListener(e -> {
             currentPage--;
             renderTablePage();
@@ -499,13 +524,7 @@ public class TonKhoPanel extends JPanel {
 
         for (int i = startPage; i <= endPage; i++) {
             int pageNum = i;
-            JButton btnPage = new JButton(String.valueOf(pageNum));
-            btnPage.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
-
-            if (pageNum == currentPage) {
-                btnPage.setBackground(AppColor.PRIMARY);
-                btnPage.setForeground(Color.WHITE);
-            }
+            PageButton btnPage = new PageButton(String.valueOf(pageNum), pageNum == currentPage);
             btnPage.addActionListener(e -> {
                 currentPage = pageNum;
                 renderTablePage();
@@ -515,8 +534,7 @@ public class TonKhoPanel extends JPanel {
         }
 
         if (endPage < totalPages) {
-            JButton btnDots = new JButton("...");
-            btnDots.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
+            PageButton btnDots = new PageButton("...", false);
             btnDots.addActionListener(e -> {
                 currentPage = endPage + 1;
                 renderTablePage();
@@ -525,9 +543,9 @@ public class TonKhoPanel extends JPanel {
             paginationPanel.add(btnDots);
         }
 
-        JButton btnNext = new JButton("Trang sau");
+        PageButton btnNext = new PageButton("Trang sau", false);
         btnNext.setEnabled(currentPage < totalPages);
-        btnNext.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
+        btnNext.setPreferredSize(new Dimension(90, 36));
         btnNext.addActionListener(e -> {
             currentPage++;
             renderTablePage();
@@ -746,6 +764,200 @@ public class TonKhoPanel extends JPanel {
 
         public void setCount(int count) {
             lblCount.setText(String.valueOf(count));
+        }
+    }
+
+    static class ModernSearchField extends JTextField {
+        private final String placeholder;
+        private boolean isHovered = false;
+
+        private ImageIcon searchIcon;
+
+        public ModernSearchField(String placeholder) {
+            this.placeholder = placeholder;
+            setOpaque(false);
+            setBorder(BorderFactory.createEmptyBorder(0, 38, 0, 16));
+            setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            setForeground(AppColor.TEXT_PRIMARY);
+
+            try {
+                java.net.URL searchUrl = getClass().getResource("/icons/search.png");
+                if (searchUrl != null) {
+                    Image imgSearch = new ImageIcon(searchUrl).getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH);
+                    searchIcon = new ImageIcon(imgSearch);
+                }
+            } catch (Exception e) {
+            }
+
+            addMouseListener(new MouseAdapter() {
+                @Override public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                @Override public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
+            });
+
+            addFocusListener(new FocusAdapter() {
+                @Override public void focusGained(FocusEvent e) { repaint(); }
+                @Override public void focusLost(FocusEvent e) { 
+                    isHovered = false; 
+                    repaint(); 
+                }
+            });
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(Color.WHITE);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+
+            if (isFocusOwner()) {
+                g2.setColor(AppColor.PRIMARY);
+                g2.setStroke(new BasicStroke(1.5f));
+            } else if (isHovered) {
+                g2.setColor(new Color(156, 163, 175));
+                g2.setStroke(new BasicStroke(1f));
+            } else {
+                g2.setColor(new Color(209, 213, 219));
+                g2.setStroke(new BasicStroke(1f));
+            }
+            g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 12, 12);
+
+            super.paintComponent(g);
+
+            if (getText().isEmpty() && !isFocusOwner()) {
+                g2.setColor(new Color(156, 163, 175));
+                FontMetrics fm = g.getFontMetrics();
+                int yText = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(placeholder, 38, yText);
+            }
+
+            if (searchIcon != null) {
+                searchIcon.paintIcon(this, g2, 12, (getHeight() - searchIcon.getIconHeight()) / 2);
+            } else {
+                g2.setColor(new Color(156, 163, 175));
+                int iconSize = 14;
+                int x = 14;
+                int yIcon = (getHeight() - iconSize) / 2;
+                g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                g2.drawOval(x, yIcon, 10, 10);
+                g2.drawLine(x + 8, yIcon + 8, x + 13, yIcon + 13);
+            }
+
+            g2.dispose();
+        }
+    }
+
+    static class PageButton extends JButton {
+        private boolean active;
+        private boolean hovered = false;
+        public PageButton(String text, boolean active) {
+            super(text);
+            this.active = active;
+            setFont(new Font("Segoe UI", Font.BOLD, 13));
+            setForeground(active ? Color.WHITE : new Color(75, 85, 99));
+            setContentAreaFilled(false);
+            setFocusPainted(false);
+            setBorderPainted(false);
+            setMargin(new Insets(0, 0, 0, 0));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            setPreferredSize(new Dimension(36, 36));
+
+            addMouseListener(new MouseAdapter() {
+                @Override public void mouseEntered(MouseEvent e) { hovered = true; repaint(); }
+                @Override public void mouseExited(MouseEvent e) { hovered = false; repaint(); }
+            });
+        }
+
+        @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if (active) {
+                g2.setColor(AppColor.PRIMARY);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+            } else {
+                if (isEnabled()) {
+                    g2.setColor(hovered ? new Color(243, 244, 246) : Color.WHITE);
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                    g2.setColor(new Color(209, 213, 219));
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
+                } else {
+                    g2.setColor(new Color(249, 250, 251));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                    g2.setColor(new Color(229, 231, 235));
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
+                }
+            }
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    private JMenuItem createStyledMenuItem(String text) {
+        JMenuItem item = new JMenuItem(text);
+        item.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        item.setBackground(Color.WHITE);
+        item.setForeground(AppColor.TEXT_PRIMARY);
+        item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        item.setPreferredSize(new Dimension(190, 36)); 
+
+        item.setUI(new javax.swing.plaf.basic.BasicMenuItemUI() {
+            @Override
+            protected void paintBackground(Graphics g, JMenuItem menuItem, Color bgColor) {
+                if (menuItem.isArmed() || menuItem.isSelected()) {
+                    g.setColor(new Color(243, 244, 246)); 
+                } else {
+                    g.setColor(Color.WHITE);
+                }
+                g.fillRect(0, 0, menuItem.getWidth(), menuItem.getHeight());
+            }
+
+            @Override
+            protected void paintText(Graphics g, JMenuItem menuItem, Rectangle textRect, String text) {
+                textRect.x = 16; 
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                g2.setColor(AppColor.TEXT_PRIMARY);
+                FontMetrics fm = g2.getFontMetrics();
+                int y = textRect.y + fm.getAscent() + (textRect.height - fm.getHeight()) / 2;
+                g2.drawString(text, textRect.x, y);
+                g2.dispose();
+            }
+        });
+        return item;
+    }
+
+    static class OutlineButton extends JButton {
+        private boolean isHovered = false;
+
+        public OutlineButton(String text) {
+            super(text);
+            setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            setForeground(new Color(75, 85, 99));
+            setContentAreaFilled(false);
+            setFocusPainted(false);
+            setBorderPainted(false);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+            addMouseListener(new MouseAdapter() {
+                @Override public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                @Override public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
+            });
+        }
+
+       @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            g2.setColor(isHovered ? new Color(243, 244, 246) : Color.WHITE);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+            
+            g2.setColor(new Color(209, 213, 219)); 
+            g2.setStroke(new BasicStroke(1.2f)); 
+            g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 10, 10);
+            
+            g2.dispose();
+            super.paintComponent(g);
         }
     }
 }
