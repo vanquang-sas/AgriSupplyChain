@@ -118,3 +118,46 @@ SELECT
         ELSE 0 
     END AS So_Ngay_Tre
 FROM DONHANG;
+
+-- Tai chính theo tháng (Doanh thu - Chi phí)
+CREATE OR REPLACE VIEW V_TAI_CHINH_THEO_THANG AS
+WITH 
+LUONG_NV AS (
+    -- Lấy tổng lương của tất cả nhân viên làm chi phí vận hành cố định mỗi tháng
+    SELECT NVL(SUM(Luong), 0) AS Tong_Luong 
+    FROM NHANVIEN
+),
+DT AS (
+    -- Tổng hợp Doanh thu từ các đơn hàng đã Hoàn thành theo từng Tháng/Năm
+    SELECT 
+        EXTRACT(YEAR FROM TGDat) AS Nam, 
+        EXTRACT(MONTH FROM TGDat) AS Thang, 
+        SUM(TongTien) AS Doanh_Thu
+    FROM DONHANG 
+    WHERE TrangThaiDH = 'Hoàn thành'
+    GROUP BY EXTRACT(YEAR FROM TGDat), EXTRACT(MONTH FROM TGDat)
+),
+CP_N AS (
+    -- Tổng hợp Chi phí nhập hàng từ các lô hàng Đã nhập kho
+    SELECT 
+        EXTRACT(YEAR FROM TGNhap) AS Nam, 
+        EXTRACT(MONTH FROM TGNhap) AS Thang, 
+        SUM(TongTien) AS Chi_Phi_Nhap
+    FROM LOHANG 
+    WHERE TrangThaiLH = 'Đã nhập kho'
+    GROUP BY EXTRACT(YEAR FROM TGNhap), EXTRACT(MONTH FROM TGNhap)
+)
+SELECT 
+    NVL(DT.Nam, CP_N.Nam) AS Nam,
+    NVL(DT.Thang, CP_N.Thang) AS Thang,
+    (NVL(DT.Nam, CP_N.Nam) * 100 + NVL(DT.Thang, CP_N.Thang)) AS Nam_Thang_Sort,
+    'Tháng ' || TO_CHAR(NVL(DT.Thang, CP_N.Thang), 'FM00') || '/' || TO_CHAR(NVL(DT.Nam, CP_N.Nam)) AS Thang_Nam_Label,
+    NVL(DT.Doanh_Thu, 0) AS Doanh_Thu,
+    L.Tong_Luong AS Chi_Phi_Van_Hanh,
+    NVL(CP_N.Chi_Phi_Nhap, 0) AS Chi_Phi_Nhap,
+    (L.Tong_Luong + NVL(CP_N.Chi_Phi_Nhap, 0)) AS Chi_Phi,
+    (NVL(DT.Doanh_Thu, 0) - (L.Tong_Luong + NVL(CP_N.Chi_Phi_Nhap, 0))) AS Loi_Nhuan
+FROM DT
+FULL OUTER JOIN CP_N ON DT.Nam = CP_N.Nam AND DT.Thang = CP_N.Thang
+CROSS JOIN LUONG_NV L
+ORDER BY Nam DESC, Thang DESC;
