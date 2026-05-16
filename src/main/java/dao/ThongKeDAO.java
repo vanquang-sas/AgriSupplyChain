@@ -6,6 +6,7 @@ import oracle.jdbc.OracleTypes; // Cần import OracleTypes để dùng cursor
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -110,6 +111,58 @@ public class ThongKeDAO {
                 while (rs.next()) {
                     list.add(new ThongKeDTO.TaiChinh(rs.getString("ThangNam"), rs.getDouble("DoanhThu"), rs.getDouble("ChiPhi")));
                 }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
+    public List<ThongKeDTO.NhanVienThongKe> getDanhSachNhanVienThongKe(String chucVu, int months) {
+        List<ThongKeDTO.NhanVienThongKe> list = new ArrayList<>();
+        String sql = "SELECT nv.MaNV, nv.TenNV, nv.ChucVu, NVL(SUM(v.SoLuong), 0) AS TongCongViec, nv.Luong " +
+                     "FROM NHANVIEN nv " +
+                     "LEFT JOIN V_THONGKE_NHANVIEN_CHITIET v ON nv.MaNV = v.MaNV " +
+                     "     AND v.ThangThongKe >= ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -?) " +
+                     "WHERE (? = 'Tất cả' OR nv.ChucVu = ?) " +
+                     "GROUP BY nv.MaNV, nv.TenNV, nv.ChucVu, nv.Luong " +
+                     "ORDER BY nv.MaNV";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, months);
+            ps.setString(2, chucVu);
+            ps.setString(3, chucVu);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ThongKeDTO.NhanVienThongKe dto = new ThongKeDTO.NhanVienThongKe();
+                dto.maNV = rs.getString("MaNV");
+                dto.tenNV = rs.getString("TenNV");
+                dto.chucVu = rs.getString("ChucVu");
+                dto.tongCongViec = rs.getInt("TongCongViec");
+                dto.luong = rs.getDouble("Luong");
+                list.add(dto);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
+    public List<ThongKeDTO.HieuSuatChiTiet> getHieuSuatNhanVien(String maNV, int months) {
+        List<ThongKeDTO.HieuSuatChiTiet> list = new ArrayList<>();
+        String sql = "SELECT TO_CHAR(ThangThongKe, 'MM/YYYY') AS ThangNam, " +
+                     "SUM(SoLuong) AS SoLuong, SUM(TongGiaTri) AS TongTien " +
+                     "FROM V_THONGKE_NHANVIEN_CHITIET " +
+                     "WHERE MaNV = ? AND ThangThongKe >= ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -?) " +
+                     "GROUP BY ThangThongKe " +
+                     "ORDER BY ThangThongKe";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, maNV);
+            ps.setInt(2, months);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ThongKeDTO.HieuSuatChiTiet dto = new ThongKeDTO.HieuSuatChiTiet();
+                dto.thangNam = rs.getString("ThangNam");
+                dto.soLuong = rs.getInt("SoLuong");
+                dto.tongGiaTri = rs.getDouble("TongTien");
+                list.add(dto);
             }
         } catch (Exception e) { e.printStackTrace(); }
         return list;

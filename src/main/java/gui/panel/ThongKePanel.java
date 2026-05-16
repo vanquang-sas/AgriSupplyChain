@@ -6,6 +6,7 @@ import javax.swing.*;
 import gui.panel.BaoCaoThongKe.DoanhThuPanel;
 import gui.panel.BaoCaoThongKe.TopSanPhamPanel;
 import gui.panel.BaoCaoThongKe.TrangThaiPanel;
+import gui.panel.BaoCaoThongKe.NhanVienPanel;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -19,6 +20,7 @@ public class ThongKePanel extends JPanel {
     private TopSanPhamPanel pnlTopSanPham;
     private DoanhThuPanel pnlDoanhThu; 
     private TrangThaiPanel pnlTrangThai;
+    private NhanVienPanel pnlNhanVien;
 
     public ThongKePanel() {
         setLayout(new BorderLayout());
@@ -41,10 +43,11 @@ public class ThongKePanel extends JPanel {
         pnlTopSanPham = new TopSanPhamPanel();
         pnlTrangThai  = new TrangThaiPanel();
         pnlDoanhThu   = new DoanhThuPanel();
-        
+        pnlNhanVien   = new NhanVienPanel();
         mainContent.add(wrapWithBackButton(pnlTopSanPham, "Thống kê Top sản phẩm"), "TOPSP");
         mainContent.add(wrapWithBackButton(pnlTrangThai, "Trạng thái đơn hàng"), "TRANGTHAI");
         mainContent.add(wrapWithBackButton(pnlDoanhThu, "Báo cáo Doanh thu"), "DOANHTHU");
+        mainContent.add(wrapWithBackButton(pnlNhanVien, "Thống kê Nhân viên"), "NHANVIEN");
 
     }
 
@@ -53,12 +56,13 @@ public class ThongKePanel extends JPanel {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(AppColor.BACKGROUND);
         
-        JPanel grid = new JPanel(new GridLayout(1, 3, 30, 0));
+        JPanel grid = new JPanel(new GridLayout(2, 2, 30, 0));
         grid.setBackground(AppColor.BACKGROUND);
         
         grid.add(createMenuButton("💰", "Báo cáo Doanh thu", "Xem theo tháng/năm", "DOANHTHU"));
         grid.add(createMenuButton("📦", "Top Sản phẩm", "Lọc theo số lượng/thời gian", "TOPSP"));
         grid.add(createMenuButton("🥧", "Trạng thái Đơn hàng", "Tỷ lệ đơn hàng thành công", "TRANGTHAI"));
+        grid.add(createMenuButton("👨‍💼", "Thống kê Nhân viên", "Xem hiệu suất và thông tin nhân viên", "NHANVIEN"));
         
         panel.add(grid);
         return panel;

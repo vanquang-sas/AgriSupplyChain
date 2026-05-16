@@ -161,3 +161,20 @@ FROM DT
 FULL OUTER JOIN CP_N ON DT.Nam = CP_N.Nam AND DT.Thang = CP_N.Thang
 CROSS JOIN LUONG_NV L
 ORDER BY Nam DESC, Thang DESC;
+
+-- Chạy đoạn script này trong Oracle Database của bạn
+CREATE OR REPLACE VIEW V_THONGKE_NHANVIEN_CHITIET AS
+-- 1. Thu mua (Lô hàng)
+SELECT MaNV, TRUNC(TGNhap, 'MM') AS ThangThongKe, COUNT(MaLH) AS SoLuong, SUM(TongTien) AS TongGiaTri
+FROM LOHANG 
+GROUP BY MaNV, TRUNC(TGNhap, 'MM')
+UNION ALL
+-- 2. Giao hàng (Đơn hàng)
+SELECT MaNV, TRUNC(TGDat, 'MM') AS ThangThongKe, COUNT(MaDH) AS SoLuong, SUM(TongTien) AS TongGiaTri
+FROM DONHANG 
+GROUP BY MaNV, TRUNC(TGDat, 'MM')
+UNION ALL
+-- 3. Kho (Xuất kho) - Chỉ đếm số lượng xuất, tổng tiền = 0
+SELECT MaNV, TRUNC(TGCapNhat, 'MM') AS ThangThongKe, SUM(SLXuat) AS SoLuong, 0 AS TongGiaTri
+FROM XUATKHO 
+GROUP BY MaNV, TRUNC(TGCapNhat, 'MM');

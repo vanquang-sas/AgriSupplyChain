@@ -30,4 +30,12 @@ public class ThongKeBUS {
     public List<ThongKeDTO.TaiChinh> getThongKeTaiChinh(String type, int period) {
         return thongKeDAO.getThongKeTaiChinh(type, period);
     }
+
+    // ============================= THỐNG KÊ NHÂN VIÊN =============================
+    public List<ThongKeDTO.NhanVienThongKe> getDanhSachNhanVienThongKe(String chucVu, int months) {
+        return thongKeDAO.getDanhSachNhanVienThongKe(chucVu, months);
+    }
+    public List<ThongKeDTO.HieuSuatChiTiet> getHieuSuatNhanVien(String maNV, int months) {
+        return thongKeDAO.getHieuSuatNhanVien(maNV, months);
+    }
 }

@@ -33,4 +33,26 @@ public class ThongKeDTO {
             this.chiPhi = chiPhi;
         }
     }
+
+    // Dành cho Danh sách bảng
+    public static class NhanVienThongKe {
+        public String maNV;
+        public String tenNV;
+        public String chucVu;
+        public int tongCongViec;
+        public double luong;
+    }
+
+    // Dành cho Biểu đồ chi tiết (Line + Bar)
+    public static class HieuSuatChiTiet {
+        public String thangNam;
+        public int soLuong;
+        public double tongGiaTri;
+    }
+
+    // Dành cho Summary Cards
+    public static class SummaryNhanVien {
+        public String label1, label2, label3;
+        public String value1, value2, value3;
+    }
 }
