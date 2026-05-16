@@ -590,8 +590,8 @@
 //     }
 // }
 ///////////////////////////////////////////
-/// 
-/// 
+
+
 package gui.component;
 
 import dto.SanPhamDTO;
@@ -778,19 +778,27 @@ public class ProductCard extends JPanel {
 
         // =========================================
         // LOAD IMAGE
-        // =========================================
+        // ========================================
+
         String fileName = sp.getHinhAnh();
-        String imagePath = "src/main/resources/images/" + fileName;
-        ImageIcon icon =
-                new ImageIcon(imagePath);
+        System.out.println("Tên file: " + fileName);
+        java.net.URL imageURL =
+                getClass().getResource(
+                        "/images/" + fileName
+                );
 
-        // nếu không có ảnh
-        if (icon.getIconWidth() <= 0) {
+        System.out.println("URL: " + imageURL);
+        // nếu không tìm thấy ảnh
+        if (imageURL == null) {
 
-            icon = new ImageIcon(
-                    "src/main/resources/images/Logo.jpg"
-            );
+        imageURL =
+                getClass().getResource(
+                        "/images/Logo.jpg"
+                );
         }
+
+        ImageIcon icon =
+                new ImageIcon(imageURL);
 
         Image img =
                 icon.getImage().getScaledInstance(
@@ -802,6 +810,9 @@ public class ProductCard extends JPanel {
         lblImage.setIcon(
                 new ImageIcon(img)
         );
+
+        pnlImage.add(lblImage,BorderLayout.CENTER);
+        add( pnlImage,BorderLayout.NORTH);
 
         // =========================================
         // INFO PANEL

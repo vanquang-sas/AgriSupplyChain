@@ -12,11 +12,9 @@ import gui.component.RoundedImageLabel;
 
 public class ChiTietSanPhamForm extends JDialog {
 
-    private JLabel lblMaSP;
+
     private JLabel lblTenSP;
-    private JLabel lblLoai;
     private JLabel lblChatLuong;
-    private JLabel lblGiaMua;
     private JLabel lblGiaBan;
     private JLabel lblDonViTinh;
     private JLabel lblBaoQuan;
@@ -75,9 +73,14 @@ public class ChiTietSanPhamForm extends JDialog {
         lblHinhAnh.setPreferredSize(new Dimension(320,240));
 
         try {
-            String duongDanAnh = "src/main/resources/images/" + sp.getMaSP() + ".jpg";
+            String fileName = sp.getHinhAnh();
+            java.net.URL imageURL =
+                getClass().getResource(
+                        "/images/" + fileName
+                );
+            // String duongDanAnh = "src/main/resources/images/" + sp.getMaSP() + ".jpg";
 
-            ImageIcon icon = new ImageIcon(duongDanAnh);
+            ImageIcon icon = new ImageIcon(imageURL);
 
             // Image img = icon.getImage().getScaledInstance(
             //         240,

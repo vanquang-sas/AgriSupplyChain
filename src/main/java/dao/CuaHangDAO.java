@@ -43,6 +43,8 @@ public class CuaHangDAO {
                 sp.setTenSP(rs.getString("TENSP"));
                 sp.setMaLSP(rs.getString("MALSP"));
                 sp.setGiaBan(rs.getDouble("GIABAN"));
+                  // QUAN TRỌNG
+                sp.setHinhAnh(rs.getString("HINHANH"));
 
                 list.add(sp);
             }
@@ -90,6 +92,7 @@ public class CuaHangDAO {
                 sp.setTenSP(rs.getString("TENSP"));
                 sp.setMaLSP(rs.getString("MALSP"));
                 sp.setGiaBan(rs.getDouble("GIABAN"));
+                 sp.setHinhAnh(rs.getString("HINHANH"));
 
                 list.add(sp);
             }
@@ -137,6 +140,7 @@ public class CuaHangDAO {
                 sp.setTenSP(rs.getString("TENSP"));
                 sp.setMaLSP(rs.getString("MALSP"));
                 sp.setGiaBan(rs.getDouble("GIABAN"));
+                sp.setHinhAnh(rs.getString("HINHANH"));
 
                 list.add(sp);
             }
