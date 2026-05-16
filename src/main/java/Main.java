@@ -19,12 +19,12 @@ public class Main {
         // CHẾ ĐỘ TEST: TỰ ĐỘNG ĐĂNG NHẬP
         // ==========================================
         TaiKhoanDTO mockUser = new TaiKhoanDTO();
-        mockUser.setUsername("admin_test"); 
+        mockUser.setUsername("nvtm01"); 
 
-        mockUser.setLoaiTK(2); // 0: Quản lý, 1: Nhân viên, 2: Khách hàng
+        mockUser.setLoaiTK(1); // 0: Quản lý, 1: Nhân viên, 2: Khách hàng
         
         Session.currentUser = mockUser;
-        Session.chucVu = "Quản lý (Admin)";
+        Session.chucVu = "thu mua";
         Session.tenNguoiDung = "Quản trị viên Test";
 
         // Khởi chạy màn hình Đăng nhập tổng

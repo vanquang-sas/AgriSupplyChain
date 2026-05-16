@@ -394,6 +394,7 @@ SELECT 1 FROM dual;
 -- 12. CHITIETDONHANG (Sử dụng lệnh rời rạc để tránh lỗi Trigger Mutating Table)
 -- Đơn hàng 1 sẽ có 6 loại sản phẩm để đảm bảo tính đa dạng.
 -- ====================================================================================
+ALTER TRIGGER TRG_CTDH_CHECK_TRANGTHAIDH DISABLE;
 INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0001', 'DH000001', 'SP000011', 15);
 INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0002', 'DH000001', 'SP000012', 10);
 INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0003', 'DH000001', 'SP000013', 20);
@@ -442,7 +443,8 @@ INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0043', 'DH
 INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0044', 'DH000038', 'SP000020', 10);
 INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0045', 'DH000039', 'SP000025', 50);
 INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0046', 'DH000040', 'SP000005', 15);
-
+ALTER TRIGGER TRG_CTDH_CHECK_TRANGTHAIDH ENABLE;
+COMMIT;
 -- ====================================================================================
 -- 13. XUATKHO 
 -- ====================================================================================
