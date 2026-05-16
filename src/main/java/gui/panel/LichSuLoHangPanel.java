@@ -198,6 +198,7 @@ public class LichSuLoHangPanel extends JPanel {
         tableModel.setRowCount(0);
         java.util.List<LoHangDTO> history = loHangBUS.getLichSuLoHang();
         int total = 0, pending = 0, done = 0;
+        DecimalFormat currency = new DecimalFormat("#,###");
         for (LoHangDTO lh : history) {
             if (keyword != null && !keyword.isEmpty()) {
                 String lower = keyword.toLowerCase();
@@ -208,8 +209,9 @@ public class LichSuLoHangPanel extends JPanel {
                     continue;
                 }
             }
+            String formattedTongTien = currency.format(lh.getTongTien());
             tableModel.addRow(new Object[]{
-                    lh.getMaLH(), lh.getTenNCC() != null ? lh.getTenNCC() : lh.getMaNCC(), lh.getMaNV(), lh.getTgNhap(), lh.getTongTien(), lh.getTrangThaiLH()
+                    lh.getMaLH(), lh.getTenNCC() != null ? lh.getTenNCC() : lh.getMaNCC(), lh.getMaNV(), lh.getTgNhap(), formattedTongTien, lh.getTrangThaiLH()
             });
             total++;
             if (lh.getTrangThaiLH() != null && lh.getTrangThaiLH().equalsIgnoreCase("Đã nhập kho")) done++; else pending++;
@@ -250,13 +252,16 @@ public class LichSuLoHangPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        Font font = new Font("Segoe UI", Font.BOLD, 13);
+        btn.setFont(font);
         btn.setForeground(Color.WHITE);
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setOpaque(false);
-        btn.setPreferredSize(new Dimension(100, 36));
+        int textWidth = btn.getFontMetrics(font).stringWidth(text);
+        int width = Math.max(100, textWidth + 32);
+        btn.setPreferredSize(new Dimension(width, 36));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return btn;
     }
@@ -421,7 +426,7 @@ public class LichSuLoHangPanel extends JPanel {
                 badgeFg = AppColor.WARNING_ACTIVE;
             } else if ("Đã nhập kho".equalsIgnoreCase(text)) {
                 badgeBg = AppColor.SUCCESS_HOVER;
-                badgeFg = AppColor.SUCCESS_ACTIVE;
+                badgeFg = Color.WHITE;
             } else {
                 badgeBg = AppColor.SECONDARY_HOVER;
                 badgeFg = AppColor.TEXT_PRIMARY;

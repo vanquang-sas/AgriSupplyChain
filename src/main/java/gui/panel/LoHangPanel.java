@@ -188,7 +188,7 @@ public class LoHangPanel extends JPanel {
         JPanel rightPanel = buildDetailCard();
         
         // Adjust detail panel width to align with other panels' layout
-        rightPanel.setPreferredSize(new Dimension(420, 0)); 
+        rightPanel.setPreferredSize(new Dimension(520, 0));
 
         splitWrapper.add(leftPanel, BorderLayout.CENTER);
         splitWrapper.add(rightPanel, BorderLayout.EAST);
@@ -448,11 +448,12 @@ public class LoHangPanel extends JPanel {
         lblDetailTitle.setForeground(AppColor.TEXT_PRIMARY);
         detailCard.add(lblDetailTitle, BorderLayout.NORTH);
 
-        detailModel = new DefaultTableModel(new Object[]{"Mã SP", "Tên SP", "Giá mua", "SL", "Thành tiền"}, 0) {
+        detailModel = new DefaultTableModel(new Object[]{"Tên SP", "Giá mua", "SL", "Thành tiền"}, 0) {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
 
         detailTable = new JTable(detailModel);
+        detailTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         detailTable.setRowHeight(38);
         detailTable.setShowVerticalLines(false);
         detailTable.setShowHorizontalLines(true);
@@ -483,9 +484,10 @@ public class LoHangPanel extends JPanel {
         }
 
         // Căn chỉnh độ rộng các cột bảng chi tiết cho gọn
-        detailTable.getColumnModel().getColumn(0).setPreferredWidth(60);
-        detailTable.getColumnModel().getColumn(1).setPreferredWidth(160);
-        detailTable.getColumnModel().getColumn(3).setPreferredWidth(30);
+        detailTable.getColumnModel().getColumn(0).setPreferredWidth(180);
+        detailTable.getColumnModel().getColumn(1).setPreferredWidth(110);
+        detailTable.getColumnModel().getColumn(2).setPreferredWidth(60);
+        detailTable.getColumnModel().getColumn(3).setPreferredWidth(120);
 
         ZebraHoverRenderer detailZebraRdr = new ZebraHoverRenderer(detailTable);
         for(int i = 0; i < detailTable.getColumnCount(); i++) {
@@ -520,12 +522,15 @@ public class LoHangPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        Font font = new Font("Segoe UI", Font.BOLD, 13);
+        btn.setFont(font);
         btn.setForeground(Color.WHITE);
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
-        btn.setPreferredSize(new Dimension(100, 36));
+        int textWidth = btn.getFontMetrics(font).stringWidth(text);
+        int width = Math.max(100, textWidth + 32);
+        btn.setPreferredSize(new Dimension(width, 36));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;
     }
@@ -630,13 +635,12 @@ public class LoHangPanel extends JPanel {
         if (maLH == null || maLH.trim().isEmpty()) return;
         List<ChiTietLoHangDTO> details = loHangBUS.getChiTietLoHang(maLH);
         if (details == null || details.isEmpty()) {
-            detailModel.addRow(new Object[]{"", "Chưa có sản phẩm", "", "", ""});
+            detailModel.addRow(new Object[]{"Chưa có sản phẩm", "", "", ""});
             return;
         }
         DecimalFormat df = new DecimalFormat("#,###");
         for (ChiTietLoHangDTO item : details) {
             detailModel.addRow(new Object[]{
-                    item.getMaSP(),
                     findProductNameByMaSP(item.getMaSP()),
                     df.format(item.getGiaMua()),
                     item.getSoLuong(),
@@ -743,7 +747,7 @@ public class LoHangPanel extends JPanel {
         @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
             super.getTableCellRendererComponent(t, v, s, f, r, c);
             setBorder(new EmptyBorder(0, 16, 0, 8));
-            setFont(new Font("Segoe UI", c == 1 ? Font.BOLD : Font.PLAIN, 13));
+            setFont(new Font("Segoe UI", c == 0 ? Font.BOLD : Font.PLAIN, 13));
             setForeground(AppColor.TEXT_PRIMARY); 
             setBackground(s ? new Color(220, 252, 231) : (r == hoverRow ? new Color(240, 253, 244) : (r % 2 == 0 ? Color.WHITE : new Color(250, 250, 250))));
             return this;
