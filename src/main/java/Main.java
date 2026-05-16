@@ -24,7 +24,7 @@ public class Main {
         mockUser.setLoaiTK(1); // 0: Quản lý, 1: Nhân viên, 2: Khách hàng
         
         Session.currentUser = mockUser;
-        Session.chucVu = "thu mua";
+        Session.chucVu = "kho";
         Session.tenNguoiDung = "Quản trị viên Test";
 
         // Khởi chạy màn hình Đăng nhập tổng

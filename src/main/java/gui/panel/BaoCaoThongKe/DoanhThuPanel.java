@@ -1,4 +1,4 @@
-package gui.panel;
+package gui.panel.BaoCaoThongKe;
 
 import bus.ThongKeBUS;
 import dto.ThongKeDTO;

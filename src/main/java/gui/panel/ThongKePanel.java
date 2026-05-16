@@ -2,6 +2,11 @@ package gui.panel;
 
 import util.AppColor;
 import javax.swing.*;
+
+import gui.panel.BaoCaoThongKe.DoanhThuPanel;
+import gui.panel.BaoCaoThongKe.TopSanPhamPanel;
+import gui.panel.BaoCaoThongKe.TrangThaiPanel;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -141,9 +146,4 @@ public class ThongKePanel extends JPanel {
         return wrapper;
     }
 
-    private JPanel createDetailPlaceholder(String cardName, String title) {
-        JPanel p = new JPanel(new BorderLayout());
-        p.add(new JLabel("Đang phát triển chức năng " + title, SwingConstants.CENTER));
-        return wrapWithBackButton(p, title);
-    }
 }

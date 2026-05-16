@@ -1,4 +1,4 @@
-package gui.panel;
+package gui.panel.BaoCaoThongKe;
 
 import bus.ThongKeBUS;
 import dto.ThongKeDTO;
@@ -7,8 +7,10 @@ import util.AppColor;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PiePlot;
-import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.data.category.DefaultCategoryDataset;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
@@ -26,30 +28,32 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class TrangThaiPanel extends JPanel {
+public class TopSanPhamPanel extends JPanel {
     private ThongKeBUS thongKeBUS = new ThongKeBUS();
     private JPanel chartContainer;
     private JTable table;
     private DefaultTableModel tableModel;
     private JFreeChart currentChart;
     
+    private JComboBox<String> cbLimit;
+    private JComboBox<String> cbType;
     private JSpinner spinFromDate;
     private JSpinner spinToDate;
 
-    // Bảng màu trạng thái
     private final Color[] CHART_PALETTE = {
-        new Color(75, 172, 198),  new Color(155, 187, 89), 
+        new Color(79, 129, 189), new Color(155, 187, 89), 
+        new Color(128, 100, 162), new Color(75, 172, 198), 
         new Color(247, 150, 70),  new Color(192, 80, 77),
-        new Color(128, 100, 162), new Color(79, 129, 189)
+        new Color(146, 208, 80),  new Color(0, 176, 240),
+        new Color(255, 192, 0),   new Color(112, 48, 160)
     };
 
-    public TrangThaiPanel() {
+    public TopSanPhamPanel() {
         setLayout(new BorderLayout(0, 15));
         setBackground(AppColor.BACKGROUND);
         setBorder(new EmptyBorder(15, 15, 15, 15));
@@ -58,7 +62,6 @@ public class TrangThaiPanel extends JPanel {
     }
 
     private void initComponents() {
-        // --- BỘ LỌC ---
         JPanel pnlFilter = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 12));
         pnlFilter.setBackground(Color.WHITE);
         pnlFilter.setBorder(BorderFactory.createCompoundBorder(
@@ -66,6 +69,8 @@ public class TrangThaiPanel extends JPanel {
                 new EmptyBorder(5, 5, 5, 5)
         ));
 
+        cbLimit = new JComboBox<>(new String[]{"Top 10", "Top 5", "Tất cả"});
+        cbType = new JComboBox<>(new String[]{"Bán chạy nhất", "Bán ít nhất"});
         spinFromDate = createDateSpinner(true); 
         spinToDate = createDateSpinner(false); 
 
@@ -77,17 +82,18 @@ public class TrangThaiPanel extends JPanel {
         styleButton(btnExport, new Color(220, 38, 38));
         btnExport.addActionListener(e -> exportToPDF());
 
-        pnlFilter.add(new JLabel("Từ ngày:")); pnlFilter.add(spinFromDate);
-        pnlFilter.add(new JLabel("Đến ngày:")); pnlFilter.add(spinToDate);
+        pnlFilter.add(new JLabel("Hiển thị:")); pnlFilter.add(cbLimit);
+        pnlFilter.add(new JLabel("Tiêu chí:")); pnlFilter.add(cbType);
+        pnlFilter.add(new JLabel("Từ:")); pnlFilter.add(spinFromDate);
+        pnlFilter.add(new JLabel("Đến:")); pnlFilter.add(spinToDate);
         pnlFilter.add(btnFilter);
         pnlFilter.add(btnExport);
 
-        // --- KHU VỰC HIỂN THỊ ---
         chartContainer = new JPanel(new BorderLayout());
         chartContainer.setBackground(Color.WHITE);
         chartContainer.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1, true));
 
-        String[] columnNames = {"STT", "Trạng Thái Đơn Hàng", "Số Lượng", "Tỷ Lệ (%)"};
+        String[] columnNames = {"STT", "Tên Sản Phẩm", "Số Lượng (Đã Bán)"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; } 
@@ -99,7 +105,7 @@ public class TrangThaiPanel extends JPanel {
         scrollTable.setPreferredSize(new Dimension(800, 200));
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, chartContainer, scrollTable);
-        splitPane.setResizeWeight(0.65);
+        splitPane.setResizeWeight(0.6);
         splitPane.setBorder(null);
 
         add(pnlFilter, BorderLayout.NORTH);
@@ -107,67 +113,65 @@ public class TrangThaiPanel extends JPanel {
     }
 
     private void refreshData() {
+        int limit = cbLimit.getSelectedIndex() == 0 ? 10 : (cbLimit.getSelectedIndex() == 1 ? 5 : 0);
+        String type = cbType.getSelectedIndex() == 0 ? "BEST" : "WORST";
         Date from = (Date) spinFromDate.getValue();
         Date to = (Date) spinToDate.getValue();
 
-        List<ThongKeDTO.TrangThai> data = thongKeBUS.getThongKeTrangThai(from, to);
+        List<ThongKeDTO.TopSanPham> data = thongKeBUS.getThongKeSanPham(limit, type, from, to);
 
-        // Kiểm tra dữ liệu rỗng
-        if (data == null || data.isEmpty()) {
+        // KIỂM TRA DỮ LIỆU RỖNG THÔNG MINH (Tổng bán = 0)
+        long totalSales = 0;
+        if (data != null) {
+            for (ThongKeDTO.TopSanPham sp : data) {
+                totalSales += sp.soLuongBan;
+            }
+        }
+
+        if (data == null || data.isEmpty() || totalSales == 0) {
             chartContainer.removeAll();
             chartContainer.repaint();
             tableModel.setRowCount(0);
-            currentChart = null;
+            currentChart = null; // Reset chart để không xuất PDF rỗng
             JOptionPane.showMessageDialog(this, 
-                "Không có đơn hàng nào được tạo trong khoảng thời gian này!", 
+                "Không có sản phẩm nào được bán ra trong khoảng thời gian được chọn!", 
                 "Thông báo", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
-        // Tính tổng số lượng để chia phần trăm
-        int totalOrders = 0;
-        for (ThongKeDTO.TrangThai tt : data) totalOrders += tt.soLuong;
-
-        DefaultPieDataset dataset = new DefaultPieDataset();
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         tableModel.setRowCount(0);
         int stt = 1;
-        DecimalFormat df = new DecimalFormat("0.00");
-
-        for (ThongKeDTO.TrangThai tt : data) {
-            dataset.setValue(tt.trangThai, tt.soLuong);
-            
-            // Tính %
-            double percent = (double) tt.soLuong / totalOrders * 100;
-            tableModel.addRow(new Object[]{stt++, tt.trangThai, tt.soLuong, df.format(percent) + "%"});
+        for (ThongKeDTO.TopSanPham sp : data) {
+            dataset.addValue(sp.soLuongBan, "Số lượng", sp.tenSP);
+            tableModel.addRow(new Object[]{stt++, sp.tenSP, sp.soLuongBan});
         }
-        
-        updateChartUI(dataset);
+        updateChartUI(dataset, cbType.getSelectedItem().toString());
     }
 
-    private void updateChartUI(DefaultPieDataset dataset) {
-        currentChart = ChartFactory.createPieChart(
-                "Tỷ Lệ Trạng Thái Đơn Hàng", 
-                dataset, true, true, false);
+    private void updateChartUI(DefaultCategoryDataset dataset, String typeName) {
+        currentChart = ChartFactory.createBarChart(
+                "Thống kê " + typeName, "Sản phẩm", "Số lượng", 
+                dataset, PlotOrientation.VERTICAL, false, true, false);
 
-        currentChart.setBackgroundPaint(Color.WHITE);
-        currentChart.getTitle().setFont(new Font("Segoe UI", Font.BOLD, 18));
-        
-        PiePlot plot = (PiePlot) currentChart.getPlot();
+        CategoryPlot plot = currentChart.getCategoryPlot();
         plot.setBackgroundPaint(Color.WHITE);
-        plot.setOutlineVisible(false); // Bỏ viền ngoài của khung chart
-        plot.setShadowPaint(null);     // Flat design, bỏ shadow
-        
-        // Custom font cho nhãn (Label)
-        plot.setLabelFont(new Font("Segoe UI", Font.PLAIN, 12));
-        plot.setLabelBackgroundPaint(Color.WHITE);
-        plot.setLabelShadowPaint(null);
-        plot.setLabelOutlinePaint(null);
 
-        // Áp dụng màu cho từng section
-        List keys = dataset.getKeys();
-        for (int i = 0; i < keys.size(); i++) {
-            plot.setSectionPaint((Comparable) keys.get(i), CHART_PALETTE[i % CHART_PALETTE.length]);
-        }
+        // --- XOAY XIÊN 45 ĐỘ CHO DỄ ĐỌC ---
+        org.jfree.chart.axis.CategoryAxis domainAxis = plot.getDomainAxis();
+        domainAxis.setCategoryLabelPositions(org.jfree.chart.axis.CategoryLabelPositions.UP_45);
+        // ----------------------------------
+        
+        BarRenderer renderer = new BarRenderer() {
+            @Override
+            public Paint getItemPaint(int row, int column) {
+                return CHART_PALETTE[column % CHART_PALETTE.length];
+            }
+        };
+        renderer.setShadowVisible(false);
+        renderer.setBarPainter(new org.jfree.chart.renderer.category.StandardBarPainter());
+        renderer.setItemMargin(0.1);
+        plot.setRenderer(renderer);
 
         chartContainer.removeAll();
         chartContainer.add(new ChartPanel(currentChart), BorderLayout.CENTER);
@@ -192,9 +196,13 @@ public class TrangThaiPanel extends JPanel {
                 com.itextpdf.text.Font fNormal = new com.itextpdf.text.Font(bf, 12, com.itextpdf.text.Font.NORMAL);
 
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-                String reportTitle = "BÁO CÁO TỶ LỆ TRẠNG THÁI ĐƠN HÀNG";
-                String reportSub = String.format("Giai đoạn: Từ ngày %s đến ngày %s", 
-                        sdf.format((Date) spinFromDate.getValue()), sdf.format((Date) spinToDate.getValue()));
+                String tieuChi = cbType.getSelectedItem().toString().toLowerCase();
+                String gioiHan = cbLimit.getSelectedItem().toString().toLowerCase();
+                String tuNgay = sdf.format((Date) spinFromDate.getValue());
+                String denNgay = sdf.format((Date) spinToDate.getValue());
+                
+                String reportTitle = String.format("THỐNG KÊ %s SẢN PHẨM %s", gioiHan.toUpperCase(), tieuChi.toUpperCase());
+                String reportSub = String.format("Giai đoạn: Từ ngày %s đến ngày %s", tuNgay, denNgay);
 
                 Paragraph pTitle = new Paragraph(reportTitle, fBold);
                 pTitle.setAlignment(Element.ALIGN_CENTER);
@@ -205,19 +213,16 @@ public class TrangThaiPanel extends JPanel {
                 pSub.setSpacingAfter(20f);
                 document.add(pSub);
 
-                // Add Chart
-                java.awt.image.BufferedImage img = currentChart.createBufferedImage(500, 350);
+                java.awt.image.BufferedImage img = currentChart.createBufferedImage(500, 300);
                 com.itextpdf.text.Image pdfImg = com.itextpdf.text.Image.getInstance(img, null);
                 pdfImg.setAlignment(Element.ALIGN_CENTER);
                 document.add(pdfImg);
 
-                // Add Table
-                PdfPTable pdfTable = new PdfPTable(4);
+                PdfPTable pdfTable = new PdfPTable(3);
                 pdfTable.setSpacingBefore(20f);
                 pdfTable.setWidthPercentage(100);
-                pdfTable.setWidths(new float[]{1f, 4f, 2f, 2f});
                 
-                String[] headers = {"STT", "Trạng thái", "Số lượng", "Tỷ lệ (%)"};
+                String[] headers = {"STT", "Tên sản phẩm", "Số lượng bán"};
                 for (String h : headers) {
                     PdfPCell cell = new PdfPCell(new Phrase(h, fBold));
                     cell.setBackgroundColor(new com.itextpdf.text.BaseColor(AppColor.PRIMARY.getRGB()));
@@ -227,7 +232,7 @@ public class TrangThaiPanel extends JPanel {
                 }
 
                 for (int i = 0; i < tableModel.getRowCount(); i++) {
-                    for (int j = 0; j < 4; j++) {
+                    for (int j = 0; j < 3; j++) {
                         PdfPCell cell = new PdfPCell(new Phrase(tableModel.getValueAt(i, j).toString(), fNormal));
                         cell.setHorizontalAlignment(j == 1 ? Element.ALIGN_LEFT : Element.ALIGN_CENTER);
                         cell.setPadding(5f);
@@ -238,7 +243,6 @@ public class TrangThaiPanel extends JPanel {
                 document.close();
                 
                 JOptionPane.showMessageDialog(this, "Xuất PDF thành công!");
-                Desktop.getDesktop().open(new File(fileChooser.getSelectedFile().getAbsolutePath() + ".pdf"));
             } catch (Exception ex) { ex.printStackTrace(); }
         }
     }
@@ -258,7 +262,6 @@ public class TrangThaiPanel extends JPanel {
             tb.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
             if (i != 1) tb.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
-        tb.getColumnModel().getColumn(0).setMaxWidth(60);
     }
 
     private void styleButton(JButton btn, Color bg) {
