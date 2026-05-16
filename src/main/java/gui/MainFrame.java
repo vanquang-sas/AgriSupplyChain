@@ -1,6 +1,7 @@
 package gui;
 
 import gui.panel.*;
+import gui.dialog.*; // Thêm import dialog để sau này mở GioHangDialog
 import util.AppColor;
 import util.Session;
 
@@ -18,14 +19,18 @@ import java.io.File;
 
 /**
  * MainFrame - Giao diện chính của hệ thống
- * Đã được tối ưu hóa hiển thị tiếng Việt và Sidebar hiện đại
+ * Đã tích hợp Header chứa Giỏ hàng & Cập nhật Badge
  */
 public class MainFrame extends JFrame {
 
     // --- Thành phần giao diện chính ---
     private JPanel sidebarPanel;
+    private JPanel topHeader;     // Thêm panel Header
     private JPanel contentPanel;
     private CardLayout cardLayout;
+
+    // --- Thành phần Giỏ hàng ---
+    private JLabel lblCartBadge;  // Hiển thị số lượng màu đỏ
 
     // --- Danh sách nút menu để quản lý trạng thái Active ---
     private final List<JButton> menuButtons = new ArrayList<>();
@@ -51,22 +56,144 @@ public class MainFrame extends JFrame {
 
     private void initComponents() {
         // Thiết lập thông số cơ bản cho Frame
-        setTitle("AgriSupplyChain – Hệ thống Quản lý Chuỗi cung ứng Nông sản");
+        setTitle("Mekong Agri-Chain – Hệ thống Quản lý Chuỗi cung ứng Nông sản");
         setSize(1366, 768);
         setMinimumSize(new Dimension(1100, 600));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // Khởi tạo vùng nội dung trước để Menu có thể link tới
+        // Khởi tạo các khu vực
         buildContentArea();
-        
-        // Khởi tạo Sidebar
+        buildTopHeader(); // Gọi hàm tạo Header giỏ hàng
         buildSidebar();
+
+        // Tạo Wrapper chứa Header ở trên, Content ở dưới
+        JPanel mainContentWrapper = new JPanel(new BorderLayout());
+        mainContentWrapper.add(topHeader, BorderLayout.NORTH);
+        mainContentWrapper.add(contentPanel, BorderLayout.CENTER);
 
         // Thêm vào Frame chính
         add(sidebarPanel, BorderLayout.WEST);
-        add(contentPanel, BorderLayout.CENTER);
+        add(mainContentWrapper, BorderLayout.CENTER); // Add wrapper thay vì contentPanel
+        
+        // Cập nhật số lượng giỏ hàng lần đầu
+        updateCartBadge();
+    }
+
+    // ================================================================
+    // HEADER & GIỎ HÀNG (MỚI THÊM)
+    // ================================================================
+    private void buildTopHeader() {
+        topHeader = new JPanel(new BorderLayout());
+        topHeader.setBackground(AppColor.BACKGROUND);
+        
+        // ĐÃ SỬA: Đổi Padding trên/dưới từ 10 thành 0 để thả rông chiều cao cho nút Giỏ hàng
+        topHeader.setBorder(new EmptyBorder(0, 20, 0, 20));
+        topHeader.setPreferredSize(new Dimension(0, 60)); // Chiều cao tổng của header là 60px
+
+        // ĐÃ SỬA: Thêm VGap (Khoảng cách dọc) = 5px để nút canh lọt ra giữa chiều cao 60px
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 5));
+        rightPanel.setBackground(AppColor.BACKGROUND);
+
+        JButton btnCart = new JButton() {
+            private boolean isHovered = false;
+
+            {
+                addMouseListener(new MouseAdapter() {
+                    @Override public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                    @Override public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
+                });
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                // Bật khử răng cưa
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+                int size = 42; // Đường kính hình tròn
+                int x = 2;     // Tọa độ X bắt đầu vẽ
+                int y = 4;     // Tọa độ Y bắt đầu vẽ
+
+                // 1. Vẽ hình tròn nền
+                if (isHovered) g2.setColor(new Color(226, 232, 240));
+                else g2.setColor(Color.WHITE);
+                g2.fillOval(x, y, size, size);
+
+                g2.setColor(new Color(203, 213, 225));
+                g2.drawOval(x, y, size, size);
+
+                // 2. Vẽ Icon 🛒 vào giữa hình tròn
+                g2.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
+                g2.setColor(Color.BLACK);
+                String emoji = "🛒";
+                FontMetrics fm = g2.getFontMetrics();
+                int textX = x + (size - fm.stringWidth(emoji)) / 2;
+                int textY = y + ((size - fm.getHeight()) / 2) + fm.getAscent();
+                g2.drawString(emoji, textX, textY);
+
+                // 3. Vẽ Badge thông báo màu đỏ
+                int count = Session.getCartItemCount();
+                if (count > 0) {
+                    String countStr = String.valueOf(count);
+                    g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                    FontMetrics badgeFm = g2.getFontMetrics();
+                    
+                    int badgeW = Math.max(18, badgeFm.stringWidth(countStr) + 8);
+                    int badgeH = 18;
+                    int badgeX = x + size - badgeW / 2 - 2;
+                    int badgeY = y - 2;
+
+                    g2.setColor(new Color(239, 68, 68)); // Nền đỏ
+                    g2.fillRoundRect(badgeX, badgeY, badgeW, badgeH, badgeH, badgeH);
+                    
+                    g2.setColor(Color.WHITE); // Chữ trắng
+                    int countX = badgeX + (badgeW - badgeFm.stringWidth(countStr)) / 2;
+                    int countY = badgeY + ((badgeH - badgeFm.getHeight()) / 2) + badgeFm.getAscent();
+                    g2.drawString(countStr, countX, countY);
+                }
+                g2.dispose();
+            }
+        };
+
+        // Khóa khung vẽ nút bằng 50x50 (Kết hợp Vgap 5px ở trên và 5px ở dưới -> Vừa khít 60px)
+        btnCart.setPreferredSize(new Dimension(50, 50));
+        btnCart.setContentAreaFilled(false);
+        btnCart.setBorderPainted(false);
+        btnCart.setFocusPainted(false);
+        btnCart.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        btnCart.addActionListener(e -> {
+            try {
+                gui.dialog.GioHangDialog dialog = new gui.dialog.GioHangDialog(MainFrame.this);
+                dialog.setVisible(true);
+                updateCartBadge();
+            } catch (Throwable ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Lỗi hiển thị Giỏ hàng: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        rightPanel.add(btnCart);
+
+        // Hiển thị nếu là khách hàng
+        int roleId = Session.isLogged() ? Session.currentUser.getLoaiTK() : 2;
+        if (roleId == 2) {
+            topHeader.add(rightPanel, BorderLayout.EAST);
+        } else {
+            topHeader.setPreferredSize(new Dimension(0, 0));
+        }
+    }
+
+    /**
+     * Hàm public để CuaHangPanel gọi mỗi khi khách ấn "Thêm vào giỏ"
+     */
+    public void updateCartBadge() {
+        if (topHeader != null) {
+            topHeader.repaint(); 
+        }
     }
 
     // ================================================================
@@ -99,8 +226,8 @@ public class MainFrame extends JFrame {
         JPanel logoText = new JPanel(new GridLayout(2, 1, 0, 1));
         logoText.setBackground(AppColor.SIDEBAR_ACTIVE);
 
-        JLabel lblAppName = new JLabel("Agri Supply");
-        lblAppName.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        JLabel lblAppName = new JLabel("Mekong Agri-Chain");
+        lblAppName.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblAppName.setForeground(Color.WHITE);
 
         // Hiển thị chức vụ người dùng
@@ -190,7 +317,6 @@ public class MainFrame extends JFrame {
                 menuPanel.add(buildSectionLabel("ĐỐI TÁC & SẢN PHẨM"));
                 menuPanel.add(btnNhaCungCap); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 menuPanel.add(btnSanPham); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
-                // menuPanel.add(btnLoHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 defaultActiveBtn = btnNhaCungCap;
             } else if (cv.contains("giao hàng")) { // NV GIAO HÀNG
                 menuPanel.add(buildSectionLabel("VẬN CHUYỂN"));
@@ -321,7 +447,7 @@ public class MainFrame extends JFrame {
         btnLogout.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn đăng xuất?", "Đăng xuất", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                Session.currentUser = null;
+                Session.clear(); // Xóa sạch cả giỏ hàng cache và user
                 dispose();
                 new AuthFrame().setVisible(true);
             }
@@ -488,8 +614,12 @@ public class MainFrame extends JFrame {
                 g2.setFont(new Font("Segoe UI Emoji", Font.PLAIN, size));
                 g2.setColor(c.getForeground());
                 FontMetrics fm = g2.getFontMetrics();
+                
+                // ĐÃ SỬA: Bổ sung tính toán tọa độ X để CĂN GIỮA THEO CHIỀU NGANG
+                int textX = x + (getIconWidth() - fm.stringWidth(emojiText)) / 2;
                 int textY = y + ((getIconHeight() - fm.getHeight()) / 2) + fm.getAscent();
-                g2.drawString(emojiText, x, textY);
+                
+                g2.drawString(emojiText, textX, textY);
                 g2.dispose();
             }
 
