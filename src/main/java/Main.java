@@ -11,6 +11,18 @@ public class Main {
         // Áp dụng LookAndFeel của hệ điều hành cho giao diện đẹp hơn
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIManager.setLookAndFeel(
+            "javax.swing.plaf.nimbus.NimbusLookAndFeel"
+            );
+            // UIManager.setLookAndFeel(
+            // UIManager.getCrossPlatformLookAndFeelClassName()
+            // );
+
+            // UIManager.put("ComboBox.background", java.awt.Color.WHITE);
+            // UIManager.put("ComboBox.foreground", java.awt.Color.BLACK);
+
+            // UIManager.put("TextField.background", java.awt.Color.WHITE);
+            // UIManager.put("TextField.foreground", java.awt.Color.BLACK);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -21,7 +33,7 @@ public class Main {
         TaiKhoanDTO mockUser = new TaiKhoanDTO();
         mockUser.setUsername("nvtm01"); 
 
-        mockUser.setLoaiTK(1); // 0: Quản lý, 1: Nhân viên, 2: Khách hàng
+        mockUser.setLoaiTK(2); // 0: Quản lý, 1: Nhân viên, 2: Khách hàng
         
         Session.currentUser = mockUser;
         Session.chucVu = "thu mua";

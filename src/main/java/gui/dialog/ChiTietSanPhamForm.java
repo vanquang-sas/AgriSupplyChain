@@ -53,7 +53,6 @@ public class ChiTietSanPhamForm extends JDialog {
 
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
 
-        // lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
         lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
         lblTitle.setForeground(Color.BLACK);
 
@@ -105,11 +104,11 @@ public class ChiTietSanPhamForm extends JDialog {
                 pnlCenter.add(pnlInfo, BorderLayout.CENTER);
 
                 // Mã SP
-                pnlInfo.add(createLabel("Mã sản phẩm:", true));
+                // pnlInfo.add(createLabel("Mã sản phẩm:", true));
 
-                lblMaSP = createLabel(sp.getMaSP(), false);
+                // lblMaSP = createLabel(sp.getMaSP(), false);
 
-                pnlInfo.add(lblMaSP);
+                // pnlInfo.add(lblMaSP);
 
                 // Tên SP
                 pnlInfo.add(createLabel("Tên sản phẩm:", true));
@@ -119,11 +118,11 @@ public class ChiTietSanPhamForm extends JDialog {
                 pnlInfo.add(lblTenSP);
 
                 // Loại SP
-            pnlInfo.add(createLabel("Mã loại:", true));
+            // pnlInfo.add(createLabel("Mã loại:", true));
 
-            lblLoai = createLabel(sp.getMaLSP(), false);
+            // lblLoai = createLabel(sp.getMaLSP(), false);
 
-            pnlInfo.add(lblLoai);
+            // pnlInfo.add(lblLoai);
 
             // Chất lượng
             pnlInfo.add(createLabel("Chất lượng:", true));
@@ -133,14 +132,14 @@ public class ChiTietSanPhamForm extends JDialog {
             pnlInfo.add(lblChatLuong);
 
             // Giá mua
-            pnlInfo.add(createLabel("Giá mua:", true));
+            // pnlInfo.add(createLabel("Giá mua:", true));
 
-            lblGiaMua = createLabel(
-                    String.format("%,.0f VNĐ", sp.getGiaMua()),
-                    false
-            );
+            // lblGiaMua = createLabel(
+            //         String.format("%,.0f VNĐ", sp.getGiaMua()),
+            //         false
+            // );
 
-            pnlInfo.add(lblGiaMua);
+            // pnlInfo.add(lblGiaMua);
 
             // Giá bán
             pnlInfo.add(createLabel("Giá bán:", true));
