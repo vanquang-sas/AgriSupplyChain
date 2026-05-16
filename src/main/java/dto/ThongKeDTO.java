@@ -19,7 +19,21 @@ public class ThongKeDTO {
     public static class TrangThai {
         public String trangThai;
         public int soLuong;
-        public TrangThai(String trangThai, int soLuong) { this.trangThai = trangThai; this.soLuong = soLuong; }
+        public double tyLe;
+
+        public TrangThai() {
+        }
+
+        public TrangThai(String trangThai, int soLuong) {
+            this.trangThai = trangThai;
+            this.soLuong = soLuong;
+        }
+
+        public TrangThai(String trangThai, int soLuong, double tyLe) {
+            this.trangThai = trangThai;
+            this.soLuong = soLuong;
+            this.tyLe = tyLe;
+        }
     }
 
     // Class cho dòng tiền

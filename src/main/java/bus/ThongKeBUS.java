@@ -22,8 +22,12 @@ public class ThongKeBUS {
     }
 
     // ============================= TRẠNG THÁI ĐƠN HÀNG =============================
-    public List<ThongKeDTO.TrangThai> getThongKeTrangThai(java.util.Date from, java.util.Date to) {
-        return thongKeDAO.getThongKeTrangThai(from, to);
+    public List<ThongKeDTO.TrangThai> getThongKeTrangThaiDonHang(java.util.Date from, java.util.Date to) {
+        return thongKeDAO.getThongKeTrangThaiDonHang(from, to);
+    }
+
+    public List<ThongKeDTO.TrangThai> getThongKeTrangThaiLoHang(java.util.Date tuNgay, java.util.Date denNgay) {
+        return thongKeDAO.getThongKeTrangThaiLoHang(tuNgay, denNgay);
     }
 
     // ============================= THỐNG KÊ TÀI CHÍNH =============================

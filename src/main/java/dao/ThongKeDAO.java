@@ -77,21 +77,88 @@ public class ThongKeDAO {
     }
 
     // ============================================= TRẠNG THÁI ĐƠN HÀNG =============================================
-    public List<ThongKeDTO.TrangThai> getThongKeTrangThai(java.util.Date from, java.util.Date to) {
+    public List<ThongKeDTO.TrangThai> getThongKeTrangThaiDonHang(java.util.Date from, java.util.Date to) {
+
         List<ThongKeDTO.TrangThai> list = new ArrayList<>();
+
         String sql = "{call SP_THONGKE_TRANGTHAI(?, ?, ?)}";
-        try (java.sql.Connection conn = util.DBConnection.getConnection();
-             java.sql.CallableStatement cs = conn.prepareCall(sql)) {
-            
+
+        try (Connection conn = DBConnection.getConnection();
+            CallableStatement cs = conn.prepareCall(sql)) {
+
             cs.setDate(1, new java.sql.Date(from.getTime()));
             cs.setDate(2, new java.sql.Date(to.getTime()));
-            cs.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR);
+            cs.registerOutParameter(3, OracleTypes.CURSOR);
+
             cs.execute();
-            
-            try (java.sql.ResultSet rs = (java.sql.ResultSet) cs.getObject(3)) {
+
+            List<ThongKeDTO.TrangThai> temp = new ArrayList<>();
+            int total = 0;
+
+            try (ResultSet rs = (ResultSet) cs.getObject(3)) {
+
                 while (rs.next()) {
-                    list.add(new ThongKeDTO.TrangThai(rs.getString("TrangThaiDH"), rs.getInt("SoLuong")));
+
+                    ThongKeDTO.TrangThai dto =
+                            new ThongKeDTO.TrangThai();
+
+                    dto.trangThai =
+                            rs.getString("TrangThaiDH");
+
+                    dto.soLuong =
+                            rs.getInt("SoLuong");
+
+                    total += dto.soLuong;
+
+                    temp.add(dto);
                 }
+            }
+
+            // Tính tỷ lệ %
+            for (ThongKeDTO.TrangThai d : temp) {
+
+                d.tyLe = total > 0
+                        ? (double) d.soLuong / total * 100
+                        : 0;
+
+                list.add(d);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public List<ThongKeDTO.TrangThai> getThongKeTrangThaiLoHang(java.util.Date tuNgay, java.util.Date denNgay) {
+        List<ThongKeDTO.TrangThai> list = new ArrayList<>();
+        String sql = "SELECT TrangThaiLH, COUNT(MaLH) AS SoLuong " +
+                     "FROM LOHANG " +
+                     "WHERE TGNhap >= ? AND TGNhap <= ? " +
+                     "GROUP BY TrangThaiLH";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setDate(1, new java.sql.Date(tuNgay.getTime()));
+            ps.setDate(2, new java.sql.Date(denNgay.getTime()));
+            ResultSet rs = ps.executeQuery();
+            
+            int total = 0;
+            List<ThongKeDTO.TrangThai> temp = new ArrayList<>();
+            while (rs.next()) {
+                ThongKeDTO.TrangThai dto = new ThongKeDTO.TrangThai();
+                dto.trangThai = rs.getString("TrangThaiLH");
+                dto.soLuong = rs.getInt("SoLuong");
+                total += dto.soLuong;
+                temp.add(dto);
+            }
+            
+            // Tính tỷ lệ %
+            for (ThongKeDTO.TrangThai d : temp) {
+                d.tyLe = total > 0 ? (double) d.soLuong / total * 100 : 0;
+                list.add(d);
             }
         } catch (Exception e) { e.printStackTrace(); }
         return list;
