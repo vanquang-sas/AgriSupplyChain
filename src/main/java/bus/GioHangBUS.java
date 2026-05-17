@@ -8,14 +8,7 @@ import java.math.BigDecimal;
 import java.sql.*;
 import java.util.List;
 
-/**
- * GioHangBUS – Business Logic Layer cho giỏ hàng.
- *
- * Trách nhiệm:
- *  1. Kiểm tra SLKhaDung trong TONKHO trước khi cho phép thêm / cập nhật.
- *  2. Tính tổng tiền giỏ hàng.
- *  3. Uỷ thác thao tác CRUD xuống GioHangDAO.
- */
+
 public class GioHangBUS {
 
     private final GioHangDAO dao = new GioHangDAO();
