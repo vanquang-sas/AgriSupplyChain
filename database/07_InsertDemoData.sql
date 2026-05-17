@@ -194,312 +194,383 @@ INSERT ALL
 SELECT * FROM dual;
 
 -- ====================================================================================
--- 8. LOHANG (40 Lô hàng - Từ tháng 1 đến tháng 3/2026)
--- Trạng thái: 35 Đã nhập kho, 3 Chờ nhập kho, 2 Chờ kiểm duyệt
+--        PHẦN 8: DATA ENRICHMENT - Sinh dữ liệu 12 tháng (05/2025 - 05/2026)
+--        Tuân thủ: Không bịa ID, Margin 30-50%, Sell-through 75-90%
+--        Đảm bảo: Revenue > Cost, Tồn kho > 0
 -- ====================================================================================
-INSERT ALL
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000001', 'NCC00001', 'NV000003', TO_DATE('05/01/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000002', 'NCC00002', 'NV000004', TO_DATE('10/01/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000003', 'NCC00003', 'NV000005', TO_DATE('12/01/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000004', 'NCC00004', 'NV000006', TO_DATE('15/01/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000005', 'NCC00005', 'NV000003', TO_DATE('20/01/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000006', 'NCC00006', 'NV000004', TO_DATE('25/01/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000007', 'NCC00007', 'NV000005', TO_DATE('28/01/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000008', 'NCC00008', 'NV000006', TO_DATE('02/02/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000009', 'NCC00009', 'NV000003', TO_DATE('05/02/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000010', 'NCC00010', 'NV000004', TO_DATE('10/02/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000011', 'NCC00011', 'NV000005', TO_DATE('14/02/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000012', 'NCC00012', 'NV000006', TO_DATE('18/02/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000013', 'NCC00013', 'NV000003', TO_DATE('22/02/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000014', 'NCC00014', 'NV000004', TO_DATE('25/02/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000015', 'NCC00015', 'NV000005', TO_DATE('01/03/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000016', 'NCC00016', 'NV000006', TO_DATE('05/03/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000017', 'NCC00018', 'NV000003', TO_DATE('08/03/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000018', 'NCC00019', 'NV000004', TO_DATE('12/03/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000019', 'NCC00020', 'NV000005', TO_DATE('15/03/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000020', 'NCC00001', 'NV000006', TO_DATE('20/03/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000021', 'NCC00002', 'NV000003', TO_DATE('22/03/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000022', 'NCC00003', 'NV000004', TO_DATE('25/03/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000023', 'NCC00004', 'NV000005', TO_DATE('26/03/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000024', 'NCC00005', 'NV000006', TO_DATE('27/03/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000025', 'NCC00006', 'NV000003', TO_DATE('28/03/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000026', 'NCC00007', 'NV000004', TO_DATE('29/03/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000027', 'NCC00008', 'NV000005', TO_DATE('30/03/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000028', 'NCC00009', 'NV000006', TO_DATE('01/04/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000029', 'NCC00010', 'NV000003', TO_DATE('03/04/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000030', 'NCC00011', 'NV000004', TO_DATE('05/04/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000031', 'NCC00012', 'NV000005', TO_DATE('08/04/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000032', 'NCC00013', 'NV000006', TO_DATE('10/04/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000033', 'NCC00014', 'NV000003', TO_DATE('12/04/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000034', 'NCC00015', 'NV000004', TO_DATE('15/04/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000035', 'NCC00016', 'NV000005', TO_DATE('18/04/2026', 'DD/MM/YYYY'), N'Đã nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000036', 'NCC00018', 'NV000006', TO_DATE('24/04/2026', 'DD/MM/YYYY'), N'Chờ nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000037', 'NCC00019', 'NV000003', TO_DATE('25/04/2026', 'DD/MM/YYYY'), N'Chờ nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000038', 'NCC00020', 'NV000004', TO_DATE('26/04/2026', 'DD/MM/YYYY'), N'Chờ nhập kho')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000039', 'NCC00001', 'NV000005', TO_DATE('27/04/2026', 'DD/MM/YYYY'), N'Chờ kiểm duyệt')
-    INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH) VALUES ('LH000040', 'NCC00002', 'NV000006', TO_DATE('27/04/2026', 'DD/MM/YYYY'), N'Chờ kiểm duyệt')
-SELECT 1 FROM dual;
 
--- ====================================================================================
--- 9. CHITIETLOHANG (GiaMua, ThanhTien, TongTienLH tự tính qua Trigger)
--- ====================================================================================
--- Để tránh lỗi mutating table khi chèn nhiều dòng cùng cập nhật 1 bảng LOHANG, ta dùng từng lệnh INSERT
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0001', 'LH000001', 'SP000011', 500); -- Cải bắp (Mát)
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0002', 'LH000001', 'SP000012', 300); -- Cà chua (Mát)
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0003', 'LH000001', 'SP000013', 200); -- Súp lơ (Mát)
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0004', 'LH000001', 'SP000014', 400); -- Cà rốt (Mát)
+DECLARE
+    -- ===== Variables for loop control =====
+    v_month_date DATE;
+    v_month_start DATE;
+    v_month_end DATE;
+    v_day_offset NUMBER;
+    
+    -- ===== Variables for IDs (NOT fabricated, from DB) =====
+    v_MaKH VARCHAR2(10);
+    v_MaNV_ThuMua VARCHAR2(10);
+    v_MaNV_GiaoHang VARCHAR2(10);
+    v_MaNCC VARCHAR2(10);
+    v_MaSP VARCHAR2(10);
+    v_MaKho VARCHAR2(10);
+    v_MaLH VARCHAR2(10);
+    v_MaDH VARCHAR2(10);
+    v_MaCTLH VARCHAR2(10);
+    v_MaCTDH VARCHAR2(10);
+    
+    -- ===== Variables for pricing & quantities =====
+    v_GiaMua NUMBER(12,2);
+    v_GiaBan_Current NUMBER(12,2);
+    v_GiaBan_New NUMBER(12,2);
+    v_margin NUMBER := 0;
+    v_SoLuong_import NUMBER := 0;
+    v_SoLuong_export NUMBER := 0;
+    v_total_import_month NUMBER := 0;
+    v_total_import_cost_month NUMBER := 0;
+    v_sell_through_rate NUMBER := 0;
+    v_target_export_qty NUMBER := 0;
+    v_current_export_qty NUMBER := 0;
+    
+    -- ===== Counters =====
+    v_num_lohang_month NUMBER := 0;
+    v_num_lohang_items NUMBER := 0;
+    v_num_donhang_month NUMBER := 0;
+    v_num_items_per_order NUMBER := 0;
+    v_i NUMBER := 0;
+    v_j NUMBER := 0;
+    v_k NUMBER := 0;
+    
+    -- ===== Status tracking =====
+    v_success_count NUMBER := 0;
+    v_error_count NUMBER := 0;
+    v_monthly_revenue NUMBER := 0;
+    v_monthly_cost NUMBER := 0;
+    
+    -- ===== Arrays for 6 focused products =====
+    TYPE t_sp_array IS TABLE OF VARCHAR2(10);
+    v_focused_products t_sp_array := t_sp_array('SP000001', 'SP000002', 'SP000006', 'SP000007', 'SP000021', 'SP000025');
+    
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('============================================================');
+    DBMS_OUTPUT.PUT_LINE('START: DATA ENRICHMENT (05/2025 - 05/2026)');
+    DBMS_OUTPUT.PUT_LINE('============================================================');
+    
+    -- ===== PHASE 1: Disable triggers to avoid mutating table errors =====
+    
+    
+    -- ===== PHASE 2: Main loop - 12 months (May 2025 to May 2026) =====
+    FOR v_month_offset IN 0..12 LOOP
+        v_month_date := ADD_MONTHS(TO_DATE('2025-05-01', 'YYYY-MM-DD'), v_month_offset);
+        v_month_start := TRUNC(v_month_date, 'MM');
+        v_month_end := LAST_DAY(v_month_date);
+        v_total_import_month := 0;
+        v_total_import_cost_month := 0;
+        v_current_export_qty := 0;
+        v_monthly_revenue := 0;
+        v_monthly_cost := 0;
+        
+        DBMS_OUTPUT.PUT_LINE('');
+        DBMS_OUTPUT.PUT_LINE('--- Processing month: ' || TO_CHAR(v_month_date, 'YYYY-MM'));
+        
+        BEGIN
+            -- ===== SUB-PHASE 2.1: Generate import lots (LOHANG) =====
+            v_num_lohang_month := TRUNC(5 + DBMS_RANDOM.VALUE(0, 3)); -- 5-7 lots per month
+            DBMS_OUTPUT.PUT_LINE('  Generating ' || v_num_lohang_month || ' import lots...');
+            
+            FOR i IN 1..v_num_lohang_month LOOP
+                BEGIN
+                    -- Get random IDs from DB (NOT fabricated)
+                    SELECT MaNCC INTO v_MaNCC FROM (
+                        SELECT MaNCC FROM NHACUNGCAP WHERE TrangThaiHopTac = 1 
+                        ORDER BY DBMS_RANDOM.VALUE
+                    ) WHERE ROWNUM = 1;
+                    
+                    SELECT MaNV INTO v_MaNV_ThuMua FROM (
+                        SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV thu mua'
+                        ORDER BY DBMS_RANDOM.VALUE
+                    ) WHERE ROWNUM = 1;
+                    
+                    SELECT MaKho INTO v_MaKho FROM (
+                        SELECT MaKho FROM KHO ORDER BY DBMS_RANDOM.VALUE
+                    ) WHERE ROWNUM = 1;
+                    
+                    -- Generate MaLH (using sequence)
+                    v_MaLH := 'LH' || LPAD(SEQ_LOHANG.NEXTVAL, 6, '0');
+                    
+                    -- Random date in month
+                    v_day_offset := TRUNC(DBMS_RANDOM.VALUE(0, TO_NUMBER(TO_CHAR(v_month_end, 'DD'))));
+                    
+                    -- Insert LOHANG
+                    INSERT INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH)
+                    VALUES (v_MaLH, v_MaNCC, v_MaNV_ThuMua, v_month_start + v_day_offset, 'Chờ kiểm duyệt');
+                    
+                    -- ===== SUB-PHASE 2.1.1: Generate import details (CHITIETLOHANG) =====
+                    v_num_lohang_items := TRUNC(1 + DBMS_RANDOM.VALUE(0, 3)); -- 1-3 items per lot
+                    
+                    FOR j IN 1..v_num_lohang_items LOOP
+                        BEGIN
+                            -- Get random product from focused list
+                            v_MaSP := v_focused_products(TRUNC(DBMS_RANDOM.VALUE(1, v_focused_products.COUNT + 1)));
+                            
+                            -- Get current price
+                            SELECT GiaMua INTO v_GiaMua FROM SANPHAM WHERE MaSP = v_MaSP;
+                            
+                            -- Random quantity: 200-1000 kg
+                            v_SoLuong_import := TRUNC(200 + DBMS_RANDOM.VALUE(0, 801));
+                            
+                            -- Generate MaCTLH
+                            v_MaCTLH := 'CTLH' || LPAD(SEQ_CHITIETLOHANG.NEXTVAL, 6, '0');
+                            
+                            -- Insert CHITIETLOHANG (trigger will calculate ThanhTien)
+                            INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong)
+                            VALUES (v_MaCTLH, v_MaLH, v_MaSP, v_SoLuong_import);
+                            
+                            -- Track totals
+                            v_total_import_month := v_total_import_month + v_SoLuong_import;
+                            v_total_import_cost_month := v_total_import_cost_month + (v_SoLuong_import * v_GiaMua);
+                            v_monthly_cost := v_monthly_cost + (v_SoLuong_import * v_GiaMua);
+                            
+                            -- Call procedure to confirm storage location
+                            SP_XACNHAN_VITRI_CTLH(v_MaCTLH, v_MaKho, TO_DATE('2027-12-31', 'YYYY-MM-DD'), 
+                                                  'Kệ A' || TRUNC(DBMS_RANDOM.VALUE(1, 11)));
+                            
+                        EXCEPTION
+                            WHEN OTHERS THEN
+                                v_error_count := v_error_count + 1;
+                                DBMS_OUTPUT.PUT_LINE('    ✗ Error inserting CTLH: ' || SQLERRM);
+                        END;
+                    END LOOP;
+                    
+                    v_success_count := v_success_count + 1;
+                    
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        v_error_count := v_error_count + 1;
+                        DBMS_OUTPUT.PUT_LINE('    ✗ Error inserting LOHANG: ' || SQLERRM);
+                END;
+            END LOOP;
+            
+            DBMS_OUTPUT.PUT_LINE('  ✓ Import lots: ' || v_success_count || ' successful, ' || v_error_count || ' errors');
+            DBMS_OUTPUT.PUT_LINE('    Total imported: ' || ROUND(v_total_import_month, 2) || ' kg, Cost: ' || ROUND(v_total_import_cost_month, 0) || ' VND');
+            
+            -- ===== SUB-PHASE 2.2: Update prices (SP_CAPNHAT_GIA) =====
+            DBMS_OUTPUT.PUT_LINE('  Updating product prices...');
+            FOR sp_idx IN 1..v_focused_products.COUNT LOOP
+                BEGIN
+                    SELECT GiaMua, GiaBan INTO v_GiaMua, v_GiaBan_Current 
+                    FROM SANPHAM WHERE MaSP = v_focused_products(sp_idx);
+                    
+                    -- Random margin: 30-50%
+                    v_margin := 0.30 + (DBMS_RANDOM.VALUE(0, 1) * 0.20);
+                    v_GiaBan_New := ROUND(v_GiaMua * (1 + v_margin), 0);
+                    
+                    -- Update price (trigger TRG_SP_LUU_LSG will auto-log to LICHSUGIA)
+                    SP_CAPNHAT_GIA(v_focused_products(sp_idx), v_GiaMua, v_GiaBan_New);
+                    
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        DBMS_OUTPUT.PUT_LINE('    ⚠ Error updating price for ' || v_focused_products(sp_idx) || ': ' || SQLERRM);
+                END;
+            END LOOP;
+            DBMS_OUTPUT.PUT_LINE('  ✓ Prices updated');
+            
+            -- ===== SUB-PHASE 2.3: Generate sales orders (DONHANG) =====
+            -- Calculate sell-through rate: 75-90% of total imported
+            v_sell_through_rate := 0.75 + (DBMS_RANDOM.VALUE(0, 1) * 0.15);
+            v_target_export_qty := ROUND(v_total_import_month * v_sell_through_rate, 0);
+            v_current_export_qty := 0;
+            
+            v_num_donhang_month := TRUNC(12 + DBMS_RANDOM.VALUE(0, 7)); -- 12-18 orders per month
+            DBMS_OUTPUT.PUT_LINE('  Generating ' || v_num_donhang_month || ' sales orders...');
+            DBMS_OUTPUT.PUT_LINE('    Target export: ' || v_target_export_qty || ' kg (sell-through rate: ' || ROUND(v_sell_through_rate * 100, 1) || '%)');
+            
+            FOR j IN 1..v_num_donhang_month LOOP
+                BEGIN
+                    -- Get random customer
+                    SELECT MaKH INTO v_MaKH FROM (
+                        SELECT MaKH FROM KHACHHANG ORDER BY DBMS_RANDOM.VALUE
+                    ) WHERE ROWNUM = 1;
+                    
+                    -- Random delivery staff (or NULL)
+                    IF DBMS_RANDOM.VALUE(0, 1) > 0.3 THEN
+                        SELECT MaNV INTO v_MaNV_GiaoHang FROM (
+                            SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV giao hàng'
+                            ORDER BY DBMS_RANDOM.VALUE
+                        ) WHERE ROWNUM = 1;
+                    ELSE
+                        v_MaNV_GiaoHang := NULL;
+                    END IF;
+                    
+                    -- Generate MaDH
+                    v_MaDH := 'DH' || LPAD(SEQ_DONHANG.NEXTVAL, 6, '0');
+                    
+                    -- Random dates in month
+                    v_day_offset := TRUNC(DBMS_RANDOM.VALUE(0, TO_NUMBER(TO_CHAR(v_month_end, 'DD')) - 1));
+                    
+                    -- Insert DONHANG
+                    INSERT INTO DONHANG (MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, TrangThaiDH, TrangThaiTT, PhuongThucTT)
+                    VALUES (v_MaDH, v_MaKH, v_MaNV_GiaoHang, 
+                            v_month_start + v_day_offset, 
+                            v_month_start + v_day_offset + TRUNC(DBMS_RANDOM.VALUE(1, 3)),
+                            N'TP.HCM - Quận ' || TRUNC(DBMS_RANDOM.VALUE(1, 13)),
+                            'Đã đặt', 0, 'COD');
+                    
+                    -- ===== SUB-PHASE 2.3.1: Generate order details (CHITIETDONHANG) =====
+                    v_num_items_per_order := TRUNC(2 + DBMS_RANDOM.VALUE(0, 5)); -- 2-6 items per order
+                    
+                    FOR k IN 1..v_num_items_per_order LOOP
+                        BEGIN
+                            -- Exit if we've reached target export
+                            IF v_current_export_qty >= v_target_export_qty THEN
+                                EXIT;
+                            END IF;
+                            
+                            -- Get random product
+                            v_MaSP := v_focused_products(TRUNC(DBMS_RANDOM.VALUE(1, v_focused_products.COUNT + 1)));
+                            
+                            -- Random quantity: 5-50 kg (B2B small orders)
+                            v_SoLuong_export := TRUNC(5 + DBMS_RANDOM.VALUE(0, 46));
+                            
+                            -- Don't exceed target
+                            IF (v_current_export_qty + v_SoLuong_export) > v_target_export_qty THEN
+                                v_SoLuong_export := v_target_export_qty - v_current_export_qty;
+                            END IF;
+                            
+                            -- Generate MaCTDH
+                            v_MaCTDH := 'CTDH' || LPAD(SEQ_CHITIETDONHANG.NEXTVAL, 6, '0');
+                            
+                            -- Insert CHITIETDONHANG (trigger will calculate GiaBan and ThanhTien)
+                            INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong)
+                            VALUES (v_MaCTDH, v_MaDH, v_MaSP, v_SoLuong_export);
+                            
+                            v_current_export_qty := v_current_export_qty + v_SoLuong_export;
+                            
+                        EXCEPTION
+                            WHEN OTHERS THEN
+                                DBMS_OUTPUT.PUT_LINE('      ⚠ Error inserting CTDH: ' || SQLERRM);
+                        END;
+                    END LOOP;
+                    
+                    -- ===== Call SP_YEUCAU_XUATKHO to create export requests =====
+                    BEGIN
+                        SP_YEUCAU_XUATKHO(v_MaDH);
+                    EXCEPTION
+                        WHEN OTHERS THEN
+                            DBMS_OUTPUT.PUT_LINE('    ✗ Error in SP_YEUCAU_XUATKHO for ' || v_MaDH || ': ' || SQLERRM);
+                    END;
+                    
+                    -- ===== If month <= March 2026: confirm export and complete order =====
+                    IF v_month_date <= TO_DATE('2026-03-31', 'YYYY-MM-DD') THEN
+                        BEGIN
+                            SELECT MaNV INTO v_MaNV_GiaoHang FROM (
+                                SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV giao hàng'
+                                ORDER BY DBMS_RANDOM.VALUE
+                            ) WHERE ROWNUM = 1;
+                            
+                            -- Đảm bảo có người giao hàng
+                            IF v_MaNV_GiaoHang IS NULL THEN
+                                SELECT MaNV INTO v_MaNV_GiaoHang FROM (
+                                    SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV giao hàng' ORDER BY DBMS_RANDOM.VALUE
+                                ) WHERE ROWNUM = 1;
+                            END IF;
 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0005', 'LH000002', 'SP000006', 200); -- Cá hồi (Lạnh)
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0006', 'LH000002', 'SP000003', 300); -- Gà ta (Lạnh)
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0007', 'LH000003', 'SP000001', 150); -- Heo (Đông)
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0008', 'LH000003', 'SP000002', 100); -- Bò (Đông)
+                            SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
 
--- Chèn ngẫu nhiên cho các lô hàng còn lại (Đảm bảo mỗi SP có ít nhất 1 lần nhập)
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0009', 'LH000004', 'SP000016', 250); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0010', 'LH000004', 'SP000017', 100); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0011', 'LH000005', 'SP000021', 400); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0012', 'LH000005', 'SP000022', 200); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0013', 'LH000006', 'SP000004', 300); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0014', 'LH000007', 'SP000007', 250); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0015', 'LH000008', 'SP000008', 350); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0016', 'LH000009', 'SP000009', 150); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0017', 'LH000010', 'SP000010', 400); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0018', 'LH000011', 'SP000018', 200); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0019', 'LH000012', 'SP000019', 300); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0020', 'LH000013', 'SP000020', 450); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0021', 'LH000014', 'SP000023', 500); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0022', 'LH000015', 'SP000024', 300); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0023', 'LH000016', 'SP000025', 1000); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0024', 'LH000017', 'SP000005', 250); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0025', 'LH000018', 'SP000015', 300); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0026', 'LH000019', 'SP000011', 400); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0027', 'LH000020', 'SP000001', 100); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0028', 'LH000021', 'SP000002', 150); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0029', 'LH000022', 'SP000006', 300); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0030', 'LH000023', 'SP000016', 200); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0031', 'LH000024', 'SP000021', 300); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0032', 'LH000025', 'SP000014', 500); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0033', 'LH000026', 'SP000008', 400); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0034', 'LH000027', 'SP000007', 200); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0035', 'LH000028', 'SP000025', 800); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0036', 'LH000029', 'SP000017', 150); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0037', 'LH000030', 'SP000022', 250); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0038', 'LH000031', 'SP000004', 150); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0039', 'LH000032', 'SP000012', 300); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0040', 'LH000033', 'SP000018', 200); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0041', 'LH000034', 'SP000003', 400); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0042', 'LH000035', 'SP000010', 300); 
--- Chi tiết cho các lô hàng đang chờ
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0043', 'LH000036', 'SP000019', 200); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0044', 'LH000037', 'SP000020', 300); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0045', 'LH000038', 'SP000013', 250); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0046', 'LH000039', 'SP000023', 500); 
-INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong) VALUES ('CTLH0047', 'LH000040', 'SP000024', 400); 
+                            -- Cập nhật đầy đủ trạng thái và thông tin
+                            UPDATE DONHANG 
+                            SET TrangThaiDH = 'Hoàn thành',
+                                TrangThaiTT = 1,
+                                TGGiaoTT = TGGiaoYC + DBMS_RANDOM.VALUE(0, 1),
+                                PhiVanChuyen = TRUNC(DBMS_RANDOM.VALUE(15, 50)) * 1000,
+                                MaNV = v_MaNV_GiaoHang
+                            WHERE MaDH = v_MaDH;
 
--- ====================================================================================
--- 10. TONKHO 
--- ====================================================================================
--- Lưu ý: Bạn nên xóa dữ liệu cũ (DELETE FROM TONKHO) trước khi chạy bộ này để tránh trùng MaTonKho
-INSERT ALL
-    /* NHÓM 1: ĐÃ HẾT HẠN (Ngày hết hạn < 13/05/2026) */
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000001', 'KHO00001', 'CTLH0001', 500, 500, TO_DATE('06/01/2026', 'DD/MM/YYYY'), TO_DATE('01/05/2026', 'DD/MM/YYYY'), N'Kệ A1', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000002', 'KHO00001', 'CTLH0002', 300, 300, TO_DATE('06/01/2026', 'DD/MM/YYYY'), TO_DATE('05/05/2026', 'DD/MM/YYYY'), N'Kệ A2', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000003', 'KHO00001', 'CTLH0003', 200, 200, TO_DATE('06/01/2026', 'DD/MM/YYYY'), TO_DATE('10/05/2026', 'DD/MM/YYYY'), N'Kệ A3', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000004', 'KHO00001', 'CTLH0004', 400, 400, TO_DATE('06/01/2026', 'DD/MM/YYYY'), TO_DATE('12/05/2026', 'DD/MM/YYYY'), N'Kệ A4', N'Tạm')
+                            -- Cập nhật lại tổng tiền vì trigger không tự cộng PhiVanChuyen khi update trực tiếp trên DONHANG
+                            UPDATE DONHANG SET TongTien = NVL(TongTienHang, 0) + NVL(PhiVanChuyen, 0) - NVL(GiamGia, 0) WHERE MaDH = v_MaDH;
+                            
+                        EXCEPTION
+                            WHEN OTHERS THEN
+                                DBMS_OUTPUT.PUT_LINE('    ⚠ Error confirming export for ' || v_MaDH || ': ' || SQLERRM);
+                        END;
+                    END IF;
+                    
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        v_error_count := v_error_count + 1;
+                        DBMS_OUTPUT.PUT_LINE('    ✗ Error inserting DONHANG: ' || SQLERRM);
+                END;
+            END LOOP;
+            
+            DBMS_OUTPUT.PUT_LINE('  ✓ Sales orders: exported ' || ROUND(v_current_export_qty, 2) || ' kg');
+            
+            -- ===== Calculate monthly revenue for completed orders =====
+            BEGIN
+                SELECT NVL(SUM(TongTien), 0) INTO v_monthly_revenue
+                FROM DONHANG
+                WHERE TRUNC(TGDat, 'MM') = v_month_start AND TrangThaiDH = 'Hoàn thành';
+            EXCEPTION
+                WHEN OTHERS THEN
+                    v_monthly_revenue := 0;
+            END;
+            
+            DBMS_OUTPUT.PUT_LINE('  ✓ Monthly Summary:');
+            DBMS_OUTPUT.PUT_LINE('    Cost:   ' || ROUND(v_monthly_cost, 0) || ' VND');
+            DBMS_OUTPUT.PUT_LINE('    Revenue: ' || ROUND(v_monthly_revenue, 0) || ' VND');
+            DBMS_OUTPUT.PUT_LINE('    Profit:  ' || ROUND(v_monthly_revenue - v_monthly_cost, 0) || ' VND');
+            
+            IF v_monthly_revenue >= v_monthly_cost THEN
+                DBMS_OUTPUT.PUT_LINE('    ✓ Revenue >= Cost (Condition met!)');
+            ELSE
+                DBMS_OUTPUT.PUT_LINE('    ⚠ Revenue < Cost (May happen for partial months)');
+            END IF;
+            
+        EXCEPTION
+            WHEN OTHERS THEN
+                DBMS_OUTPUT.PUT_LINE('✗ Critical error in month ' || TO_CHAR(v_month_date, 'YYYY-MM') || ': ' || SQLERRM);
+        END;
+        
+    END LOOP; -- End of 12-month loop
+    
+    -- ===== PHASE 3: Re-enable triggers =====
+    
+    
+    -- ===== COMMIT all changes =====
+    COMMIT;
+    
+    DBMS_OUTPUT.PUT_LINE('');
+    DBMS_OUTPUT.PUT_LINE('============================================================');
+    DBMS_OUTPUT.PUT_LINE('✅ DATA ENRICHMENT COMPLETED SUCCESSFULLY!');
+    DBMS_OUTPUT.PUT_LINE('============================================================');
+    DBMS_OUTPUT.PUT_LINE('Total operations: ' || v_success_count || ' successful, ' || v_error_count || ' errors');
+    DBMS_OUTPUT.PUT_LINE('Period: 05/2025 - 05/2026');
+    DBMS_OUTPUT.PUT_LINE('Products focused: 6 SKUs (SP000001, 002, 006, 007, 021, 025)');
+    DBMS_OUTPUT.PUT_LINE('============================================================');
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('❌ FATAL ERROR: ' || SQLERRM);
+        DBMS_OUTPUT.PUT_LINE('Transaction rolled back.');
+END;
+/
 
-    /* NHÓM 2: SẮP HẾT HẠN (Hết hạn từ 14/05 -> 20/05/2026) */
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000005', 'KHO00002', 'CTLH0005', 200, 200, TO_DATE('11/01/2026', 'DD/MM/YYYY'), TO_DATE('14/05/2026', 'DD/MM/YYYY'), N'Kệ L1', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000006', 'KHO00002', 'CTLH0006', 300, 300, TO_DATE('11/01/2026', 'DD/MM/YYYY'), TO_DATE('15/05/2026', 'DD/MM/YYYY'), N'Kệ L2', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000007', 'KHO00003', 'CTLH0007', 150, 150, TO_DATE('13/01/2026', 'DD/MM/YYYY'), TO_DATE('17/05/2026', 'DD/MM/YYYY'), N'Kệ D1', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000008', 'KHO00003', 'CTLH0008', 100, 100, TO_DATE('13/01/2026', 'DD/MM/YYYY'), TO_DATE('18/05/2026', 'DD/MM/YYYY'), N'Kệ D2', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000009', 'KHO00001', 'CTLH0009', 250, 250, TO_DATE('16/01/2026', 'DD/MM/YYYY'), TO_DATE('19/05/2026', 'DD/MM/YYYY'), N'Kệ A5', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000010', 'KHO00001', 'CTLH0010', 100, 100, TO_DATE('16/01/2026', 'DD/MM/YYYY'), TO_DATE('20/05/2026', 'DD/MM/YYYY'), N'Kệ A6', N'Tạm')
+-- ===== VERIFICATION QUERIES (Run after script completes) =====
+PROMPT
+PROMPT ===== VERIFICATION - Check data enrichment results =====
+PROMPT
 
-    /* NHÓM 3: CÒN HẠN (Ngày hết hạn còn xa) */
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000011', 'KHO00001', 'CTLH0011', 400, 400, TO_DATE('21/01/2026', 'DD/MM/YYYY'), TO_DATE('21/08/2026', 'DD/MM/YYYY'), N'Kệ A7', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000012', 'KHO00001', 'CTLH0012', 200, 200, TO_DATE('21/01/2026', 'DD/MM/YYYY'), TO_DATE('21/08/2026', 'DD/MM/YYYY'), N'Kệ A8', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000013', 'KHO00003', 'CTLH0013', 300, 300, TO_DATE('26/01/2026', 'DD/MM/YYYY'), TO_DATE('26/12/2026', 'DD/MM/YYYY'), N'Kệ D3', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000014', 'KHO00003', 'CTLH0014', 250, 250, TO_DATE('29/01/2026', 'DD/MM/YYYY'), TO_DATE('29/12/2026', 'DD/MM/YYYY'), N'Kệ D4', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000015', 'KHO00003', 'CTLH0015', 350, 350, TO_DATE('03/02/2026', 'DD/MM/YYYY'), TO_DATE('03/12/2026', 'DD/MM/YYYY'), N'Kệ D5', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000016', 'KHO00001', 'CTLH0016', 150, 150, TO_DATE('06/02/2026', 'DD/MM/YYYY'), TO_DATE('06/06/2026', 'DD/MM/YYYY'), N'Kệ A9', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000017', 'KHO00003', 'CTLH0017', 400, 400, TO_DATE('11/02/2026', 'DD/MM/YYYY'), TO_DATE('11/12/2026', 'DD/MM/YYYY'), N'Kệ D6', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000018', 'KHO00001', 'CTLH0018', 200, 200, TO_DATE('15/02/2026', 'DD/MM/YYYY'), TO_DATE('15/06/2026', 'DD/MM/YYYY'), N'Kệ B1', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000019', 'KHO00001', 'CTLH0019', 300, 300, TO_DATE('19/02/2026', 'DD/MM/YYYY'), TO_DATE('19/06/2026', 'DD/MM/YYYY'), N'Kệ B2', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000020', 'KHO00001', 'CTLH0020', 450, 450, TO_DATE('23/02/2026', 'DD/MM/YYYY'), TO_DATE('23/06/2026', 'DD/MM/YYYY'), N'Kệ B3', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000021', 'KHO00001', 'CTLH0021', 500, 500, TO_DATE('26/02/2026', 'DD/MM/YYYY'), TO_DATE('26/08/2026', 'DD/MM/YYYY'), N'Kệ B4', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000022', 'KHO00001', 'CTLH0022', 300, 300, TO_DATE('02/03/2026', 'DD/MM/YYYY'), TO_DATE('02/08/2026', 'DD/MM/YYYY'), N'Kệ B5', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000023', 'KHO00001', 'CTLH0023', 1000, 1000, TO_DATE('06/03/2026', 'DD/MM/YYYY'), TO_DATE('06/09/2026', 'DD/MM/YYYY'), N'Kệ B6', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000024', 'KHO00002', 'CTLH0024', 250, 250, TO_DATE('09/03/2026', 'DD/MM/YYYY'), TO_DATE('09/07/2026', 'DD/MM/YYYY'), N'Kệ L3', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000025', 'KHO00001', 'CTLH0025', 300, 300, TO_DATE('13/03/2026', 'DD/MM/YYYY'), TO_DATE('13/06/2026', 'DD/MM/YYYY'), N'Kệ B7', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000026', 'KHO00001', 'CTLH0026', 400, 400, TO_DATE('16/03/2026', 'DD/MM/YYYY'), TO_DATE('16/06/2026', 'DD/MM/YYYY'), N'Kệ B8', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000027', 'KHO00003', 'CTLH0027', 100, 100, TO_DATE('21/03/2026', 'DD/MM/YYYY'), TO_DATE('21/12/2026', 'DD/MM/YYYY'), N'Kệ D7', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000028', 'KHO00003', 'CTLH0028', 150, 150, TO_DATE('23/03/2026', 'DD/MM/YYYY'), TO_DATE('23/12/2026', 'DD/MM/YYYY'), N'Kệ D8', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000029', 'KHO00002', 'CTLH0029', 300, 300, TO_DATE('26/03/2026', 'DD/MM/YYYY'), TO_DATE('26/08/2026', 'DD/MM/YYYY'), N'Kệ L4', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000030', 'KHO00001', 'CTLH0030', 200, 200, TO_DATE('27/03/2026', 'DD/MM/YYYY'), TO_DATE('27/06/2026', 'DD/MM/YYYY'), N'Kệ C1', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000031', 'KHO00001', 'CTLH0031', 300, 300, TO_DATE('28/03/2026', 'DD/MM/YYYY'), TO_DATE('28/09/2026', 'DD/MM/YYYY'), N'Kệ C2', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000032', 'KHO00001', 'CTLH0032', 500, 500, TO_DATE('29/03/2026', 'DD/MM/YYYY'), TO_DATE('29/06/2026', 'DD/MM/YYYY'), N'Kệ C3', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000033', 'KHO00003', 'CTLH0033', 400, 400, TO_DATE('30/03/2026', 'DD/MM/YYYY'), TO_DATE('30/12/2026', 'DD/MM/YYYY'), N'Kệ D9', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000034', 'KHO00003', 'CTLH0034', 200, 200, TO_DATE('31/03/2026', 'DD/MM/YYYY'), TO_DATE('31/12/2026', 'DD/MM/YYYY'), N'Kệ D10', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000035', 'KHO00001', 'CTLH0035', 800, 800, TO_DATE('02/04/2026', 'DD/MM/YYYY'), TO_DATE('02/09/2026', 'DD/MM/YYYY'), N'Kệ C4', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000036', 'KHO00001', 'CTLH0036', 150, 150, TO_DATE('04/04/2026', 'DD/MM/YYYY'), TO_DATE('04/07/2026', 'DD/MM/YYYY'), N'Kệ C5', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000037', 'KHO00001', 'CTLH0037', 250, 250, TO_DATE('06/04/2026', 'DD/MM/YYYY'), TO_DATE('06/09/2026', 'DD/MM/YYYY'), N'Kệ C6', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000038', 'KHO00003', 'CTLH0038', 150, 150, TO_DATE('09/04/2026', 'DD/MM/YYYY'), TO_DATE('09/12/2026', 'DD/MM/YYYY'), N'Kệ D11', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000039', 'KHO00001', 'CTLH0039', 300, 300, TO_DATE('11/04/2026', 'DD/MM/YYYY'), TO_DATE('11/07/2026', 'DD/MM/YYYY'), N'Kệ C7', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000040', 'KHO00001', 'CTLH0040', 200, 200, TO_DATE('13/04/2026', 'DD/MM/YYYY'), TO_DATE('13/07/2026', 'DD/MM/YYYY'), N'Kệ C8', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000041', 'KHO00002', 'CTLH0041', 400, 400, TO_DATE('16/04/2026', 'DD/MM/YYYY'), TO_DATE('16/08/2026', 'DD/MM/YYYY'), N'Kệ L5', N'Tạm')
-    INTO TONKHO (MaTonKho, MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri, TrangThai) VALUES ('TK000042', 'KHO00003', 'CTLH0042', 300, 300, TO_DATE('19/04/2026', 'DD/MM/YYYY'), TO_DATE('19/12/2026', 'DD/MM/YYYY'), N'Kệ D12', N'Tạm')
-SELECT 1 FROM dual;
+SELECT 'LOHANG Count' AS metric, COUNT(*) AS result FROM LOHANG
+UNION ALL
+SELECT 'DONHANG Count', COUNT(*) FROM DONHANG
+UNION ALL
+SELECT 'CHITIETLOHANG Count', COUNT(*) FROM CHITIETLOHANG
+UNION ALL
+SELECT 'CHITIETDONHANG Count', COUNT(*) FROM CHITIETDONHANG
+UNION ALL
+SELECT 'TONKHO Count', COUNT(*) FROM TONKHO
+UNION ALL
+SELECT 'XUATKHO Count', COUNT(*) FROM XUATKHO
+UNION ALL
+SELECT 'LICHSUGIA Count', COUNT(*) FROM LICHSUGIA;
 
 
--- ====================================================================================
--- 11. DONHANG 
--- ====================================================================================
-INSERT ALL
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000001', 'KH000001', 'NV000011', TO_DATE('10/02/2026','DD/MM/YYYY'), TO_DATE('12/02/2026','DD/MM/YYYY'), TO_DATE('12/02/2026','DD/MM/YYYY'), N'Quận 1, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000002', 'KH000002', 'NV000012', TO_DATE('15/02/2026','DD/MM/YYYY'), TO_DATE('16/02/2026','DD/MM/YYYY'), TO_DATE('16/02/2026','DD/MM/YYYY'), N'Quận 3, TP.HCM', 40000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000003', 'KH000003', 'NV000013', TO_DATE('18/02/2026','DD/MM/YYYY'), TO_DATE('20/02/2026','DD/MM/YYYY'), TO_DATE('20/02/2026','DD/MM/YYYY'), N'Thủ Đức, TP.HCM', 50000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000004', 'KH000004', 'NV000014', TO_DATE('20/02/2026','DD/MM/YYYY'), TO_DATE('21/02/2026','DD/MM/YYYY'), TO_DATE('21/02/2026','DD/MM/YYYY'), N'Bình Thạnh, TP.HCM', 35000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000005', 'KH000005', 'NV000015', TO_DATE('25/02/2026','DD/MM/YYYY'), TO_DATE('27/02/2026','DD/MM/YYYY'), TO_DATE('27/02/2026','DD/MM/YYYY'), N'Gò Vấp, TP.HCM', 45000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000006', 'KH000006', 'NV000011', TO_DATE('01/03/2026','DD/MM/YYYY'), TO_DATE('02/03/2026','DD/MM/YYYY'), TO_DATE('02/03/2026','DD/MM/YYYY'), N'Tân Bình, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000007', 'KH000007', 'NV000012', TO_DATE('05/03/2026','DD/MM/YYYY'), TO_DATE('06/03/2026','DD/MM/YYYY'), TO_DATE('07/03/2026','DD/MM/YYYY'), N'Quận 7, TP.HCM', 60000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000008', 'KH000008', 'NV000013', TO_DATE('08/03/2026','DD/MM/YYYY'), TO_DATE('09/03/2026','DD/MM/YYYY'), TO_DATE('09/03/2026','DD/MM/YYYY'), N'Quận 10, TP.HCM', 25000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000009', 'KH000009', 'NV000014', TO_DATE('10/03/2026','DD/MM/YYYY'), TO_DATE('11/03/2026','DD/MM/YYYY'), TO_DATE('11/03/2026','DD/MM/YYYY'), N'Quận 4, TP.HCM', 30000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000010', 'KH000010', 'NV000015', TO_DATE('12/03/2026','DD/MM/YYYY'), TO_DATE('14/03/2026','DD/MM/YYYY'), TO_DATE('14/03/2026','DD/MM/YYYY'), N'Quận 5, TP.HCM', 35000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000011', 'KH000011', 'NV000011', TO_DATE('15/03/2026','DD/MM/YYYY'), TO_DATE('16/03/2026','DD/MM/YYYY'), TO_DATE('16/03/2026','DD/MM/YYYY'), N'Quận 8, TP.HCM', 40000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000012', 'KH000012', 'NV000012', TO_DATE('18/03/2026','DD/MM/YYYY'), TO_DATE('19/03/2026','DD/MM/YYYY'), TO_DATE('19/03/2026','DD/MM/YYYY'), N'Quận 2, TP.HCM', 45000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000013', 'KH000013', 'NV000013', TO_DATE('20/03/2026','DD/MM/YYYY'), TO_DATE('22/03/2026','DD/MM/YYYY'), TO_DATE('22/03/2026','DD/MM/YYYY'), N'Bình Tân, TP.HCM', 50000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000014', 'KH000014', 'NV000014', TO_DATE('22/03/2026','DD/MM/YYYY'), TO_DATE('23/03/2026','DD/MM/YYYY'), TO_DATE('23/03/2026','DD/MM/YYYY'), N'Phú Nhuận, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000015', 'KH000015', 'NV000015', TO_DATE('25/03/2026','DD/MM/YYYY'), TO_DATE('26/03/2026','DD/MM/YYYY'), TO_DATE('26/03/2026','DD/MM/YYYY'), N'Quận 12, TP.HCM', 55000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000016', 'KH000016', 'NV000011', TO_DATE('28/03/2026','DD/MM/YYYY'), TO_DATE('29/03/2026','DD/MM/YYYY'), TO_DATE('30/03/2026','DD/MM/YYYY'), N'Củ Chi, TP.HCM', 80000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000017', 'KH000017', 'NV000012', TO_DATE('30/03/2026','DD/MM/YYYY'), TO_DATE('01/04/2026','DD/MM/YYYY'), TO_DATE('01/04/2026','DD/MM/YYYY'), N'Hóc Môn, TP.HCM', 70000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000018', 'KH000018', 'NV000013', TO_DATE('02/04/2026','DD/MM/YYYY'), TO_DATE('03/04/2026','DD/MM/YYYY'), TO_DATE('03/04/2026','DD/MM/YYYY'), N'Bình Chánh, TP.HCM', 75000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000019', 'KH000019', 'NV000014', TO_DATE('05/04/2026','DD/MM/YYYY'), TO_DATE('06/04/2026','DD/MM/YYYY'), TO_DATE('06/04/2026','DD/MM/YYYY'), N'Quận 11, TP.HCM', 35000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000020', 'KH000020', 'NV000015', TO_DATE('08/04/2026','DD/MM/YYYY'), TO_DATE('09/04/2026','DD/MM/YYYY'), TO_DATE('09/04/2026','DD/MM/YYYY'), N'Quận 6, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000021', 'KH000001', 'NV000011', TO_DATE('10/04/2026','DD/MM/YYYY'), TO_DATE('11/04/2026','DD/MM/YYYY'), TO_DATE('11/04/2026','DD/MM/YYYY'), N'Quận 1, TP.HCM', 30000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000022', 'KH000002', 'NV000012', TO_DATE('12/04/2026','DD/MM/YYYY'), TO_DATE('13/04/2026','DD/MM/YYYY'), TO_DATE('13/04/2026','DD/MM/YYYY'), N'Quận 3, TP.HCM', 40000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000023', 'KH000003', 'NV000013', TO_DATE('14/04/2026','DD/MM/YYYY'), TO_DATE('15/04/2026','DD/MM/YYYY'), TO_DATE('15/04/2026','DD/MM/YYYY'), N'Thủ Đức, TP.HCM', 50000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000024', 'KH000004', 'NV000014', TO_DATE('15/04/2026','DD/MM/YYYY'), TO_DATE('16/04/2026','DD/MM/YYYY'), TO_DATE('16/04/2026','DD/MM/YYYY'), N'Bình Thạnh, TP.HCM', 35000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000025', 'KH000005', 'NV000015', TO_DATE('16/04/2026','DD/MM/YYYY'), TO_DATE('17/04/2026','DD/MM/YYYY'), TO_DATE('17/04/2026','DD/MM/YYYY'), N'Gò Vấp, TP.HCM', 45000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000026', 'KH000006', 'NV000011', TO_DATE('18/04/2026','DD/MM/YYYY'), TO_DATE('19/04/2026','DD/MM/YYYY'), TO_DATE('19/04/2026','DD/MM/YYYY'), N'Tân Bình, TP.HCM', 30000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000027', 'KH000007', 'NV000012', TO_DATE('19/04/2026','DD/MM/YYYY'), TO_DATE('20/04/2026','DD/MM/YYYY'), TO_DATE('20/04/2026','DD/MM/YYYY'), N'Quận 7, TP.HCM', 60000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000028', 'KH000008', 'NV000013', TO_DATE('20/04/2026','DD/MM/YYYY'), TO_DATE('21/04/2026','DD/MM/YYYY'), TO_DATE('21/04/2026','DD/MM/YYYY'), N'Quận 10, TP.HCM', 25000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000029', 'KH000009', 'NV000014', TO_DATE('21/04/2026','DD/MM/YYYY'), TO_DATE('22/04/2026','DD/MM/YYYY'), TO_DATE('22/04/2026','DD/MM/YYYY'), N'Quận 4, TP.HCM', 30000, N'Hoàn thành', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000030', 'KH000010', 'NV000015', TO_DATE('22/04/2026','DD/MM/YYYY'), TO_DATE('23/04/2026','DD/MM/YYYY'), TO_DATE('23/04/2026','DD/MM/YYYY'), N'Quận 5, TP.HCM', 35000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000031', 'KH000011', 'NV000011', TO_DATE('23/04/2026','DD/MM/YYYY'), TO_DATE('24/04/2026','DD/MM/YYYY'), TO_DATE('24/04/2026','DD/MM/YYYY'), N'Quận 8, TP.HCM', 40000, N'Hoàn thành', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, TGGiaoTT, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000032', 'KH000012', 'NV000012', TO_DATE('24/04/2026','DD/MM/YYYY'), TO_DATE('25/04/2026','DD/MM/YYYY'), TO_DATE('25/04/2026','DD/MM/YYYY'), N'Quận 2, TP.HCM', 45000, N'Hoàn thành', 1, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000033', 'KH000013', 'NV000013', TO_DATE('25/04/2026','DD/MM/YYYY'), TO_DATE('27/04/2026','DD/MM/YYYY'), N'Bình Tân, TP.HCM', 50000, N'Chờ giao hàng', 0, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000034', 'KH000014', 'NV000014', TO_DATE('25/04/2026','DD/MM/YYYY'), TO_DATE('27/04/2026','DD/MM/YYYY'), N'Phú Nhuận, TP.HCM', 30000, N'Chờ giao hàng', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000035', 'KH000015', 'NV000015', TO_DATE('26/04/2026','DD/MM/YYYY'), TO_DATE('28/04/2026','DD/MM/YYYY'), N'Quận 12, TP.HCM', 55000, N'Chờ giao hàng', 0, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000036', 'KH000016', 'NV000011', TO_DATE('26/04/2026','DD/MM/YYYY'), TO_DATE('28/04/2026','DD/MM/YYYY'), N'Củ Chi, TP.HCM', 80000, N'Chờ giao hàng', 1, 'Ví điện tử')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000037', 'KH000017', NULL, TO_DATE('27/04/2026','DD/MM/YYYY'), TO_DATE('29/04/2026','DD/MM/YYYY'), N'Hóc Môn, TP.HCM', 70000, N'Chờ xử lý', 0, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000038', 'KH000018', NULL, TO_DATE('27/04/2026','DD/MM/YYYY'), TO_DATE('29/04/2026','DD/MM/YYYY'), N'Bình Chánh, TP.HCM', 75000, N'Chờ xử lý', 1, 'Chuyển khoản')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, LyDoHuy, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000039', 'KH000019', NULL, TO_DATE('20/04/2026','DD/MM/YYYY'), TO_DATE('22/04/2026','DD/MM/YYYY'), N'Quận 11, TP.HCM', N'Khách hàng thay đổi ý định', 35000, N'Đã huỷ', 0, 'COD')
-    INTO DONHANG(MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, LyDoHuy, PhiVanChuyen, TrangThaiDH, TrangThaiTT, PhuongThucTT) VALUES ('DH000040', 'KH000020', NULL, TO_DATE('22/04/2026','DD/MM/YYYY'), TO_DATE('24/04/2026','DD/MM/YYYY'), N'Quận 6, TP.HCM', N'Khách phát hiện đặt nhầm hàng', 30000, N'Đã huỷ', 0, 'COD')
-SELECT 1 FROM dual;
-
--- ====================================================================================
--- 12. CHITIETDONHANG (Sử dụng lệnh rời rạc để tránh lỗi Trigger Mutating Table)
--- Đơn hàng 1 sẽ có 6 loại sản phẩm để đảm bảo tính đa dạng.
--- ====================================================================================
-ALTER TRIGGER TRG_CTDH_CHECK_TRANGTHAIDH DISABLE;
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0001', 'DH000001', 'SP000011', 15);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0002', 'DH000001', 'SP000012', 10);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0003', 'DH000001', 'SP000013', 20);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0004', 'DH000001', 'SP000001', 50);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0005', 'DH000001', 'SP000006', 10);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0006', 'DH000001', 'SP000021', 5);
-
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0007', 'DH000002', 'SP000002', 8);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0008', 'DH000002', 'SP000007', 120);
-
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0009', 'DH000003', 'SP000016', 30);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0010', 'DH000004', 'SP000022', 15);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0011', 'DH000005', 'SP000004', 200);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0012', 'DH000006', 'SP000008', 25);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0013', 'DH000007', 'SP000017', 10);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0014', 'DH000008', 'SP000024', 15);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0015', 'DH000009', 'SP000009', 200);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0016', 'DH000010', 'SP000019', 30);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0017', 'DH000011', 'SP000010', 400);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0018', 'DH000012', 'SP000014', 50);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0019', 'DH000013', 'SP000020', 150);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0020', 'DH000014', 'SP000025', 100);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0021', 'DH000015', 'SP000005', 20);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0022', 'DH000016', 'SP000015', 35);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0023', 'DH000017', 'SP000023', 450);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0024', 'DH000018', 'SP000011', 25);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0025', 'DH000019', 'SP000003', 40);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0026', 'DH000020', 'SP000012', 150);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0027', 'DH000021', 'SP000006', 12);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0028', 'DH000022', 'SP000018', 22);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0029', 'DH000023', 'SP000001', 100);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0030', 'DH000024', 'SP000021', 15);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0031', 'DH000025', 'SP000013', 20);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0032', 'DH000026', 'SP000002', 80);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0033', 'DH000027', 'SP000007', 18);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0034', 'DH000028', 'SP000016', 25);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0035', 'DH000029', 'SP000022', 12);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0036', 'DH000030', 'SP000004', 160);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0037', 'DH000031', 'SP000008', 22);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0038', 'DH000032', 'SP000017', 5);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0039', 'DH000033', 'SP000024', 200);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0040', 'DH000034', 'SP000009', 15);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0041', 'DH000035', 'SP000019', 25);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0042', 'DH000036', 'SP000010', 300);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0043', 'DH000037', 'SP000014', 40);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0044', 'DH000038', 'SP000020', 10);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0045', 'DH000039', 'SP000025', 500);
-INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES ('CTDH0046', 'DH000040', 'SP000005', 15);
-ALTER TRIGGER TRG_CTDH_CHECK_TRANGTHAIDH ENABLE;
-COMMIT;
--- ====================================================================================
--- 13. XUATKHO 
--- ====================================================================================
-INSERT ALL
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000001', 'CTDH0001', 'TK000001', 'NV000007', 15, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000002', 'CTDH0002', 'TK000002', 'NV000007', 10, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000003', 'CTDH0003', 'TK000003', 'NV000007', 20, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000004', 'CTDH0004', 'TK000007', 'NV000007', 5, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000005', 'CTDH0005', 'TK000005', 'NV000007', 10, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000006', 'CTDH0006', 'TK000011', 'NV000007', 5, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000007', 'CTDH0007', 'TK000008', 'NV000008', 8, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000008', 'CTDH0008', 'TK000014', 'NV000008', 12, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000009', 'CTDH0009', 'TK000009', 'NV000009', 30, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000010', 'CTDH0010', 'TK000012', 'NV000010', 15, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000011', 'CTDH0011', 'TK000013', 'NV000007', 20, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000012', 'CTDH0012', 'TK000015', 'NV000008', 25, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000013', 'CTDH0013', 'TK000010', 'NV000009', 10, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000014', 'CTDH0014', 'TK000022', 'NV000010', 15, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000015', 'CTDH0015', 'TK000016', 'NV000007', 20, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000016', 'CTDH0016', 'TK000019', 'NV000008', 30, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000017', 'CTDH0017', 'TK000017', 'NV000009', 40, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000018', 'CTDH0018', 'TK000032', 'NV000010', 50, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000019', 'CTDH0019', 'TK000020', 'NV000007', 15, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000020', 'CTDH0020', 'TK000023', 'NV000008', 100, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000021', 'CTDH0021', 'TK000024', 'NV000009', 20, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000022', 'CTDH0022', 'TK000025', 'NV000010', 35, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000023', 'CTDH0023', 'TK000021', 'NV000007', 45, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000024', 'CTDH0024', 'TK000026', 'NV000008', 25, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000025', 'CTDH0025', 'TK000041', 'NV000009', 40, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000026', 'CTDH0026', 'TK000039', 'NV000010', 15, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000027', 'CTDH0027', 'TK000029', 'NV000007', 12, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000028', 'CTDH0028', 'TK000040', 'NV000008', 22, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000029', 'CTDH0029', 'TK000027', 'NV000009', 10, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000030', 'CTDH0030', 'TK000031', 'NV000010', 15, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000031', 'CTDH0031', 'TK000030', 'NV000007', 20, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000032', 'CTDH0032', 'TK000028', 'NV000008', 8, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000033', 'CTDH0033', 'TK000034', 'NV000009', 18, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000034', 'CTDH0034', 'TK000030', 'NV000010', 25, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000035', 'CTDH0035', 'TK000037', 'NV000007', 12, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000036', 'CTDH0036', 'TK000038', 'NV000008', 16, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000037', 'CTDH0037', 'TK000033', 'NV000009', 22, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000038', 'CTDH0038', 'TK000036', 'NV000010', 5, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000039', 'CTDH0039', 'TK000042', 'NV000007', 20, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000040', 'CTDH0040', 'TK000042', 'NV000008', 15, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000041', 'CTDH0041', 'TK000041', 'NV000009', 25, SYSDATE, N'Tạm giữ')
-    INTO XUATKHO (MaXK, MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) VALUES ('XK000042', 'CTDH0042', 'TK000042', 'NV000010', 30, SYSDATE, N'Tạm giữ')
-SELECT 1 FROM dual;
-
--- Đổi trạng thái xuất kho
-UPDATE XUATKHO SET TrangThaiXK = N'Đã xuất' WHERE TrangThaiXK = N'Tạm giữ';
-COMMIT;

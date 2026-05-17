@@ -21,8 +21,8 @@ public class Main {
         TaiKhoanDTO mockUser = new TaiKhoanDTO();
         mockUser.setUsername("nvtm01");
 
-        mockUser.setLoaiTK(1); // 0: Quản lý, 1: Nhân viên, 2: Khách hàng
-
+        mockUser.setLoaiTK(0); // 0: Quản lý, 1: Nhân viên, 2: Khách hàng
+        
         Session.currentUser = mockUser;
         Session.chucVu = "kho";
         Session.tenNguoiDung = "Quản trị viên Test";

@@ -2,6 +2,13 @@ package gui.panel;
 
 import util.AppColor;
 import javax.swing.*;
+
+import gui.panel.BaoCaoThongKe.DoanhThuPanel;
+import gui.panel.BaoCaoThongKe.TopSanPhamPanel;
+import gui.panel.BaoCaoThongKe.TrangThaiPanel;
+import gui.panel.BaoCaoThongKe.NhanVienPanel;
+import gui.panel.BaoCaoThongKe.LichSuGiaPanel;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -14,6 +21,8 @@ public class ThongKePanel extends JPanel {
     private TopSanPhamPanel pnlTopSanPham;
     private DoanhThuPanel pnlDoanhThu; 
     private TrangThaiPanel pnlTrangThai;
+    private NhanVienPanel pnlNhanVien;
+    private LichSuGiaPanel pnlLichSuGia;
 
     public ThongKePanel() {
         setLayout(new BorderLayout());
@@ -36,10 +45,13 @@ public class ThongKePanel extends JPanel {
         pnlTopSanPham = new TopSanPhamPanel();
         pnlTrangThai  = new TrangThaiPanel();
         pnlDoanhThu   = new DoanhThuPanel();
-        
+        pnlNhanVien   = new NhanVienPanel();
+        pnlLichSuGia  = new LichSuGiaPanel();
         mainContent.add(wrapWithBackButton(pnlTopSanPham, "Thống kê Top sản phẩm"), "TOPSP");
         mainContent.add(wrapWithBackButton(pnlTrangThai, "Trạng thái đơn hàng"), "TRANGTHAI");
         mainContent.add(wrapWithBackButton(pnlDoanhThu, "Báo cáo Doanh thu"), "DOANHTHU");
+        mainContent.add(wrapWithBackButton(pnlLichSuGia, "Báo cáo biến động giá"), "LICHSUGIA");
+        mainContent.add(wrapWithBackButton(pnlNhanVien, "Thống kê Nhân viên"), "NHANVIEN");
 
     }
 
@@ -48,12 +60,14 @@ public class ThongKePanel extends JPanel {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(AppColor.BACKGROUND);
         
-        JPanel grid = new JPanel(new GridLayout(1, 3, 30, 0));
+        JPanel grid = new JPanel(new GridLayout(0, 2, 30, 20));
         grid.setBackground(AppColor.BACKGROUND);
         
         grid.add(createMenuButton("💰", "Báo cáo Doanh thu", "Xem theo tháng/năm", "DOANHTHU"));
         grid.add(createMenuButton("📦", "Top Sản phẩm", "Lọc theo số lượng/thời gian", "TOPSP"));
         grid.add(createMenuButton("🥧", "Trạng thái Đơn hàng", "Tỷ lệ đơn hàng thành công", "TRANGTHAI"));
+        grid.add(createMenuButton("📈", "Biến động giá", "Lịch sử mua/bán giá sản phẩm", "LICHSUGIA"));
+        grid.add(createMenuButton("👨‍💼", "Thống kê Nhân viên", "Xem hiệu suất và thông tin nhân viên", "NHANVIEN"));
         
         panel.add(grid);
         return panel;
@@ -109,12 +123,12 @@ public class ThongKePanel extends JPanel {
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 15));
         header.setBackground(AppColor.BACKGROUND);
         
-        // -- NÚT QUAY LẠI PHONG CÁCH HIỆN ĐẠI --
-        JButton btnBack = new JButton("Quay lại Menu");
-        btnBack.setFont(new Font("Segoe UI Emoji", Font.BOLD, 15));
-        btnBack.setForeground(AppColor.PRIMARY); // Chữ màu xanh đồng bộ toàn app
-        btnBack.setBorderPainted(false); // Bỏ viền
-        btnBack.setContentAreaFilled(false); // Bỏ màu nền mặc định
+        // -- NÚT QUAY LẠI --
+        JButton btnBack = new JButton("<< Quay lại Menu");
+        btnBack.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        btnBack.setForeground(AppColor.PRIMARY); 
+        btnBack.setBorderPainted(false); 
+        btnBack.setContentAreaFilled(false); 
         btnBack.setFocusPainted(false);
         btnBack.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
@@ -141,9 +155,4 @@ public class ThongKePanel extends JPanel {
         return wrapper;
     }
 
-    private JPanel createDetailPlaceholder(String cardName, String title) {
-        JPanel p = new JPanel(new BorderLayout());
-        p.add(new JLabel("Đang phát triển chức năng " + title, SwingConstants.CENTER));
-        return wrapWithBackButton(p, title);
-    }
 }
