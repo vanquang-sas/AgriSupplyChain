@@ -174,6 +174,13 @@ public class NhaCungCapPanel extends JPanel {
         JButton btnThem = createActionButton("Thêm", AppColor.SUCCESS, AppColor.SUCCESS_HOVER, AppColor.SUCCESS_ACTIVE);
         JButton btnSua  = createActionButton("Sửa",  AppColor.INFO,    AppColor.INFO_HOVER,    AppColor.INFO_ACTIVE);
         JButton btnXoa  = createActionButton("Xóa",  AppColor.ERROR,   AppColor.ERROR_HOVER,  AppColor.ERROR_ACTIVE);
+
+        // PHÂN QUYỀN: Chỉ Quản lý (Admin) mới thấy các nút Thêm/Sửa/Xóa
+        boolean isAdmin = util.Session.hasRole(0);
+        btnThem.setVisible(isAdmin);
+        btnSua.setVisible(isAdmin);
+        btnXoa.setVisible(isAdmin);
+
         JButton btnRefresh = createIconButton("↻");
 
         btnThem.addActionListener(e -> showForm(null));
