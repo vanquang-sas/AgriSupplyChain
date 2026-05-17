@@ -17,6 +17,10 @@ public class ThongKeBUS {
         return thongKeDAO.getThongKeSanPham(limit, type, from, to);
     }
 
+    public List<ThongKeDTO.LichSuGia> getLichSuGiaTheoSanPham(String maSP, Date tuNgay, Date denNgay) {
+        return thongKeDAO.getLichSuGiaTheoSanPham(maSP, tuNgay, denNgay);
+    }
+
     public List<ThongKeDTO.TrangThai> getTyLeTrangThai() {
         return thongKeDAO.getTyLeTrangThai();
     }

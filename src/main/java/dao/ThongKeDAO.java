@@ -60,6 +60,36 @@ public class ThongKeDAO {
         return list;
     }
 
+    public List<ThongKeDTO.LichSuGia> getLichSuGiaTheoSanPham(String maSP, java.util.Date tuNgay, java.util.Date denNgay) {
+        List<ThongKeDTO.LichSuGia> list = new ArrayList<>();
+        String sql = "SELECT MaGia, MaSP, TenSP, TGApDung, GiaMua, GiaBan, LoiNhuan " +
+                     "FROM V_LICHSU_GIA_SANPHAM " +
+                     "WHERE MaSP = ? AND TGApDung BETWEEN ? AND ? " +
+                     "ORDER BY TGApDung";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSP);
+            ps.setDate(2, new java.sql.Date(tuNgay.getTime()));
+            ps.setDate(3, new java.sql.Date(denNgay.getTime()));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new ThongKeDTO.LichSuGia(
+                        rs.getString("MaGia"),
+                        rs.getString("MaSP"),
+                        rs.getString("TenSP"),
+                        rs.getDouble("GiaMua"),
+                        rs.getDouble("GiaBan"),
+                        rs.getDouble("LoiNhuan"),
+                        rs.getDate("TGApDung")
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public List<ThongKeDTO.TrangThai> getTyLeTrangThai() {
         List<ThongKeDTO.TrangThai> list = new ArrayList<>();
         String sql = "{call SP_THONGKE_TRANGTHAI_DH(?)}";

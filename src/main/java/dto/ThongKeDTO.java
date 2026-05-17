@@ -69,4 +69,27 @@ public class ThongKeDTO {
         public String label1, label2, label3;
         public String value1, value2, value3;
     }
+
+    // Dành cho Lịch sử giá sản phẩm
+    public static class LichSuGia {
+        public String maGia;
+        public String maSP;
+        public String tenSP;
+        public double giaMua;
+        public double giaBan;
+        public double loiNhuan;
+        public java.util.Date tgApDung;
+
+        public LichSuGia() {}
+
+        public LichSuGia(String maGia, String maSP, String tenSP, double giaMua, double giaBan, double loiNhuan, java.util.Date tgApDung) {
+            this.maGia = maGia;
+            this.maSP = maSP;
+            this.tenSP = tenSP;
+            this.giaMua = giaMua;
+            this.giaBan = giaBan;
+            this.loiNhuan = loiNhuan;
+            this.tgApDung = tgApDung;
+        }
+    }
 }

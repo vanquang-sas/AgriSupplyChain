@@ -48,6 +48,19 @@ JOIN DONHANG DH
 WHERE DH.TrangThaiDH = 'Hoàn thành'
 GROUP BY SP.MaSP, SP.TenSP, LSP.TenLSP;
 
+-- Lịch sử giá sản phẩm theo thời gian
+CREATE OR REPLACE VIEW V_LICHSU_GIA_SANPHAM AS
+SELECT
+    L.MaGia,
+    L.MaSP,
+    SP.TenSP,
+    TRUNC(L.TGApDung) AS TGApDung,
+    L.GiaMua,
+    L.GiaBan,
+    CASE WHEN L.GiaMua <> 0 THEN ROUND((L.GiaBan - L.GiaMua) / L.GiaMua * 100, 2) ELSE 0 END AS LoiNhuan
+FROM LICHSUGIA L
+JOIN SANPHAM SP ON L.MaSP = SP.MaSP;
+
 -- Giá trị tồn kho theo từng kho
 CREATE OR REPLACE VIEW V_GIA_TRI_TON_KHO AS
 SELECT 
