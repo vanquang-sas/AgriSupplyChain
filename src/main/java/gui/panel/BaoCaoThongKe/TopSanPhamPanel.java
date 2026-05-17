@@ -33,7 +33,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -86,33 +85,54 @@ public class TopSanPhamPanel extends JPanel {
         pnlFilter.add(new JLabel("Đến ngày:")); pnlFilter.add(spinDenNgay);
         pnlFilter.add(new JLabel("Hiển thị:")); pnlFilter.add(cbLimit);
         pnlFilter.add(new JLabel("Thứ tự:")); pnlFilter.add(cbSortOrder);
-        pnlFilter.add(new JLabel("Ưu tiên bảng:")); pnlFilter.add(cbSortTableBy);
+        pnlFilter.add(new JLabel("Sắp xếp:")); pnlFilter.add(cbSortTableBy);
         pnlFilter.add(btnFilter); pnlFilter.add(btnExport);
 
-        // --- 2. GRID LAYOUT 2x2 CHO BIỂU ĐỒ VÀ BẢNG ---
-        JPanel contentGrid = new JPanel(new GridLayout(2, 2, 15, 15));
-        contentGrid.setBackground(AppColor.BACKGROUND);
+        // --- 2. MAIN CONTENT (CHỨA CẢ CHART & TABLE) ---
+        JPanel contentPanel = new JPanel(new BorderLayout(0, 20));
+        contentPanel.setBackground(AppColor.BACKGROUND);
+        contentPanel.setBorder(new EmptyBorder(10, 5, 10, 5));
+
+        // KHU VỰC 3 CHART
+        JPanel chartsContainer = new JPanel(new GridLayout(3, 1, 0, 20));
+        chartsContainer.setBackground(AppColor.BACKGROUND);
+        // Cố định chiều cao tổng cho 3 chart (khoảng 350px mỗi chart)
+        chartsContainer.setPreferredSize(new Dimension(0, 1050)); 
 
         chartPanelDoanhThu = createEmptyChartPanel("Biểu đồ Doanh Thu");
         chartPanelSoLuong = createEmptyChartPanel("Biểu đồ Số Lượng Bán");
         chartPanelBienDo = createEmptyChartPanel("Biểu đồ Biên Độ Lợi Nhuận");
 
+        chartsContainer.add(chartPanelDoanhThu);
+        chartsContainer.add(chartPanelSoLuong);
+        chartsContainer.add(chartPanelBienDo);
+
+        // KHU VỰC BẢNG DỮ LIỆU
         String[] cols = {"Mã SP", "Tên SP", "Số lượng", "Doanh thu", "Lợi nhuận", "Biên độ (%)"};
         tableModel = new DefaultTableModel(cols, 0) { @Override public boolean isCellEditable(int r, int c) { return false; } };
         table = new JTable(tableModel);
         styleModernTable(table);
+        
         JScrollPane scrollTable = new JScrollPane(table);
         scrollTable.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(230,230,230)), 
                 "Bảng Chi Tiết Thống Kê", 0, 0, new Font("Segoe UI", Font.BOLD, 13), AppColor.PRIMARY));
         scrollTable.getViewport().setBackground(Color.WHITE);
+        // Cố định chiều cao cho vùng chứa bảng
+        scrollTable.setPreferredSize(new Dimension(0, 450)); 
 
-        contentGrid.add(chartPanelDoanhThu);
-        contentGrid.add(chartPanelSoLuong);
-        contentGrid.add(chartPanelBienDo);
-        contentGrid.add(scrollTable);
+        // Gắn 2 khu vực vào contentPanel
+        contentPanel.add(chartsContainer, BorderLayout.NORTH);
+        contentPanel.add(scrollTable, BorderLayout.CENTER);
+
+        // --- 3. BỌC TOÀN BỘ TRANG VÀO 1 SCROLL CHÍNH ---
+        JScrollPane mainScroll = new JScrollPane(contentPanel);
+        mainScroll.setBorder(null);
+        mainScroll.getVerticalScrollBar().setUnitIncrement(25); // Chỉnh tốc độ cuộn mượt mà
+        mainScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER); // Tắt cuộn ngang
+        mainScroll.getViewport().setBackground(AppColor.BACKGROUND);
 
         add(pnlFilter, BorderLayout.NORTH);
-        add(contentGrid, BorderLayout.CENTER);
+        add(mainScroll, BorderLayout.CENTER);
     }
 
     private JPanel createEmptyChartPanel(String title) {
@@ -124,31 +144,47 @@ public class TopSanPhamPanel extends JPanel {
     }
 
     private void refreshData() {
-        Date tuNgay = (Date) spinTuNgay.getValue();
-        Date denNgay = (Date) spinDenNgay.getValue();
+        final Date tuNgay = (Date) spinTuNgay.getValue();
+        final Date denNgay = (Date) spinDenNgay.getValue();
 
         if (tuNgay.after(denNgay)) {
             JOptionPane.showMessageDialog(this, "Ngày bắt đầu không được lớn hơn ngày kết thúc!");
             return;
         }
 
-        rawData = thongKeBUS.getThongKeSanPham(tuNgay, denNgay);
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-        if (rawData == null || rawData.isEmpty()) {
-            showEmptyState();
-            return;
-        }
+        SwingWorker<List<ThongKeDTO.SanPham>, Void> worker = new SwingWorker<List<ThongKeDTO.SanPham>, Void>() {
+            @Override
+            protected List<ThongKeDTO.SanPham> doInBackground() throws Exception {
+                return thongKeBUS.getThongKeSanPham(tuNgay, denNgay);
+            }
 
-        boolean isDesc = cbSortOrder.getSelectedIndex() == 0; // 0: Cao nhất, 1: Thấp nhất
-        int limit = cbLimit.getSelectedIndex() == 0 ? 5 : (cbLimit.getSelectedIndex() == 1 ? 10 : rawData.size());
+            @Override
+            protected void done() {
+                setCursor(Cursor.getDefaultCursor());
+                try {
+                    rawData = get();
+                    if (rawData == null || rawData.isEmpty()) {
+                        showEmptyState();
+                        return;
+                    }
 
-        // Vẽ 3 Chart riêng biệt
-        drawChartDoanhThu(limit, isDesc);
-        drawChartSoLuong(limit, isDesc);
-        drawChartBienDo(limit, isDesc);
-        
-        // Đổ dữ liệu vào bảng
-        fillTable(isDesc);
+                    boolean isDesc = cbSortOrder.getSelectedIndex() == 0; 
+                    int limit = cbLimit.getSelectedIndex() == 0 ? 5 : (cbLimit.getSelectedIndex() == 1 ? 10 : rawData.size());
+
+                    drawChartDoanhThu(limit, isDesc);
+                    drawChartSoLuong(limit, isDesc);
+                    drawChartBienDo(limit, isDesc);
+                    fillTable(isDesc);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Lỗi tải dữ liệu SP: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void showEmptyState() {
@@ -182,7 +218,7 @@ public class TopSanPhamPanel extends JPanel {
         NumberAxis rangeAxis = (NumberAxis) chartDT.getCategoryPlot().getRangeAxis();
         rangeAxis.setNumberFormatOverride(new DecimalFormat("#,### M") {
             @Override public StringBuffer format(double num, StringBuffer res, java.text.FieldPosition pos) {
-                return super.format(num / 1000000.0, res, pos); // Hiển thị đơn vị Triệu
+                return super.format(num / 1000000.0, res, pos);
             }
         });
 
@@ -217,7 +253,6 @@ public class TopSanPhamPanel extends JPanel {
             ds.addValue(list.get(i).bienDoLN, "Biên Độ", list.get(i).tenSP);
         }
 
-        // BIỂU ĐỒ NẰM NGANG
         chartBD = ChartFactory.createBarChart("Xếp hạng Biên Độ Lợi Nhuận", "Sản phẩm", "Phần trăm (%)", ds, PlotOrientation.HORIZONTAL, false, true, false);
         customizeChart(chartBD, new Color(255, 193, 7), false);
 
@@ -234,9 +269,8 @@ public class TopSanPhamPanel extends JPanel {
         plot.setRangeGridlinePaint(new Color(220, 220, 220));
         plot.setOutlineVisible(false);
         
-        CategoryAxis domainAxis = plot.getDomainAxis();
         if(isVertical) {
-            domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+            plot.getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_45);
         }
         
         BarRenderer renderer = (BarRenderer) plot.getRenderer();
@@ -304,7 +338,7 @@ public class TopSanPhamPanel extends JPanel {
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR)); btn.setPreferredSize(new Dimension(100, 32));
     }
 
-   private void exportToPDF() {
+    private void exportToPDF() {
         if (rawData == null || rawData.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Không có dữ liệu để xuất PDF!"); return;
         }
@@ -324,12 +358,11 @@ public class TopSanPhamPanel extends JPanel {
                 pTitle.setSpacingAfter(15f); 
                 document.add(pTitle);
 
-                // Resize biểu đồ nhỏ lại
                 if (chartDT != null) {
                     com.itextpdf.text.Image img1 = com.itextpdf.text.Image.getInstance(chartDT.createBufferedImage(450, 220), null);
                     img1.setAlignment(Element.ALIGN_CENTER);
                     document.add(img1);
-                    document.add(new Paragraph(" ")); 
+                    document.add(new Paragraph(" "));
                 }
                 if (chartSL != null) {
                     com.itextpdf.text.Image img2 = com.itextpdf.text.Image.getInstance(chartSL.createBufferedImage(450, 220), null);
@@ -343,10 +376,8 @@ public class TopSanPhamPanel extends JPanel {
                     document.add(img3);
                 }
 
-                // Tạo khoảng trống trước khi vẽ bảng
                 document.add(new Paragraph(" ", fNormal)); 
 
-                // Bảng dữ liệu
                 PdfPTable pdfTable = new PdfPTable(table.getColumnCount());
                 pdfTable.setSpacingBefore(15f); 
                 pdfTable.setWidthPercentage(100);
