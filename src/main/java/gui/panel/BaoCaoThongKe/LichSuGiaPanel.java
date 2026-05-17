@@ -31,7 +31,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionListener;
 import java.awt.*;
-import java.awt.Desktop;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.DecimalFormat;
@@ -136,7 +135,9 @@ public class LichSuGiaPanel extends JPanel {
 
         gbc.gridx = 6;
         gbc.weightx = 0.1;
-        pnlFilter.add(new JLabel("HIỂN THỊ:"), gbc);
+        pnlFilter.add(new JLabel("Hiển thị:"), gbc);
+        pnlFilter.add(Box.createHorizontalStrut(2)); 
+        pnlFilter.add(cbDisplayType);
 
         gbc.gridx = 7;
         gbc.weightx = 0;
@@ -320,6 +321,11 @@ public class LichSuGiaPanel extends JPanel {
     }
 
     private void exportToPDF() {
+        if (currentChart == null) {
+            JOptionPane.showMessageDialog(this, "Vui lòng bấm 'Thống kê' để tải biểu đồ trước khi xuất!");
+            return;
+        }
+        
         if (currentData == null || currentData.isEmpty() || currentChart == null) {
             JOptionPane.showMessageDialog(this, "Không có dữ liệu để xuất báo cáo!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;

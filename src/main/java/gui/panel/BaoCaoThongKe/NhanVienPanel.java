@@ -163,14 +163,19 @@ public class NhanVienPanel extends JPanel {
     }
 
     private void refreshData() {
-        String boPhan = cbBoPhan.getSelectedItem().toString();
+        String boPhanRaw = cbBoPhan.getSelectedItem().toString();
         int months = cbThoiGian.getSelectedIndex() == 0 ? 3 : (cbThoiGian.getSelectedIndex() == 1 ? 6 : 12);
 
-        lastData = thongKeBUS.getDanhSachNhanVienThongKe(boPhan, months);
+        String dbChucVu = boPhanRaw;
+        if (boPhanRaw.equals("NV thu mua")) dbChucVu = "Nhân viên thu mua";
+        else if (boPhanRaw.equals("NV kho")) dbChucVu = "Nhân viên kho";
+        else if (boPhanRaw.equals("NV giao hàng")) dbChucVu = "Nhân viên giao hàng";
+
+        lastData = thongKeBUS.getDanhSachNhanVienThongKe(dbChucVu, months);
         
-        updateSummaryCards(boPhan, months);
+        updateSummaryCards(boPhanRaw, months);
         updateTable();
-        updateTopChart(boPhan);
+        updateTopChart(boPhanRaw);
         
         chartDetailPanel.removeAll();
         chartDetailPanel.revalidate();
@@ -259,7 +264,7 @@ public class NhanVienPanel extends JPanel {
         CategoryAxis domainAxis = new CategoryAxis("Tháng/Năm");
         plot.setDomainAxis(domainAxis);
 
-        if (chucVu.equals("NV kho")) {
+        if (chucVu != null && chucVu.contains("kho")) {
             DefaultCategoryDataset dsQuantity = new DefaultCategoryDataset();
             for (ThongKeDTO.HieuSuatChiTiet d : detailData) {
                 dsQuantity.addValue(d.soLuong, "Số lượng xuất", d.thangNam);

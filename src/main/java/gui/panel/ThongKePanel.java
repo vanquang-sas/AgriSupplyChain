@@ -66,8 +66,8 @@ public class ThongKePanel extends JPanel {
         grid.add(createMenuButton("💰", "Báo cáo Doanh thu", "Xem theo tháng/năm", "DOANHTHU"));
         grid.add(createMenuButton("📦", "Top Sản phẩm", "Lọc theo số lượng/thời gian", "TOPSP"));
         grid.add(createMenuButton("🥧", "Trạng thái Đơn hàng", "Tỷ lệ đơn hàng thành công", "TRANGTHAI"));
-        grid.add(createMenuButton("�", "Biến động giá", "Lịch sử mua/bán giá sản phẩm", "LICHSUGIA"));
-        grid.add(createMenuButton("�👨‍💼", "Thống kê Nhân viên", "Xem hiệu suất và thông tin nhân viên", "NHANVIEN"));
+        grid.add(createMenuButton("📈", "Biến động giá", "Lịch sử mua/bán giá sản phẩm", "LICHSUGIA"));
+        grid.add(createMenuButton("👨‍💼", "Thống kê Nhân viên", "Xem hiệu suất và thông tin nhân viên", "NHANVIEN"));
         
         panel.add(grid);
         return panel;
@@ -123,12 +123,12 @@ public class ThongKePanel extends JPanel {
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 15));
         header.setBackground(AppColor.BACKGROUND);
         
-        // -- NÚT QUAY LẠI PHONG CÁCH HIỆN ĐẠI --
-        JButton btnBack = new JButton("Quay lại Menu");
-        btnBack.setFont(new Font("Segoe UI Emoji", Font.BOLD, 15));
-        btnBack.setForeground(AppColor.PRIMARY); // Chữ màu xanh đồng bộ toàn app
-        btnBack.setBorderPainted(false); // Bỏ viền
-        btnBack.setContentAreaFilled(false); // Bỏ màu nền mặc định
+        // -- NÚT QUAY LẠI --
+        JButton btnBack = new JButton("<< Quay lại Menu");
+        btnBack.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        btnBack.setForeground(AppColor.PRIMARY); 
+        btnBack.setBorderPainted(false); 
+        btnBack.setContentAreaFilled(false); 
         btnBack.setFocusPainted(false);
         btnBack.setCursor(new Cursor(Cursor.HAND_CURSOR));
         

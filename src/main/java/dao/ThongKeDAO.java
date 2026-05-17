@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ThongKeDAO {
-
+    // ============================= THỐNG KÊ SẢN PHẨM =============================
     public List<ThongKeDTO.DoanhThu> getDoanhThuTheoNam(int nam) {
         List<ThongKeDTO.DoanhThu> list = new ArrayList<>();
         String sql = "{call SP_THONGKE_DOANHTHU_NAM(?, ?)}";
@@ -31,32 +31,36 @@ public class ThongKeDAO {
         return list;
     }
 
-    public List<ThongKeDTO.TopSanPham> getThongKeSanPham(int limit, String type, java.util.Date from, java.util.Date to) {
-        List<ThongKeDTO.TopSanPham> list = new ArrayList<>();
-        String sql = "{call SP_THONGKE_SANPHAM(?, ?, ?, ?, ?)}";
-        
-        try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+    public List<ThongKeDTO.SanPham> getThongKeSanPham(java.util.Date tuNgay, java.util.Date denNgay) {
+        List<ThongKeDTO.SanPham> list = new ArrayList<>();
+        String sql = "SELECT MaSP, TenSP, " +
+                     "SUM(SoLuongBan) AS TongSoLuong, " +
+                     "SUM(DoanhThu) AS TongDoanhThu, " +
+                     "SUM(ChiPhi) AS TongChiPhi " +
+                     "FROM V_THONGKE_SP " +
+                     "WHERE NgayGD >= ? AND NgayGD <= ? " +
+                     "GROUP BY MaSP, TenSP";
+                     
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setDate(1, new java.sql.Date(tuNgay.getTime()));
+            ps.setDate(2, new java.sql.Date(denNgay.getTime()));
+            ResultSet rs = ps.executeQuery();
             
-            cs.setInt(1, limit);
-            cs.setString(2, type);
-            cs.setDate(3, new java.sql.Date(from.getTime()));
-            cs.setDate(4, new java.sql.Date(to.getTime()));
-            cs.registerOutParameter(5, OracleTypes.CURSOR);
-            
-            cs.execute();
-            
-            try (ResultSet rs = (ResultSet) cs.getObject(5)) {
-                while (rs.next()) {
-                    list.add(new ThongKeDTO.TopSanPham(
-                        rs.getString("TenSP"), 
-                        rs.getInt("TongSoLuong")
-                    ));
-                }
+            while (rs.next()) {
+                ThongKeDTO.SanPham dto = new ThongKeDTO.SanPham();
+                dto.maSP = rs.getString("MaSP");
+                dto.tenSP = rs.getString("TenSP");
+                dto.soLuong = rs.getInt("TongSoLuong");
+                dto.doanhThu = rs.getDouble("TongDoanhThu");
+                
+                double chiPhi = rs.getDouble("TongChiPhi");
+                dto.loiNhuan = dto.doanhThu - chiPhi;
+                dto.bienDoLN = dto.doanhThu > 0 ? (dto.loiNhuan / dto.doanhThu) * 100 : 0;
+                
+                list.add(dto);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
         return list;
     }
 
@@ -106,7 +110,7 @@ public class ThongKeDAO {
         return list;
     }
 
-    // ============================================= TRẠNG THÁI ĐƠN HÀNG =============================================
+    // ============================================= TRẠNG THÁI ĐƠN HÀNG/LÔ HÀNG =============================================
     public List<ThongKeDTO.TrangThai> getThongKeTrangThaiDonHang(java.util.Date from, java.util.Date to) {
 
         List<ThongKeDTO.TrangThai> list = new ArrayList<>();
@@ -213,6 +217,7 @@ public class ThongKeDAO {
         return list;
     }
 
+    // ============================================= THỐNG KÊ NHÂN VIÊN =============================================
     public List<ThongKeDTO.NhanVienThongKe> getDanhSachNhanVienThongKe(String chucVu, int months) {
         List<ThongKeDTO.NhanVienThongKe> list = new ArrayList<>();
         String sql = "SELECT nv.MaNV, nv.TenNV, nv.ChucVu, NVL(SUM(v.SoLuong), 0) AS TongCongViec, nv.Luong " +

@@ -8,11 +8,14 @@ public class ThongKeDTO {
         public DoanhThu(int thang, double doanhThu) { this.thang = thang; this.doanhThu = doanhThu; }
     }
 
-    // Inner class cho Top Sản Phẩm
-    public static class TopSanPham {
+    // Inner class cho Sản Phẩm
+    public static class SanPham {
+        public String maSP;
         public String tenSP;
-        public int soLuongBan;
-        public TopSanPham(String tenSP, int soLuongBan) { this.tenSP = tenSP; this.soLuongBan = soLuongBan; }
+        public int soLuong;
+        public double doanhThu;
+        public double loiNhuan;
+        public double bienDoLN;
     }
 
     // Inner class cho Trạng Thái Đơn Hàng

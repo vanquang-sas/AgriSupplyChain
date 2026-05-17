@@ -191,3 +191,20 @@ UNION ALL
 SELECT MaNV, TRUNC(TGCapNhat, 'MM') AS ThangThongKe, SUM(SLXuat) AS SoLuong, 0 AS TongGiaTri
 FROM XUATKHO 
 GROUP BY MaNV, TRUNC(TGCapNhat, 'MM');
+
+CREATE OR REPLACE VIEW V_THONGKE_SP AS
+SELECT 
+    ct.MaSP,
+    sp.TenSP,
+    dh.TGDat AS NgayGD,
+    ct.SoLuong AS SoLuongBan,
+    (ct.SoLuong * ct.GiaBan) AS DoanhThu,
+    (ct.SoLuong * NVL(
+        (SELECT GiaMua FROM (
+            SELECT GiaMua, MaSP, TGApDung FROM LICHSUGIA ORDER BY TGApDung DESC
+        ) lg WHERE lg.MaSP = sp.MaSP AND ROWNUM = 1), 
+    ct.GiaBan * 0.7)) AS ChiPhi
+FROM CHITIETDONHANG ct
+JOIN DONHANG dh ON ct.MaDH = dh.MaDH
+JOIN SANPHAM sp ON ct.MaSP = sp.MaSP
+WHERE dh.TrangThaiDH NOT IN ('Đã hủy', 'Trả hàng');

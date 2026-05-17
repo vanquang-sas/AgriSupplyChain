@@ -13,8 +13,8 @@ public class ThongKeBUS {
         return thongKeDAO.getDoanhThuTheoNam(nam);
     }
 
-    public List<ThongKeDTO.TopSanPham> getThongKeSanPham(int limit, String type, Date from, Date to) {
-        return thongKeDAO.getThongKeSanPham(limit, type, from, to);
+    public List<ThongKeDTO.SanPham> getThongKeSanPham(Date from, Date to) {
+        return thongKeDAO.getThongKeSanPham(from, to);
     }
 
     public List<ThongKeDTO.LichSuGia> getLichSuGiaTheoSanPham(String maSP, Date tuNgay, Date denNgay) {
