@@ -178,12 +178,17 @@ public class SoanHangDialog extends JDialog {
     }
 
     private void onXacNhan() {
-        String maNV = cbNhanVien.getSelectedItem() == null ? "" : cbNhanVien.getSelectedItem().toString().trim();
-        if (maNV.isEmpty()) {
+        String selected = cbNhanVien.getSelectedItem() == null ? "" : cbNhanVien.getSelectedItem().toString().trim();
+        if (selected.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                     "Vui lòng chọn nhân viên thực hiện!",
                     "Thiếu thông tin", JOptionPane.WARNING_MESSAGE);
             return;
+        }
+
+        String maNV = selected;
+        if (selected.contains(" - ")) {
+            maNV = selected.substring(selected.lastIndexOf(" - ") + 3).trim();
         }
 
         btnXacNhan.setEnabled(false);

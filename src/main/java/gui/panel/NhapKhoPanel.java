@@ -27,7 +27,7 @@ public class NhapKhoPanel extends JPanel {
     private static final Color WARNING_LIGHT = new Color(245, 158, 11, 24);
 
     private final String[] columns = {
-            "MÃ LÔ HÀNG", "SẢN PHẨM", "SỐ LƯỢNG", "KHO",
+            "MÃ LÔ HÀNG", "SẢN PHẨM", "SỐ LƯỢNG",
             "LOẠI KHO", "VỊ TRÍ", "NGÀY HẾT HẠN", "TRẠNG THÁI"
     };
 
@@ -161,7 +161,7 @@ public class NhapKhoPanel extends JPanel {
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 3 || column == 5 || column == 6;
+                return column == 4 || column == 5;
             }
         };
 
@@ -213,10 +213,8 @@ public class NhapKhoPanel extends JPanel {
         }
         table.getColumnModel().getColumn(0).setCellRenderer(new BoldCellRenderer(AppColor.TEXT_PRIMARY));
         table.getColumnModel().getColumn(1).setCellRenderer(new BoldCellRenderer(AppColor.TEXT_PRIMARY));
-        table.getColumnModel().getColumn(4).setCellRenderer(new LoaiKhoBadgeRenderer());
-        table.getColumnModel().getColumn(7).setCellRenderer(new StatusBadgeRenderer());
-
-        loadKhoEditor();
+        table.getColumnModel().getColumn(3).setCellRenderer(new LoaiKhoBadgeRenderer());
+        table.getColumnModel().getColumn(6).setCellRenderer(new StatusBadgeRenderer());
         
         JComboBox<String> cbViTri = new JComboBox<>(new String[] { "", "A", "B", "C" });
         cbViTri.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -224,37 +222,16 @@ public class NhapKhoPanel extends JPanel {
         DefaultCellEditor viTriEditor = new DefaultCellEditor(cbViTri);
         viTriEditor.setClickCountToStart(1);
         
-        table.getColumnModel().getColumn(5).setCellEditor(viTriEditor);
-        table.getColumnModel().getColumn(5).setCellRenderer(new PlaceholderRenderer("Chọn vị trí..."));
+        table.getColumnModel().getColumn(4).setCellEditor(viTriEditor);
+        table.getColumnModel().getColumn(4).setCellRenderer(new PlaceholderRenderer("Chọn vị trí..."));
 
-        table.getColumnModel().getColumn(6).setCellEditor(new DateChooserEditor());
-        table.getColumnModel().getColumn(6).setCellRenderer(new DateCellRenderer());
+        table.getColumnModel().getColumn(5).setCellEditor(new DateChooserEditor());
+        table.getColumnModel().getColumn(5).setCellRenderer(new DateCellRenderer());
 
-        int[] widths = { 115, 180, 80, 150, 100, 110, 130, 125 };
+        int[] widths = { 130, 200, 90, 160, 120, 140, 140 };
         for (int i = 0; i < widths.length; i++) {
             table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         }
-    }
-
-    private void loadKhoEditor() {
-        try {
-            khoLoaiKhoMap = new NhapKhoBUS().getKhoLoaiKhoMap();
-        } catch (Exception e) {
-            khoLoaiKhoMap = new LinkedHashMap<>();
-        }
-
-        JComboBox<String> cbKho = new JComboBox<>();
-        cbKho.addItem("");
-        khoLoaiKhoMap.keySet().forEach(cbKho::addItem);
-        cbKho.setRenderer(new KhoComboRenderer(khoLoaiKhoMap));
-        cbKho.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        cbKho.setBackground(Color.WHITE);
-
-        DefaultCellEditor khoEditor = new DefaultCellEditor(cbKho);
-        khoEditor.setClickCountToStart(1);
-        
-        table.getColumnModel().getColumn(3).setCellEditor(khoEditor);
-        table.getColumnModel().getColumn(3).setCellRenderer(new KhoTableRenderer(khoLoaiKhoMap));
     }
 
     private JPanel buildFooter() {
@@ -347,7 +324,16 @@ public class NhapKhoPanel extends JPanel {
         int end = Math.min(start + rowsPerPage, total);
 
         for (int i = start; i < end; i++) {
-            tableModel.addRow(filteredData.get(i));
+            Object[] row = filteredData.get(i);
+            tableModel.addRow(new Object[] {
+                row[0], // Mã lô hàng
+                row[1], // Sản phẩm
+                row[2], // Số lượng
+                row[4], // Loại kho / Bảo quản
+                row[5], // Vị trí
+                row[6], // Ngày hết hạn
+                row[7]  // Trạng thái
+            });
         }
 
         lblPage.setText(total == 0 ? "0" : String.valueOf(currentPage));
@@ -404,12 +390,17 @@ public class NhapKhoPanel extends JPanel {
 
         String maCTLH = getCell(row, 0);
         String tenSP = getCell(row, 1);
-        String maKho = getCell(row, 3);
-        String viTri = getCell(row, 5);
-        Date ngayHetHan = parseDate(table.getValueAt(row, 6));
+
+        int modelRow = table.convertRowIndexToModel(row);
+        int dataIndex = (currentPage - 1) * rowsPerPage + modelRow;
+        Object[] underlyingRow = filteredData.get(dataIndex);
+        String maKho = underlyingRow[3] != null ? underlyingRow[3].toString().trim() : "";
+
+        String viTri = getCell(row, 4); // Vị trí is column index 4
+        Date ngayHetHan = parseDate(table.getValueAt(row, 5)); // Ngày hết hạn is column index 5
 
         if (maKho.isEmpty()) {
-            warn("Vui lòng chọn kho cho lô hàng " + maCTLH + "!");
+            warn("Không xác định được kho phù hợp cho điều kiện bảo quản của sản phẩm!");
             return;
         }
         if (viTri.isEmpty()) {
