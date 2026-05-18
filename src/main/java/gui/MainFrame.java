@@ -47,6 +47,7 @@ public class MainFrame extends JFrame {
     private CuaHangPanel pnlCuaHang;
     //
     private LoaiSanPhamPanel pnlLoaiSanPham;
+    private UserProfilePanel pnlUserProfile;
     private SanPhamPanel pnlSanPham;
     private NhapKhoPanel pnlNhapKho;
     private XuatKhoPanel pnlXuatKho;
@@ -413,6 +414,26 @@ public class MainFrame extends JFrame {
         userText.add(lblName);
         userText.add(lblStatus);
 
+        JLabel lblViewProfile = new JLabel("Xem hồ sơ") {
+            @Override
+            public void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                setForeground(new Color(96, 165, 250));
+            }
+        };
+        lblViewProfile.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblViewProfile.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        lblViewProfile.setForeground(new Color(96, 165, 250));
+        lblViewProfile.setBorder(new EmptyBorder(4, 0, 0, 0));
+        lblViewProfile.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                showUserProfile();
+            }
+        });
+
+        userText.add(lblViewProfile);
+
         // Nút Đăng xuất: Nền trắng, Chữ đỏ
         JButton btnLogout = new JButton("Đăng xuất") {
             private boolean isHovered = false;
@@ -474,6 +495,14 @@ public class MainFrame extends JFrame {
         return footer;
     }
 
+    private void showUserProfile() {
+        if (pnlUserProfile != null) {
+            pnlUserProfile.loadProfile();
+            cardLayout.show(contentPanel, "Profile");
+            setActiveMenu(null);
+        }
+    }
+
     // TỰ VẼ ICON NÚT NGUỒN (POWER) CỰC NÉT BẰNG CODE
     private Icon createPowerIcon(int size) {
         return new Icon() {
@@ -525,6 +554,7 @@ public class MainFrame extends JFrame {
         pnlTonKho = new TonKhoPanel();
         pnlThongKe = new ThongKePanel();
         pnlLoHang = new LoHangPanel();
+        pnlUserProfile = new UserProfilePanel();
 
         // Thêm vào CardLayout với tên gọi tương ứng
         pnlLichSuLoHang = new LichSuLoHangPanel();
@@ -543,6 +573,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(pnlCuaHang, "CuaHang");
         //
         contentPanel.add(pnlLoaiSanPham, "LoaiSanPham");
+        contentPanel.add(pnlUserProfile, "Profile");
         contentPanel.add(pnlNhapKho, "NhapKho");
         contentPanel.add(pnlXuatKho, "XuatKho");
         contentPanel.add(pnlTonKho, "TonKho");
@@ -628,7 +659,9 @@ public class MainFrame extends JFrame {
         for (JButton b : menuButtons) {
             b.setBackground(AppColor.SIDEBAR_BG);
         }
-        activeBtn.setBackground(AppColor.SIDEBAR_ACTIVE);
+        if (activeBtn != null) {
+            activeBtn.setBackground(AppColor.SIDEBAR_ACTIVE);
+        }
     }
 
     // Hàm tạo Icon từ Emoji bằng Graphics2D (Giải pháp tốt nhất cho lỗi font)

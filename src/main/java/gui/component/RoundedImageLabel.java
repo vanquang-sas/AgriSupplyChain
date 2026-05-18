@@ -9,7 +9,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 
-import com.itextpdf.text.Image;
 
 import java.awt.RenderingHints;
 
