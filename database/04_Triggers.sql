@@ -569,3 +569,16 @@ BEGIN
     WHERE NoiDung LIKE N'%Lô ' || :OLD.MaTonKho || N'%';
 END;
 /
+
+-- ================================= Bảng GIOHANG =================================
+
+CREATE TABLE GIOHANG (
+    MaKH        VARCHAR2(10)    NOT NULL,
+    MaSP        VARCHAR2(10)    NOT NULL,
+    SoLuong     NUMBER(10, 2)   NOT NULL CHECK (SoLuong > 0),
+    TGCapNhat   TIMESTAMP       DEFAULT SYSTIMESTAMP,
+    DaThongBao  NUMBER(1)       DEFAULT 0 CHECK (DaThongBao IN (0, 1)),
+    CONSTRAINT PK_GIOHANG   PRIMARY KEY (MaKH, MaSP),
+    CONSTRAINT FK_GH_KH     FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
+    CONSTRAINT FK_GH_SP     FOREIGN KEY (MaSP) REFERENCES SANPHAM(MaSP)
+);

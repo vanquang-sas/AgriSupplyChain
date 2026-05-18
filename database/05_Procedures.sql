@@ -617,3 +617,40 @@ BEGIN
     END IF;
 END;
 /
+
+-- ================================= Giỏ hàng =================================
+
+CREATE OR REPLACE PROCEDURE PROC_CLEANUP_GIOHANG IS
+BEGIN
+    DELETE FROM GIOHANG
+    WHERE (SYSTIMESTAMP - TGCapNhat) > INTERVAL '12' HOUR;
+ 
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Lỗi PROC_CLEANUP_GIOHANG: ' || SQLERRM);
+END PROC_CLEANUP_GIOHANG;
+/
+ 
+
+BEGIN
+    BEGIN
+        DBMS_SCHEDULER.DROP_JOB(job_name => 'JOB_CLEANUP_GIOHANG', force => TRUE);
+    EXCEPTION
+        WHEN OTHERS THEN NULL;
+    END;
+ 
+    DBMS_SCHEDULER.CREATE_JOB(
+        job_name        => 'JOB_CLEANUP_GIOHANG',
+        job_type        => 'STORED_PROCEDURE',
+        job_action      => 'PROC_CLEANUP_GIOHANG',
+        start_date      => SYSTIMESTAMP,
+        repeat_interval => 'FREQ=MINUTELY; INTERVAL=30',
+        enabled         => TRUE,
+        auto_drop       => FALSE,
+        comments        => 'Dọn sạch giỏ hàng bỏ quên quá 12 giờ'
+    );
+END;
+/
+ 
