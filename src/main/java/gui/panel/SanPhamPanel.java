@@ -134,6 +134,12 @@ public class SanPhamPanel extends JPanel {
         JButton btnSua  = createActionButton("Sửa",  AppColor.INFO,    AppColor.INFO_HOVER,    AppColor.INFO_ACTIVE);
         JButton btnXoa  = createActionButton("Xóa",  AppColor.ERROR,   AppColor.ERROR_HOVER,   AppColor.ERROR_ACTIVE);
         
+        // PHÂN QUYỀN: Chỉ Quản lý (Admin) mới thấy các nút Thêm/Sửa/Xóa
+        boolean isAdmin = util.Session.hasRole(0);
+        btnThem.setVisible(isAdmin);
+        btnSua.setVisible(isAdmin);
+        btnXoa.setVisible(isAdmin);
+        
         // CẬP NHẬT NÚT REFRESH THEO CHUẨN MỚI
         JButton btnRefresh = createIconButton("icons/refresh.svg");
 
