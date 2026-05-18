@@ -1,7 +1,6 @@
 package gui.dialog;
 
 import com.formdev.flatlaf.FlatClientProperties;
-import dto.GioHangDTO;
 import gui.MainFrame;
 import util.Session;
 
@@ -17,15 +16,14 @@ import java.util.Locale;
 
 public class ThanhToanForm extends JDialog {
 
-    private final GioHangForm parentCartForm;
     private final MainFrame parentFrame;
     private final BigDecimal tongTien;
-    private static final NumberFormat FMT = NumberFormat.getCurrencyInstance(Locale.of("vi", "VN"));
+    private static final NumberFormat FMT = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
     private int pX, pY; // Dùng để kéo thả JDialog
 
-    public ThanhToanForm(GioHangForm parentCartForm, MainFrame parentFrame, BigDecimal tongTien) {
-        super(parentCartForm, true); // Modal Dialog, chặn thao tác form dưới
-        this.parentCartForm = parentCartForm;
+    // ĐÃ SỬA: Bỏ GioHangForm, chỉ nhận MainFrame
+    public ThanhToanForm(MainFrame parentFrame, BigDecimal tongTien) {
+        super(parentFrame, true); // Modal Dialog, chặn thao tác form dưới
         this.parentFrame = parentFrame;
         this.tongTien = tongTien;
         
@@ -36,9 +34,9 @@ public class ThanhToanForm extends JDialog {
 
     private void initUI() {
         setSize(500, 550); // Kích thước popup thanh toán
-        setLocationRelativeTo(parentCartForm);
+        setLocationRelativeTo(parentFrame); // Canh giữa theo MainFrame
 
-        // --- Panel nền bo góc (Tương tự GioHangForm) ---
+        // --- Panel nền bo góc ---
         JPanel mainPanel = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -150,7 +148,7 @@ public class ThanhToanForm extends JDialog {
         btnConfirm.setFocusPainted(false);
         btnConfirm.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
-        // Sự kiện ấn Xác Nhận: Lưu Database
+        // Sự kiện ấn Xác Nhận
         btnConfirm.addActionListener(e -> xacNhanVaLuuDatabase());
 
         // Lắp ráp
@@ -164,25 +162,25 @@ public class ThanhToanForm extends JDialog {
     private void xacNhanVaLuuDatabase() {
         try {
             // ========================================================
-            // CHỖ NÀY BẠN GỌI LỆNH LƯU VÀO DATABASE (DAO/BUS)
-            // Ví dụ: HoaDonDAO.insert(hd); ChiTietHoaDonDAO.insert(cthd);
+            // CHỖ NÀY BẠN GỌI LỆNH LƯU VÀO DATABASE (Ví dụ: DonHangBUS)
             // ========================================================
             
             // Giả lập lưu thành công
             boolean isSaved = true; 
 
             if (isSaved) {
-                Session.clearCart(); // Dọn giỏ hàng
-                if (parentFrame != null) {
-                    parentFrame.updateCartBadge(); // Cập nhật lại số lượng trên MainFrame
-                }
-                JOptionPane.showMessageDialog(this, "Thanh toán thành công! Đơn hàng đã được lưu.");
+                // 1. Dọn sạch giỏ hàng trong Cache
+                Session.clearCart(); 
                 
-                // Đóng cả form thanh toán và form giỏ hàng
-                this.dispose();
-                if (parentCartForm != null) {
-                    parentCartForm.dispose();
+                // 2. Cập nhật lại UI MainFrame và Panel Giỏ Hàng
+                if (parentFrame != null) {
+                    parentFrame.updateCartBadge(); // Cập nhật số 0 trên chuông Header
+                    parentFrame.navigateToGioHang(); // Tải lại Panel Giỏ hàng (sẽ hiện "Giỏ hàng trống")
                 }
+                
+                // 3. Thông báo và đóng Form Thanh Toán
+                JOptionPane.showMessageDialog(this, "Thanh toán thành công! Đơn hàng đã được ghi nhận.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                this.dispose();
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Lỗi khi lưu Database: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);

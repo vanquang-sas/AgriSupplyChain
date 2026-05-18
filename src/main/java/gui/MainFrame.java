@@ -28,7 +28,8 @@ public class MainFrame extends JFrame {
     private JPanel topHeader;     // Thêm panel Header
     private JPanel contentPanel;
     private CardLayout cardLayout;
-
+    private GioHangPanel pnlGioHang;
+    private JButton btnGioHangMenu;
     // --- Thành phần Giỏ hàng ---
     private JLabel lblCartBadge;  // Hiển thị số lượng màu đỏ
 
@@ -167,10 +168,8 @@ public class MainFrame extends JFrame {
 
         btnCart.addActionListener(e -> {
             try {
-                gui.dialog.GioHangDialog dialog = new gui.dialog.GioHangDialog(MainFrame.this);
-                dialog.setVisible(true);
-                updateCartBadge();
-            } catch (Throwable ex) {
+                navigateToGioHang(); // Chuyển sang Panel Giỏ hàng
+            } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Lỗi hiển thị Giỏ hàng: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
@@ -327,6 +326,12 @@ public class MainFrame extends JFrame {
             menuPanel.add(buildSectionLabel("MUA SẮM"));
             menuPanel.add(btnCuaHang);
             menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+            
+            // THÊM NÚT GIỎ HÀNG VÀO SIDEBAR
+            btnGioHangMenu = createMenuButton("🛍", "Giỏ hàng", "GioHang");
+            menuPanel.add(btnGioHangMenu);
+            menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+            
             menuPanel.add(btnDonHang);
             menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
             defaultActiveBtn = btnCuaHang;
@@ -505,6 +510,7 @@ public class MainFrame extends JFrame {
         pnlXuatKho = new XuatKhoPanel();
         pnlTonKho = new TonKhoPanel();
         pnlThongKe = new ThongKePanel();
+        pnlGioHang = new GioHangPanel(this);
 
         // Thêm vào CardLayout với tên gọi tương ứng
         contentPanel.add(createPlaceholder("🏠", "Trang chủ", "Dashboard tổng quan"), "TrangChu");
@@ -521,6 +527,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(pnlNhapKho, "NhapKho");
         contentPanel.add(pnlXuatKho, "XuatKho");
         contentPanel.add(pnlTonKho, "TonKho");
+        contentPanel.add(pnlGioHang, "GioHang");
     }
 
     // Hàm tạo nút menu với giao diện Capsule (Viên thuốc) hiện đại
@@ -689,5 +696,15 @@ public class MainFrame extends JFrame {
             System.err.println("Lỗi load ảnh: " + e.getMessage());
         }
         return null;
+    }
+
+    public void navigateToGioHang() {
+        cardLayout.show(contentPanel, "GioHang");
+        if (btnGioHangMenu != null) {
+            setActiveMenu(btnGioHangMenu);
+        }
+        if (pnlGioHang != null) {
+            pnlGioHang.loadCartItems(); // Yêu cầu tải lại dữ liệu phiên giỏ hàng mới nhất
+        }
     }
 }
