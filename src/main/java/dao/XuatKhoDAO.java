@@ -136,14 +136,16 @@ public class XuatKhoDAO {
     // Lấy danh sách nhân viên kho
     public List<String> getAllMaNhanVien() throws Exception {
         List<String> list = new ArrayList<>();
-        String sql = "SELECT MaNV FROM NHANVIEN WHERE ChucVu = N'NV kho' ORDER BY MaNV ASC";
+        String sql = "SELECT MaNV, TenNV FROM NHANVIEN WHERE ChucVu = N'NV kho' ORDER BY MaNV ASC";
 
         try (Connection con = DBConnection.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                list.add(rs.getString("MaNV"));
+                String ma = rs.getString("MaNV");
+                String ten = rs.getString("TenNV");
+                list.add((ten != null ? ten : "") + " - " + ma);
             }
         } catch (Exception e) {
             e.printStackTrace();

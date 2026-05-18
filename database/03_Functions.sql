@@ -127,7 +127,7 @@ BEGIN
             CTLH.MaCTLH,
             SP.TenSP,
             CTLH.SoLuong,
-            ' ' AS MaKho,
+            (SELECT MaKho FROM KHO WHERE LoaiKho = SP.BaoQuan AND ROWNUM = 1) AS MaKho,
             SP.BaoQuan,
             ' ' AS ViTri,
             ' ' AS NgayHetHan,
@@ -135,7 +135,10 @@ BEGIN
         FROM CHITIETLOHANG CTLH
         JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
         JOIN LOHANG LH ON CTLH.MaLH = LH.MaLH
-        WHERE LH.TrangThaiLH = N'Chờ nhập kho';
+        WHERE LH.TrangThaiLH = N'Chờ nhập kho'
+          AND NOT EXISTS (
+              SELECT 1 FROM TONKHO WHERE MaCTLH = CTLH.MaCTLH
+          );
     RETURN v_cursor;
 END;
 /

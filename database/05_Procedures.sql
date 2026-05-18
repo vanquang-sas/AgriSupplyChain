@@ -146,13 +146,25 @@ CREATE OR REPLACE PROCEDURE SP_XACNHAN_VITRI_CTLH (
     v_LoaiKho NVARCHAR2(100);
     v_TonTai NUMBER;
     v_ChuaXepXong NUMBER;
+    v_MaKho VARCHAR2(20) := p_MaKho;
 BEGIN
     SELECT CTLH.MaLH, CTLH.MaSP, CTLH.SoLuong, SP.BaoQuan 
     INTO v_MaLH, v_MaSP, v_SoLuong, v_BaoQuan
     FROM CHITIETLOHANG CTLH JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
     WHERE CTLH.MaCTLH = p_MaCTLH;
 
-    SELECT LoaiKho INTO v_LoaiKho FROM KHO WHERE MaKho = p_MaKho;
+    IF v_MaKho IS NULL OR TRIM(v_MaKho) IS NULL THEN
+        BEGIN
+            SELECT MaKho INTO v_MaKho 
+            FROM KHO 
+            WHERE LoaiKho = v_BaoQuan AND ROWNUM = 1;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                RAISE_APPLICATION_ERROR(-20029, 'Không tìm thấy kho phù hợp cho quy cách bảo quản: ' || v_BaoQuan);
+        END;
+    END IF;
+
+    SELECT LoaiKho INTO v_LoaiKho FROM KHO WHERE MaKho = v_MaKho;
     IF v_LoaiKho != v_BaoQuan THEN
         RAISE_APPLICATION_ERROR(-20028, 'Bảo quản sai quy cách! Yêu cầu [' || v_BaoQuan || '] nhưng chọn kho [' || v_LoaiKho || '].');
     END IF;
@@ -163,7 +175,7 @@ BEGIN
     END IF;
 
     INSERT INTO TONKHO (MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri)
-    VALUES (p_MaKho, p_MaCTLH, v_SoLuong, v_SoLuong, SYSDATE, p_TGHetHan, p_ViTri);
+    VALUES (v_MaKho, p_MaCTLH, v_SoLuong, v_SoLuong, SYSDATE, p_TGHetHan, p_ViTri);
 
     SELECT COUNT(*) INTO v_ChuaXepXong FROM CHITIETLOHANG C
     WHERE C.MaLH = v_MaLH AND C.MaCTLH NOT IN (SELECT MaCTLH FROM TONKHO);
