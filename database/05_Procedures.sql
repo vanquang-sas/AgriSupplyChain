@@ -318,6 +318,57 @@ BEGIN
 END;
 /
 
+-- ================================= Bảng KHACHHANG =================================
+CREATE OR REPLACE PROCEDURE SP_THEM_KH (
+    p_Username IN NVARCHAR2, p_TenKH IN NVARCHAR2, 
+    p_LoaiKH IN NVARCHAR2, p_DiaChi IN NVARCHAR2, 
+    p_SDT IN VARCHAR2, p_Email IN NVARCHAR2
+) IS
+BEGIN
+    INSERT INTO KHACHHANG (Username, TenKH, LoaiKH, DiaChi, SDT, Email)
+    VALUES (p_Username, p_TenKH, p_LoaiKH, p_DiaChi, p_SDT, p_Email);
+    COMMIT;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE SP_CAPNHAT_KH (
+    p_MaKH IN VARCHAR2, p_TenKH IN NVARCHAR2, p_LoaiKH IN NVARCHAR2, 
+    p_DiaChi IN NVARCHAR2, p_SDT IN VARCHAR2, p_Email IN NVARCHAR2
+) IS
+BEGIN
+    UPDATE KHACHHANG
+    SET TenKH = NVL(p_TenKH, TenKH), LoaiKH = NVL(p_LoaiKH, LoaiKH),
+        DiaChi = NVL(p_DiaChi, DiaChi), SDT = NVL(p_SDT, SDT), Email = NVL(p_Email, Email)
+    WHERE MaKH = p_MaKH;
+    COMMIT;
+END;
+/
+
+-- ================================= Bảng NHANVIEN =================================
+CREATE OR REPLACE PROCEDURE SP_THEM_NV (
+    p_Username IN NVARCHAR2, p_TenNV IN NVARCHAR2, 
+    p_ChucVu IN NVARCHAR2, p_SDT IN VARCHAR2, p_Luong IN NUMBER
+) IS
+BEGIN
+    INSERT INTO NHANVIEN (Username, TenNV, ChucVu, SDT, Luong)
+    VALUES (p_Username, p_TenNV, p_ChucVu, p_SDT, p_Luong);
+    COMMIT;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE SP_CAPNHAT_NV (
+    p_MaNV IN VARCHAR2, p_TenNV IN NVARCHAR2, p_ChucVu IN NVARCHAR2, 
+    p_SDT IN VARCHAR2, p_Luong IN NUMBER
+) IS
+BEGIN
+    UPDATE NHANVIEN
+    SET TenNV = NVL(p_TenNV, TenNV), ChucVu = NVL(p_ChucVu, ChucVu),
+        SDT = NVL(p_SDT, SDT), Luong = NVL(p_Luong, Luong)
+    WHERE MaNV = p_MaNV;
+    COMMIT;
+END;
+/
+
 -- ================================= Bảng TAIKHOAN =================================
 CREATE OR REPLACE PROCEDURE SP_THEM_TAIKHOAN (
     p_Username IN NVARCHAR2,
