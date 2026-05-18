@@ -12,14 +12,17 @@ CREATE OR REPLACE PROCEDURE SP_CAPNHAT_GIA (
 ) IS
 BEGIN
     UPDATE SANPHAM
-    SET GiaMua = p_GiaMuaMoi,
-        GiaBan = p_GiaBanMoi
+    SET GiaMua = NVL(p_GiaMuaMoi, GiaMua),
+        GiaBan = NVL(p_GiaBanMoi, GiaBan)
     WHERE MaSP = p_MaSP;
+
     COMMIT;
+
 EXCEPTION
     WHEN OTHERS THEN
         ROLLBACK;
-        RAISE_APPLICATION_ERROR(-20010, 'Lỗi cập nhật giá sản phẩm: ' || SQLERRM);
+
+        RAISE_APPLICATION_ERROR(-20010,'Lỗi cập nhật giá sản phẩm: ' || SQLERRM);
 END;
 /
 
