@@ -1,7 +1,6 @@
 package gui;
 
 import gui.panel.*;
-import gui.dialog.*; // Thêm import dialog để sau này mở GioHangDialog
 import util.AppColor;
 import util.Session;
 
@@ -336,13 +335,8 @@ public class MainFrame extends JFrame {
             }
         } else { // KHÁCH HÀNG
             menuPanel.add(buildSectionLabel("MUA SẮM"));
-
-            // dùng để test phần giao hàng và cửa hàng
             menuPanel.add(btnCuaHang);
             menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
-            menuPanel.add(btnGiaoHang);
-            menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
-            // 
             menuPanel.add(btnDonHang);
             menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
             defaultActiveBtn = btnCuaHang;
@@ -543,10 +537,7 @@ public class MainFrame extends JFrame {
         pnlThamSo = new ThamSoPanel();
         pnlDonHang = new DonHangPanel();
         pnlGiaoHang = new GiaoHangPanel(Session.maNV);
-        // THEM DONG NAY
-        // pnlCuaHang = new CuaHangPanel(Session.maKH);
         pnlCuaHang = new CuaHangPanel();
-        //
         pnlLoaiSanPham = new LoaiSanPhamPanel();
         pnlSanPham = new SanPhamPanel();
         pnlNhapKho = new NhapKhoPanel();
@@ -555,8 +546,6 @@ public class MainFrame extends JFrame {
         pnlThongKe = new ThongKePanel();
         pnlLoHang = new LoHangPanel();
         pnlUserProfile = new UserProfilePanel();
-
-        // Thêm vào CardLayout với tên gọi tương ứng
         pnlLichSuLoHang = new LichSuLoHangPanel();
         
         contentPanel.add(createPlaceholder("🏠", "Trang chủ", "Dashboard tổng quan"), "TrangChu");
@@ -569,9 +558,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(pnlThongKe, "ThongKe");
         contentPanel.add(pnlDonHang, "DonHang");
         contentPanel.add(pnlGiaoHang, "GiaoHang");
-        // THEM DONG NAY
         contentPanel.add(pnlCuaHang, "CuaHang");
-        //
         contentPanel.add(pnlLoaiSanPham, "LoaiSanPham");
         contentPanel.add(pnlUserProfile, "Profile");
         contentPanel.add(pnlNhapKho, "NhapKho");
@@ -581,7 +568,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(pnlLichSuLoHang, "LichSuLoHang");
     }
 
-    // Hàm tạo nút menu với giao diện Capsule (Viên thuốc) hiện đại
+    // Hàm tạo nút menu
     private JButton createMenuButton(String emojiStr, String label, String cardName) {
         JButton btn = new JButton(label) {
             private boolean isHovered = false;
