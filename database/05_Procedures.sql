@@ -320,72 +320,6 @@ END;
 
 -- ================================= Bảng KHACHHANG =================================
 CREATE OR REPLACE PROCEDURE SP_THEM_KH (
-    p_Username IN NVARCHAR2, p_TenKH IN NVARCHAR2, 
-    p_LoaiKH IN NVARCHAR2, p_DiaChi IN NVARCHAR2, 
-    p_SDT IN VARCHAR2, p_Email IN NVARCHAR2
-) IS
-BEGIN
-    INSERT INTO KHACHHANG (Username, TenKH, LoaiKH, DiaChi, SDT, Email)
-    VALUES (p_Username, p_TenKH, p_LoaiKH, p_DiaChi, p_SDT, p_Email);
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_CAPNHAT_KH (
-    p_MaKH IN VARCHAR2, p_TenKH IN NVARCHAR2, p_LoaiKH IN NVARCHAR2, 
-    p_DiaChi IN NVARCHAR2, p_SDT IN VARCHAR2, p_Email IN NVARCHAR2
-) IS
-BEGIN
-    UPDATE KHACHHANG
-    SET TenKH = NVL(p_TenKH, TenKH), LoaiKH = NVL(p_LoaiKH, LoaiKH),
-        DiaChi = NVL(p_DiaChi, DiaChi), SDT = NVL(p_SDT, SDT), Email = NVL(p_Email, Email)
-    WHERE MaKH = p_MaKH;
-    COMMIT;
-END;
-/
-
--- ================================= Bảng NHANVIEN =================================
-CREATE OR REPLACE PROCEDURE SP_THEM_NV (
-    p_Username IN NVARCHAR2, p_TenNV IN NVARCHAR2, 
-    p_ChucVu IN NVARCHAR2, p_SDT IN VARCHAR2, p_Luong IN NUMBER
-) IS
-BEGIN
-    INSERT INTO NHANVIEN (Username, TenNV, ChucVu, SDT, Luong)
-    VALUES (p_Username, p_TenNV, p_ChucVu, p_SDT, p_Luong);
-    COMMIT;
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_CAPNHAT_NV (
-    p_MaNV IN VARCHAR2, p_TenNV IN NVARCHAR2, p_ChucVu IN NVARCHAR2, 
-    p_SDT IN VARCHAR2, p_Luong IN NUMBER
-) IS
-BEGIN
-    UPDATE NHANVIEN
-    SET TenNV = NVL(p_TenNV, TenNV), ChucVu = NVL(p_ChucVu, ChucVu),
-        SDT = NVL(p_SDT, SDT), Luong = NVL(p_Luong, Luong)
-    WHERE MaNV = p_MaNV;
-    COMMIT;
-END;
-/
-
--- ================================= Bảng TAIKHOAN =================================
-CREATE OR REPLACE PROCEDURE SP_THEM_TAIKHOAN (
-    p_Username IN NVARCHAR2,
-    p_Password IN VARCHAR2,
-    p_LoaiTK IN NUMBER,
-    p_DiaChi IN NVARCHAR2,
-    p_SDT IN VARCHAR2,
-    p_Email IN NVARCHAR2
-) IS
-BEGIN
-    -- Mặc định TrangThaiTK = 1 (Đang hoạt động)
-    INSERT INTO TAIKHOAN (Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) 
-    VALUES (p_Username, p_Password, p_LoaiTK, 1, p_DiaChi, p_SDT, p_Email);
-END;
-/
-
-CREATE OR REPLACE PROCEDURE SP_THEM_KH (
     p_Username IN NVARCHAR2,
     p_TenKH IN NVARCHAR2,
     p_LoaiKH IN NVARCHAR2
@@ -435,6 +369,21 @@ BEGIN
     WHERE MaNV = p_MaNV;
 END;
 /
+-- ================================= Bảng TAIKHOAN =================================
+CREATE OR REPLACE PROCEDURE SP_THEM_TAIKHOAN (
+    p_Username IN NVARCHAR2,
+    p_Password IN VARCHAR2,
+    p_LoaiTK IN NUMBER,
+    p_DiaChi IN NVARCHAR2,
+    p_SDT IN VARCHAR2,
+    p_Email IN NVARCHAR2
+) IS
+BEGIN
+    -- Mặc định TrangThaiTK = 1 (Đang hoạt động)
+    INSERT INTO TAIKHOAN (Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) 
+    VALUES (p_Username, p_Password, p_LoaiTK, 1, p_DiaChi, p_SDT, p_Email);
+END;
+/
 
 CREATE OR REPLACE PROCEDURE SP_CAPNHAT_TAIKHOAN (
     p_Username IN NVARCHAR2,
@@ -469,7 +418,7 @@ BEGIN
 
     -- 2. Phân nhánh thêm thông tin chi tiết
     IF p_LoaiTK = 2 THEN 
-        -- Nếu là Khách hàng (Mặc định loại KH là 'Thường')
+        -- Nếu là Khách hàng (Mặc định loại KH = 'Thường')
         SP_THEM_KH(p_Username, p_Ten, NVL(p_LoaiKHHoacChucVu, 'Thường'));
     ELSIF p_LoaiTK IN (0, 1) THEN 
         -- Nếu là Quản lý hoặc Nhân viên
