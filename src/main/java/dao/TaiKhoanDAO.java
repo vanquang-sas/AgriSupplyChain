@@ -54,6 +54,9 @@ public class TaiKhoanDAO {
                     taiKhoan.setPassword(rs.getString("PASSWORD"));
                     taiKhoan.setLoaiTK(rs.getInt("LOAITK"));
                     taiKhoan.setTrangThaiTK(rs.getInt("TRANGTHAITK"));
+                    taiKhoan.setDiaChi(rs.getString("DIACHI"));
+                    taiKhoan.setSdt(rs.getString("SDT"));
+                    taiKhoan.setEmail(rs.getString("EMAIL"));
                     taiKhoan.setTgTao(rs.getDate("TGTAO"));
                 }
             }
@@ -65,12 +68,7 @@ public class TaiKhoanDAO {
     }
 
     public boolean xacThucThongTinQuenMK(String username, String emailOrPhone) {
-        // Kiểm tra xem username có thuộc nhân viên hoặc khách hàng và khớp số điện thoại/email không
-        String sql = "SELECT t.USERNAME " +
-                     "FROM TAIKHOAN t " +
-                     "LEFT JOIN NHANVIEN n ON t.USERNAME = n.USERNAME " +
-                     "LEFT JOIN KHACHHANG k ON t.USERNAME = k.USERNAME " +
-                     "WHERE t.USERNAME = ? AND (n.SDT = ? OR k.SDT = ? OR k.EMAIL = ?)";
+        String sql = "SELECT USERNAME FROM TAIKHOAN WHERE USERNAME = ? AND (SDT = ? OR EMAIL = ?)";
         try (Connection conn = DBConnection.getConnection()) {
             if (conn == null) {
                 System.err.println("Lỗi TaiKhoanDAO: Không thể kết nối CSDL");
@@ -80,7 +78,6 @@ public class TaiKhoanDAO {
                 pst.setString(1, username);
                 pst.setString(2, emailOrPhone);
                 pst.setString(3, emailOrPhone);
-                pst.setString(4, emailOrPhone);
                 
                 try (ResultSet rs = pst.executeQuery()) {
                     if (rs.next()) {

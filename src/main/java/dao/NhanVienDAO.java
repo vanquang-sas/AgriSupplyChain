@@ -13,8 +13,8 @@ public class NhanVienDAO {
 
     public List<NhanVienDTO> getAll() {
         List<NhanVienDTO> list = new ArrayList<>();
-        String sql = "SELECT NV.*, TK.TrangThaiTK FROM NHANVIEN NV " +
-                     "LEFT JOIN TAIKHOAN TK ON NV.Username = TK.Username ORDER BY NV.MaNV";
+        String sql = "SELECT NV.MaNV, NV.Username, NV.TenNV, NV.ChucVu, NV.Luong, TK.SDT, TK.TrangThaiTK " +
+                     "FROM NHANVIEN NV LEFT JOIN TAIKHOAN TK ON NV.Username = TK.Username ORDER BY NV.MaNV";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -26,8 +26,8 @@ public class NhanVienDAO {
     }
 
     public NhanVienDTO getById(String maNV) {
-        String sql = "SELECT NV.*, TK.TrangThaiTK FROM NHANVIEN NV " +
-                     "LEFT JOIN TAIKHOAN TK ON NV.Username = TK.Username WHERE NV.MaNV = ?";
+        String sql = "SELECT NV.MaNV, NV.Username, NV.TenNV, NV.ChucVu, NV.Luong, TK.SDT, TK.TrangThaiTK " +
+                     "FROM NHANVIEN NV LEFT JOIN TAIKHOAN TK ON NV.Username = TK.Username WHERE NV.MaNV = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maNV);
@@ -42,9 +42,9 @@ public class NhanVienDAO {
 
     public List<NhanVienDTO> timKiem(String keyword) {
         List<NhanVienDTO> list = new ArrayList<>();
-        String sql = "SELECT NV.*, TK.TrangThaiTK FROM NHANVIEN NV " +
-                     "LEFT JOIN TAIKHOAN TK ON NV.Username = TK.Username " +
-                     "WHERE UPPER(NV.TenNV) LIKE UPPER(?) OR UPPER(NV.MaNV) LIKE UPPER(?) OR NV.SDT LIKE ?";
+        String sql = "SELECT NV.MaNV, NV.Username, NV.TenNV, NV.ChucVu, NV.Luong, TK.SDT, TK.TrangThaiTK " +
+                     "FROM NHANVIEN NV LEFT JOIN TAIKHOAN TK ON NV.Username = TK.Username " +
+                     "WHERE UPPER(NV.TenNV) LIKE UPPER(?) OR UPPER(NV.MaNV) LIKE UPPER(?) OR TK.SDT LIKE ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             String kw = "%" + keyword + "%";
@@ -67,20 +67,22 @@ public class NhanVienDAO {
             conn.setAutoCommit(false);
 
             // Bước 1: Tạo tài khoản (LoaiTK = 1: Nhân viên)
-            try (CallableStatement cs = conn.prepareCall("{CALL SP_THEM_TAIKHOAN(?, ?, ?)}")) {
+            try (CallableStatement cs = conn.prepareCall("{CALL SP_THEM_TAIKHOAN(?, ?, ?, ?, ?, ?)}")) {
                 cs.setString(1, nv.getUsername());
                 cs.setString(2, password);
                 cs.setInt(3, 1);
+                cs.setNull(4, java.sql.Types.NVARCHAR);
+                cs.setString(5, nv.getSdt());
+                cs.setNull(6, java.sql.Types.NVARCHAR);
                 cs.execute();
             }
 
             // Bước 2: Tạo hồ sơ nhân viên
-            try (CallableStatement cs = conn.prepareCall("{CALL SP_THEM_NV(?, ?, ?, ?, ?)}")) {
+            try (CallableStatement cs = conn.prepareCall("{CALL SP_THEM_NV(?, ?, ?, ?)}")) {
                 cs.setString(1, nv.getUsername());
                 cs.setString(2, nv.getTenNV());
                 cs.setString(3, nv.getChucVu());
-                cs.setString(4, nv.getSdt());
-                cs.setDouble(5, nv.getLuong());
+                cs.setDouble(4, nv.getLuong());
                 cs.execute();
             }
 
@@ -96,14 +98,48 @@ public class NhanVienDAO {
 
     // Cập nhật: SP_CAPNHAT_NV
     public void capNhat(NhanVienDTO nv) throws SQLException {
-        try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall("{CALL SP_CAPNHAT_NV(?, ?, ?, ?, ?)}")) {
-            cs.setString(1, nv.getMaNV());
-            cs.setString(2, nv.getTenNV());
-            cs.setString(3, nv.getChucVu());
-            cs.setString(4, nv.getSdt());
-            cs.setDouble(5, nv.getLuong());
-            cs.execute();
+        Connection conn = DBConnection.getConnection();
+        try {
+            conn.setAutoCommit(false);
+
+            String username = null;
+            try (PreparedStatement ps = conn.prepareStatement("SELECT Username FROM NHANVIEN WHERE MaNV = ?")) {
+                ps.setString(1, nv.getMaNV());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) username = rs.getString("Username");
+                }
+            }
+
+            if (username == null) {
+                conn.rollback();
+                throw new SQLException("Không tìm thấy Username của nhân viên.");
+            }
+
+            try (CallableStatement cs = conn.prepareCall("{CALL SP_CAPNHAT_NV(?, ?, ?, ?)}")) {
+                cs.setString(1, nv.getMaNV());
+                cs.setString(2, nv.getTenNV());
+                cs.setString(3, nv.getChucVu());
+                cs.setDouble(4, nv.getLuong());
+                cs.execute();
+            }
+
+            try (CallableStatement cs = conn.prepareCall("{CALL SP_CAPNHAT_TAIKHOAN(?, ?, ?, ?)}")) {
+                cs.setString(1, username);
+                cs.setNull(2, java.sql.Types.NVARCHAR);
+                cs.setString(3, nv.getSdt());
+                cs.setNull(4, java.sql.Types.NVARCHAR);
+                cs.execute();
+            }
+
+            conn.commit();
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
         }
     }
 
@@ -197,7 +233,8 @@ public class NhanVienDAO {
     }
 
     public dto.NhanVienDTO getByUsername(String username) {
-        String sql = "SELECT NV.*, TK.TrangThaiTK FROM NHANVIEN NV LEFT JOIN TAIKHOAN TK ON NV.Username = TK.Username WHERE NV.Username = ?";
+        String sql = "SELECT NV.MaNV, NV.Username, NV.TenNV, NV.ChucVu, NV.Luong, TK.SDT, TK.TrangThaiTK " +
+                     "FROM NHANVIEN NV LEFT JOIN TAIKHOAN TK ON NV.Username = TK.Username WHERE NV.Username = ?";
         try (java.sql.Connection conn = util.DBConnection.getConnection();
             java.sql.PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, username);

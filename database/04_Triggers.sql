@@ -14,14 +14,16 @@ BEGIN
 END;
 /
 
--- ================================= Bảng KHACHHANG =================================
--- 2. Kiểm tra SĐT khách hàng (10-12 số)
-CREATE OR REPLACE TRIGGER TRG_KH_SDT
-BEFORE INSERT OR UPDATE ON KHACHHANG
+-- ================================= Bảng TAIKHOAN =================================
+-- 2. Kiểm tra SĐT tài khoản khi có giá trị (10-12 số)
+CREATE OR REPLACE TRIGGER TRG_TK_SDT
+BEFORE INSERT OR UPDATE ON TAIKHOAN
 FOR EACH ROW
 BEGIN
-    IF LENGTH(:NEW.SDT) < 10 OR LENGTH(:NEW.SDT) > 12 OR REGEXP_LIKE(:NEW.SDT, '[^0-9]') THEN
-        RAISE_APPLICATION_ERROR(-20001, 'Số điện thoại phải là chuỗi số từ 10 - 12 ký tự.');
+    IF :NEW.SDT IS NOT NULL THEN
+        IF LENGTH(:NEW.SDT) < 10 OR LENGTH(:NEW.SDT) > 12 OR REGEXP_LIKE(:NEW.SDT, '[^0-9]') THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Số điện thoại phải là chuỗi số từ 10 - 12 ký tự.');
+        END IF;
     END IF;
 END;
 /

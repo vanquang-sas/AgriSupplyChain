@@ -53,8 +53,8 @@ public class KhachHangBUS {
 
     // ================= LOGIC DÀNH CHO PANEL QUẢN LÝ (CRUD) =================
 
-    public boolean capNhatHoSoKH(String maKH, String tenKH, String diaChi, String email, String sdt) {
-        return khDAO.capNhatHoSoKH(maKH, tenKH, diaChi, email, sdt);
+    public boolean capNhatHoSoKH(String maKH, String tenKH, String diaChi, String sdt, String email) {
+        return khDAO.capNhatHoSoKH(maKH, tenKH, diaChi, sdt, email);
     }
 
     public List<KhachHangDTO> getAll() {

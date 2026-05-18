@@ -6,41 +6,64 @@ import util.DBConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.*;
-import oracle.jdbc.OracleTypes;
 
 public class KhachHangDAO {
 
     public boolean capNhatHoSoKH(String maKH, String tenKH, String diaChi, String sdt, String email) {
-        String sql = "{call SP_CAPNHAT_KH(?, ?, ?, ?, ?, ?)}";
-        try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
-            
-            cs.setString(1, maKH);
-            cs.setString(2, tenKH);
-            cs.setNull(3, java.sql.Types.NVARCHAR); // Không tự đổi LoaiKH
-            cs.setString(4, diaChi);
-            cs.setString(5, sdt);
-            cs.setString(6, email);
-            
-            return cs.executeUpdate() > 0;
+        String sqlUsername = "SELECT Username FROM KHACHHANG WHERE MaKH = ?";
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            String username = null;
+            try (PreparedStatement ps = conn.prepareStatement(sqlUsername)) {
+                ps.setString(1, maKH);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) username = rs.getString("Username");
+                }
+            }
+
+            if (username == null) {
+                conn.rollback();
+                return false;
+            }
+
+            try (CallableStatement cs = conn.prepareCall("{call SP_CAPNHAT_KH(?, ?, ?)}")) {
+                cs.setString(1, maKH);
+                cs.setString(2, tenKH);
+                cs.setNull(3, java.sql.Types.NVARCHAR);
+                cs.execute();
+            }
+
+            try (CallableStatement cs = conn.prepareCall("{call SP_CAPNHAT_TAIKHOAN(?, ?, ?, ?)}")) {
+                cs.setString(1, username);
+                cs.setString(2, diaChi);
+                cs.setString(3, sdt);
+                cs.setString(4, email);
+                cs.execute();
+            }
+
+            conn.commit();
+            return true;
         } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException rollbackEx) {
+                System.err.println("Lỗi rollback capNhatHoSoKH: " + rollbackEx.getMessage());
+            }
             System.err.println("Lỗi DAO - capNhatHoSoKH: " + e.getMessage());
             return false;
         }
     }
 
-    // Lấy toàn bộ danh sách qua Function SYS_REFCURSOR
+    // Lấy toàn bộ danh sách khách hàng
     public List<KhachHangDTO> getAll() {
         List<KhachHangDTO> list = new ArrayList<>();
-        String sql = "{ ? = call FN_LAY_DS_KHACHHANG() }";
+        String sql = "SELECT KH.MaKH, KH.Username, KH.TenKH, KH.LoaiKH, TK.DiaChi, TK.SDT, TK.Email, TK.TrangThaiTK " +
+                     "FROM KHACHHANG KH LEFT JOIN TAIKHOAN TK ON KH.Username = TK.Username ORDER BY KH.MaKH";
         try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
-            cs.registerOutParameter(1, OracleTypes.CURSOR);
-            cs.execute();
-            try (ResultSet rs = (ResultSet) cs.getObject(1)) {
-                while (rs.next()) {
-                    list.add(mapRow(rs));
-                }
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapRow(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -50,8 +73,8 @@ public class KhachHangDAO {
 
     // Lấy 1 khách hàng theo MaKH để load lên Form chỉnh sửa
     public KhachHangDTO getById(String maKH) {
-        String sql = "SELECT KH.*, TK.TrangThaiTK FROM KHACHHANG KH " +
-                     "LEFT JOIN TAIKHOAN TK ON KH.Username = TK.Username WHERE KH.MaKH = ?";
+        String sql = "SELECT KH.MaKH, KH.Username, KH.TenKH, KH.LoaiKH, TK.DiaChi, TK.SDT, TK.Email, TK.TrangThaiTK " +
+                     "FROM KHACHHANG KH LEFT JOIN TAIKHOAN TK ON KH.Username = TK.Username WHERE KH.MaKH = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maKH);
@@ -67,9 +90,9 @@ public class KhachHangDAO {
     // Tìm kiếm theo từ khóa
     public List<KhachHangDTO> timKiem(String keyword) {
         List<KhachHangDTO> list = new ArrayList<>();
-        String sql = "SELECT KH.*, TK.TrangThaiTK FROM KHACHHANG KH " +
-                     "LEFT JOIN TAIKHOAN TK ON KH.Username = TK.Username " +
-                     "WHERE UPPER(KH.TenKH) LIKE UPPER(?) OR UPPER(KH.MaKH) LIKE UPPER(?) OR KH.SDT LIKE ?";
+        String sql = "SELECT KH.MaKH, KH.Username, KH.TenKH, KH.LoaiKH, TK.DiaChi, TK.SDT, TK.Email, TK.TrangThaiTK " +
+                     "FROM KHACHHANG KH LEFT JOIN TAIKHOAN TK ON KH.Username = TK.Username " +
+                     "WHERE UPPER(KH.TenKH) LIKE UPPER(?) OR UPPER(KH.MaKH) LIKE UPPER(?) OR TK.SDT LIKE ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             String kw = "%" + keyword + "%";
@@ -92,21 +115,21 @@ public class KhachHangDAO {
             conn.setAutoCommit(false);
 
             // Bước 1: Tạo tài khoản (LoaiTK = 2: Khách hàng)
-            try (CallableStatement cs = conn.prepareCall("{CALL SP_THEM_TAIKHOAN(?, ?, ?)}")) {
+            try (CallableStatement cs = conn.prepareCall("{CALL SP_THEM_TAIKHOAN(?, ?, ?, ?, ?, ?)}")) {
                 cs.setString(1, kh.getUsername());
                 cs.setString(2, password);
                 cs.setInt(3, 2);
+                cs.setString(4, kh.getDiaChi());
+                cs.setString(5, kh.getSdt());
+                cs.setString(6, kh.getEmail());
                 cs.execute();
             }
 
             // Bước 2: Tạo hồ sơ khách hàng
-            try (CallableStatement cs = conn.prepareCall("{CALL SP_THEM_KH(?, ?, ?, ?, ?, ?)}")) {
+            try (CallableStatement cs = conn.prepareCall("{CALL SP_THEM_KH(?, ?, ?)}")) {
                 cs.setString(1, kh.getUsername());
                 cs.setString(2, kh.getTenKH());
                 cs.setString(3, kh.getLoaiKH());
-                cs.setString(4, kh.getDiaChi());
-                cs.setString(5, kh.getSdt());
-                cs.setString(6, kh.getEmail());
                 cs.execute();
             }
 
@@ -122,15 +145,47 @@ public class KhachHangDAO {
 
     // Cập nhật: SP_CAPNHAT_KH
     public void capNhat(KhachHangDTO kh) throws SQLException {
-        try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall("{CALL SP_CAPNHAT_KH(?, ?, ?, ?, ?, ?)}")) {
-            cs.setString(1, kh.getMaKH());
-            cs.setString(2, kh.getTenKH());
-            cs.setString(3, kh.getLoaiKH());
-            cs.setString(4, kh.getDiaChi());
-            cs.setString(5, kh.getSdt());
-            cs.setString(6, kh.getEmail());
-            cs.execute();
+        Connection conn = DBConnection.getConnection();
+        try {
+            conn.setAutoCommit(false);
+
+            String username = null;
+            try (PreparedStatement ps = conn.prepareStatement("SELECT Username FROM KHACHHANG WHERE MaKH = ?")) {
+                ps.setString(1, kh.getMaKH());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) username = rs.getString("Username");
+                }
+            }
+
+            if (username == null) {
+                conn.rollback();
+                throw new SQLException("Không tìm thấy Username của khách hàng.");
+            }
+
+            try (CallableStatement cs = conn.prepareCall("{CALL SP_CAPNHAT_KH(?, ?, ?)}")) {
+                cs.setString(1, kh.getMaKH());
+                cs.setString(2, kh.getTenKH());
+                cs.setString(3, kh.getLoaiKH());
+                cs.execute();
+            }
+
+            try (CallableStatement cs = conn.prepareCall("{CALL SP_CAPNHAT_TAIKHOAN(?, ?, ?, ?)}")) {
+                cs.setString(1, username);
+                cs.setString(2, kh.getDiaChi());
+                cs.setString(3, kh.getSdt());
+                cs.setString(4, kh.getEmail());
+                cs.execute();
+            }
+
+            conn.commit();
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
         }
     }
 
@@ -226,7 +281,8 @@ public class KhachHangDAO {
     }
 
     public dto.KhachHangDTO getByUsername(String username) {
-        String sql = "SELECT KH.*, TK.TrangThaiTK FROM KHACHHANG KH LEFT JOIN TAIKHOAN TK ON KH.Username = TK.Username WHERE KH.Username = ?";
+        String sql = "SELECT KH.MaKH, KH.Username, KH.TenKH, KH.LoaiKH, TK.DiaChi, TK.SDT, TK.Email, TK.TrangThaiTK " +
+                     "FROM KHACHHANG KH LEFT JOIN TAIKHOAN TK ON KH.Username = TK.Username WHERE KH.Username = ?";
         try (java.sql.Connection conn = util.DBConnection.getConnection();
              java.sql.PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, username);

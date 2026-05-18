@@ -40,6 +40,9 @@ CREATE TABLE TAIKHOAN (
     Password VARCHAR2(255) NOT NULL,
     LoaiTK NUMBER(1) CHECK (LoaiTK IN (0, 1, 2)), -- 0: Quản lý, 1: Nhân viên, 2: Khách hàng
     TrangThaiTK NUMBER(1) CHECK (TrangThaiTK IN (0, 1)), -- 0: Bị khoá, 1: Hoạt động
+    DiaChi NVARCHAR2(255),
+    SDT VARCHAR2(12),
+    Email NVARCHAR2(100),
     TGTao DATE DEFAULT SYSDATE
 );
 
@@ -49,9 +52,6 @@ CREATE TABLE KHACHHANG (
     Username NVARCHAR2(50),
     TenKH NVARCHAR2(100),
     LoaiKH NVARCHAR2(50) CHECK (LoaiKH IN ('Thường','Thân thiết','VIP')),
-    DiaChi NVARCHAR2(255),
-    SDT VARCHAR2(12),
-    Email NVARCHAR2(100),
     CONSTRAINT FK_KH_TAIKHOAN FOREIGN KEY (Username) REFERENCES TAIKHOAN(Username)
 );
 
@@ -61,7 +61,6 @@ CREATE TABLE NHANVIEN (
     Username NVARCHAR2(50),
     TenNV NVARCHAR2(100),
     ChucVu NVARCHAR2(50) CHECK (ChucVu IN ('NV thu mua', 'NV kho', 'NV giao hàng','Quản lý')),
-    SDT VARCHAR2(12),
     Luong NUMBER(12,2),
     CONSTRAINT FK_NV_TAIKHOAN FOREIGN KEY (Username) REFERENCES TAIKHOAN(Username)
 );
