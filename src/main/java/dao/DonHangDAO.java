@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import dto.ChiTietDonHangDTO;
 import dto.DonHangDTO;
 import util.DBConnection;
 
@@ -121,5 +122,68 @@ public class DonHangDAO {
                 e.printStackTrace();
             }
         }
+    }
+    
+    public boolean insertDonHang(DonHangDTO donHang, List<ChiTietDonHangDTO> chiTietList) {
+        Connection conn = null;
+        java.sql.PreparedStatement pstmtDH = null;
+        java.sql.PreparedStatement pstmtCT = null;
+        boolean result = false;
+
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false); // Bắt đầu Transaction
+
+            // Đã bổ sung DiaChiGiaoHang và PhuongThucTT (bỏ GhiChu)
+            String sqlDH = "INSERT INTO DONHANG (MaDH, MaKH, TgDat, TongTien, TrangThaiDH, DiaChiGiaoHang, PhuongThucTT) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            pstmtDH = conn.prepareStatement(sqlDH);
+            pstmtDH.setString(1, donHang.getMaDH());
+            pstmtDH.setString(2, donHang.getMaKH());
+            pstmtDH.setTimestamp(3, new java.sql.Timestamp(donHang.getTgDat().getTime()));
+            pstmtDH.setDouble(4, donHang.getTongTien());
+            pstmtDH.setString(5, donHang.getTrangThaiDH());
+            pstmtDH.setString(6, donHang.getDiaChiGiaoHang());
+            pstmtDH.setString(7, donHang.getPhuongThucTT());
+            pstmtDH.executeUpdate();
+
+            // 2. Insert Chi tiết đơn hàng vào bảng CHITIETDONHANG
+            String sqlCT = "INSERT INTO CHITIETDONHANG (MaDH, MaSP, GiaBan, SoLuong) VALUES (?, ?, ?, ?)";
+            pstmtCT = conn.prepareStatement(sqlCT);
+
+            for (ChiTietDonHangDTO ct : chiTietList) {
+                pstmtCT.setString(1, ct.getMaDH());
+                pstmtCT.setString(2, ct.getMaSP());
+                pstmtCT.setDouble(3, ct.getGiaBan());
+                pstmtCT.setDouble(4, ct.getSoLuong());
+                pstmtCT.addBatch(); // Gom lệnh để thực thi 1 lần
+            }
+            pstmtCT.executeBatch(); 
+
+            // 3. Nếu mọi thứ thành công thì Commit
+            conn.commit(); 
+            result = true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            try {
+                if (conn != null) {
+                    conn.rollback(); // Nếu có lỗi thì Rollback không lưu cái nào
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        } finally {
+            try {
+                if (pstmtDH != null) pstmtDH.close();
+                if (pstmtCT != null) pstmtCT.close();
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
     }
 }

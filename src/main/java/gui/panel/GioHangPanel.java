@@ -101,7 +101,6 @@ public class GioHangPanel extends JPanel {
         JPanel pnlToolLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         pnlToolLeft.setOpaque(false);
         
-        // TRẢ LẠI: Label và JComboBox Sắp xếp
         JLabel lblSort = new JLabel("Sắp xếp:");
         lblSort.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblSort.setForeground(new Color(75, 85, 99));
@@ -114,7 +113,6 @@ public class GioHangPanel extends JPanel {
         pnlToolLeft.add(lblSort);
         pnlToolLeft.add(cbxSort);
         
-        // Nút Xóa tất cả
         RoundedButton btnClearAll = new RoundedButton("Xóa tất cả", 10, new Color(239, 68, 68));
         btnClearAll.setPreferredSize(new Dimension(100, 36));
         btnClearAll.setFont(new Font("Segoe UI", Font.BOLD, 13));
@@ -128,7 +126,6 @@ public class GioHangPanel extends JPanel {
             }
         });
         
-        // TRẢ LẠI: Nút Refresh
         JButton btnRefresh = createIconButton("icons/refresh.svg", new Dimension(36, 36));
         btnRefresh.setToolTipText("Làm mới giỏ hàng");
         btnRefresh.addActionListener(e -> loadCartItems());
@@ -150,11 +147,10 @@ public class GioHangPanel extends JPanel {
         pnlToolbar.add(pnlToolLeft, BorderLayout.WEST);
         pnlToolbar.add(pnlToolRight, BorderLayout.EAST);
 
-        // Vùng cuộn chứa item
         pnlItems = new JPanel();
         pnlItems.setLayout(new BoxLayout(pnlItems, BoxLayout.Y_AXIS));
         pnlItems.setOpaque(false);
-        pnlItems.setBorder(new EmptyBorder(4, 4, 4, 4)); // Padding để bóng đổ không bị cắt
+        pnlItems.setBorder(new EmptyBorder(4, 4, 4, 4));
 
         scrollPane = new JScrollPane(pnlItems);
         scrollPane.setOpaque(false);
@@ -192,7 +188,6 @@ public class GioHangPanel extends JPanel {
         sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
         sep.setForeground(new Color(229, 231, 235));
         pnlBillDetail.add(sep);
-        pnlBillDetail.add(Box.createVerticalStrut(20));
 
         JPanel pnlThanhTien = new JPanel(new BorderLayout());
         pnlThanhTien.setOpaque(false);
@@ -262,7 +257,7 @@ public class GioHangPanel extends JPanel {
         } else {
             for (GioHangDTO item : listToRender) {
                 pnlItems.add(createItemCard(item));
-                pnlItems.add(Box.createRigidArea(new Dimension(0, 16))); // Khoảng cách giữa các thẻ
+                pnlItems.add(Box.createRigidArea(new Dimension(0, 16)));
             }
         }
         pnlItems.revalidate();
@@ -275,9 +270,6 @@ public class GioHangPanel extends JPanel {
         lblBadgeCount.setText(Session.getCartItemCount() + " sản phẩm");
     }
 
-    // =========================================
-    // CARD SẢN PHẨM TRONG GIỎ HÀNG (CÓ BÓNG ĐỔ)
-    // =========================================
     private JPanel createItemCard(GioHangDTO item) {
         RoundedPanel card = new RoundedPanel(12);
         card.setBackground(Color.WHITE);
@@ -286,7 +278,6 @@ public class GioHangPanel extends JPanel {
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 125));
         card.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Ảnh giả lập
         JLabel lblImage = new JLabel("IMG", SwingConstants.CENTER);
         lblImage.setPreferredSize(new Dimension(90, 90));
         lblImage.setBackground(new Color(243, 244, 246));
@@ -309,7 +300,6 @@ public class GioHangPanel extends JPanel {
         pnlNamePrice.add(lblName);
         pnlNamePrice.add(lblPrice);
 
-        // Tăng giảm số lượng
         JPanel pnlQty = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         pnlQty.setOpaque(false);
         
@@ -345,7 +335,6 @@ public class GioHangPanel extends JPanel {
         pnlAction.add(Box.createVerticalGlue()); 
         pnlAction.add(btnDelete);
 
-        // Events
         btnMinus.addActionListener(e -> {
             if (item.getSoLuong() > 1) {
                 item.setSoLuong(item.getSoLuong() - 1);
@@ -397,13 +386,10 @@ public class GioHangPanel extends JPanel {
         for (GioHangDTO item : Session.cartCache) {
             total = total.add(item.getThanhTien());
         }
+        
         ThanhToanForm thanhToanForm = new ThanhToanForm(parentFrame, total);
         thanhToanForm.setVisible(true);
     }
-
-    // =========================================
-    // HỖ TRỢ GIAO DIỆN & EFFECTS
-    // =========================================
 
     private void styleQtyButton(JButton btn) {
         btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -423,7 +409,6 @@ public class GioHangPanel extends JPanel {
         JButton btn = new JButton();
         btn.setPreferredSize(size);
         
-        // Load icon SVG, nếu lỗi sẽ tự động lùi về dùng icon text "↻"
         try {
             btn.setIcon(new com.formdev.flatlaf.extras.FlatSVGIcon(iconPath, 18, 18));
         } catch (Exception ex) {
@@ -451,7 +436,7 @@ public class GioHangPanel extends JPanel {
         });
         return btn;
     }
-    
+
     static class ModernSearchField extends JTextField {
         private final String placeholder;
         private boolean isHovered = false;
@@ -507,19 +492,16 @@ public class GioHangPanel extends JPanel {
         }
     }
 
-    // PANEL CÓ BÓNG ĐỔ (SHADOW)
     static class RoundedPanel extends JPanel {
         private final int arc;
         RoundedPanel(int arc) { this.arc = arc; setOpaque(false); }
         @Override protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            // Vẽ 5 lớp shadow mờ dần tạo hiệu ứng bóng đổ
             for (int i = 5; i >= 1; i--) {
-                g2.setColor(new Color(0, 0, 0, 6)); // Độ mờ rất thấp
+                g2.setColor(new Color(0, 0, 0, 6)); 
                 g2.fill(new RoundRectangle2D.Float(i, i + 1, getWidth() - i * 2, getHeight() - i * 2, arc, arc));
             }
-            // Vẽ nền chính
             g2.setColor(getBackground());
             g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 5, getHeight() - 5, arc, arc));
             g2.dispose(); super.paintComponent(g);

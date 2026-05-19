@@ -24,7 +24,7 @@ public class TestGioHangThanhToan {
 
         // 2. Giả lập phiên đăng nhập (Session) của Khách hàng
         TaiKhoanDTO dummyUser = new TaiKhoanDTO();
-        dummyUser.setUsername("KhachHang_Test");
+        dummyUser.setUsername("KH000001");
         dummyUser.setLoaiTK(2); // Role 2: Khách hàng (Sẽ hiển thị menu Mua sắm & Giỏ hàng)
         Session.currentUser = dummyUser;
         Session.chucVu = "Khách Hàng";
