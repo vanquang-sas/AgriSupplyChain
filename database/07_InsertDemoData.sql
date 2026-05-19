@@ -198,6 +198,7 @@ SELECT * FROM dual;
 --        PHẦN 8: DATA ENRICHMENT - Sinh dữ liệu 12 tháng (05/2025 - 05/2026) -     
 -- ====================================================================================
 
+SET DEFINE OFF;
 DECLARE
     -- ===== Variables for loop control =====
     v_month_date DATE;
@@ -241,7 +242,7 @@ DECLARE
     v_focused_products t_sp_array := t_sp_array('SP000001', 'SP000002', 'SP000006', 'SP000007', 'SP000021', 'SP000025');
     
 BEGIN
-    DBMS_OUTPUT.PUT_LINE('BẮT ĐẦU CHẠY DATA ENRICHMENT - VERSION TỊNH TIẾN THỜI GIAN');
+    DBMS_OUTPUT.PUT_LINE('BẮT ĐẦU CHẠY DATA ENRICHMENT - VERSION 3 (BIẾN ĐỘNG GIÁ MUA & BÁN)');
     
     -- Lặp qua 13 tháng (05/2025 - 05/2026)
     FOR v_month_offset IN 0..12 LOOP
@@ -281,6 +282,9 @@ BEGIN
                     
                     v_total_import_month := v_total_import_month + v_SoLuong_import;
                     SP_XACNHAN_VITRI_CTLH(v_MaCTLH, v_MaKho, TO_DATE('2028-12-31', 'YYYY-MM-DD'), 'Kệ A' || TRUNC(DBMS_RANDOM.VALUE(1, 11)));
+                    UPDATE LICHSUGIA SET TGApDung = (v_month_start + v_day_offset)
+                    WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = v_MaSP ORDER BY MaGia DESC) WHERE ROWNUM = 1)
+                    AND TRUNC(TGApDung) = TRUNC(SYSDATE);
                 END LOOP;
             EXCEPTION WHEN OTHERS THEN NULL; END;
         END LOOP;
@@ -298,34 +302,44 @@ BEGIN
                 IF v_day_offset >= v_days_in_month THEN v_day_offset := v_days_in_month - 1; END IF;
                 v_simulated_date := v_month_start + v_day_offset;
                 
-                -- ================= [CHÈN BIẾN ĐỘNG GIÁ] ================= --
-                -- 2.1 Cập nhật giá cho SP000001 (Đủ 4 lần/tháng) rải rác đan xen tạo đơn
+                -- ================= [CHÈN BIẾN ĐỘNG GIÁ MUA VÀ GIÁ BÁN] ================= --
+                -- 2.1 Cập nhật giá cho SP000001 (Đủ 4 lần/tháng)
                 IF MOD(j, TRUNC(v_num_donhang_month / 4)) = 0 AND v_sp1_changes < 4 THEN
                     SELECT GiaMua INTO v_GiaMua FROM SANPHAM WHERE MaSP = 'SP000001';
+                    
+                    -- DAO ĐỘNG GIÁ MUA (-3% đến +5%) làm tròn hàng nghìn cho đẹp
+                    v_GiaMua := ROUND(v_GiaMua * (1 + DBMS_RANDOM.VALUE(-0.03, 0.05)), -3);
+                    
+                    -- TÍNH GIÁ BÁN THEO MARGIN (30% - 50%)
                     v_margin := 0.30 + DBMS_RANDOM.VALUE(0, 0.20);
-                    v_GiaBan_New := ROUND(v_GiaMua * (1 + v_margin), 0);
+                    v_GiaBan_New := ROUND(v_GiaMua * (1 + v_margin), -3);
                     
-                    -- Lệnh này gọi Trigger insert SYSDATE
                     SP_CAPNHAT_GIA('SP000001', v_GiaMua, v_GiaBan_New);
-                    
-                    -- [MẸO BACKDATE] Ép dòng vừa được tạo về lại ngày ảo của kịch bản
+
                     UPDATE LICHSUGIA SET TGApDung = v_simulated_date 
-                    WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = 'SP000001' ORDER BY MaGia DESC) WHERE ROWNUM = 1);
+                    WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = 'SP000001' ORDER BY MaGia DESC) WHERE ROWNUM = 1)
+                    AND TRUNC(TGApDung) = TRUNC(SYSDATE);
                     
                     v_sp1_changes := v_sp1_changes + 1;
                 END IF;
                 
-                -- 2.2 Cập nhật giá cho các SP khác (1-2 lần/tháng) tại giữa & cuối tháng
+                -- 2.2 Cập nhật giá cho các SP khác (1-2 lần/tháng)
                 IF j = TRUNC(v_num_donhang_month / 2) OR j = v_num_donhang_month THEN
                     FOR sp_idx IN 2..v_focused_products.COUNT LOOP 
                         IF DBMS_RANDOM.VALUE(0, 1) > 0.3 THEN 
                             SELECT GiaMua INTO v_GiaMua FROM SANPHAM WHERE MaSP = v_focused_products(sp_idx);
-                            v_margin := 0.30 + DBMS_RANDOM.VALUE(0, 0.20);
-                            SP_CAPNHAT_GIA(v_focused_products(sp_idx), v_GiaMua, ROUND(v_GiaMua * (1 + v_margin), 0));
                             
-                            -- [MẸO BACKDATE]
+                            -- DAO ĐỘNG GIÁ MUA (-3% đến +5%) làm tròn hàng nghìn
+                            v_GiaMua := ROUND(v_GiaMua * (1 + DBMS_RANDOM.VALUE(-0.03, 0.05)), -3);
+                            
+                            v_margin := 0.30 + DBMS_RANDOM.VALUE(0, 0.20);
+                            v_GiaBan_New := ROUND(v_GiaMua * (1 + v_margin), -3);
+                            
+                            SP_CAPNHAT_GIA(v_focused_products(sp_idx), v_GiaMua, v_GiaBan_New);
+
                             UPDATE LICHSUGIA SET TGApDung = v_simulated_date 
-                            WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = v_focused_products(sp_idx) ORDER BY MaGia DESC) WHERE ROWNUM = 1);
+                            WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = v_focused_products(sp_idx) ORDER BY MaGia DESC) WHERE ROWNUM = 1)
+                            AND TRUNC(TGApDung) = TRUNC(SYSDATE);
                         END IF;
                     END LOOP;
                 END IF;
@@ -363,6 +377,7 @@ BEGIN
                 
                 BEGIN SP_YEUCAU_XUATKHO(v_MaDH); EXCEPTION WHEN OTHERS THEN NULL; END;
                 
+                -- NHỮNG ĐƠN TỪ THÁNG 4/2026 TRỞ VỀ TRƯỚC SẼ ĐƯỢC CHỐT DOANH THU
                 IF v_month_date <= TO_DATE('2026-04-30', 'YYYY-MM-DD') THEN
                     BEGIN
                         IF v_MaNV_GiaoHang IS NULL THEN
@@ -383,7 +398,7 @@ BEGIN
     END LOOP;
     
     COMMIT;
-    DBMS_OUTPUT.PUT_LINE('HOÀN TẤT SINH DATA KÈM LỊCH SỬ BIẾN ĐỘNG GIÁ!');
+    DBMS_OUTPUT.PUT_LINE('HOÀN TẤT SINH DATA KÈM LỊCH SỬ BIẾN ĐỘNG GIÁ MUA & BÁN!');
 EXCEPTION WHEN OTHERS THEN ROLLBACK; DBMS_OUTPUT.PUT_LINE('LỖI: ' || SQLERRM);
 END;
 /
@@ -406,29 +421,3 @@ UNION ALL
 SELECT 'XUATKHO Count', COUNT(*) FROM XUATKHO
 UNION ALL
 SELECT 'LICHSUGIA Count', COUNT(*) FROM LICHSUGIA;
-
-
-WITH DoanhThu AS (
-    -- Gom nhóm Tổng Doanh Thu theo từng tháng
-    SELECT 
-        TRUNC(TGDat, 'MM') AS Thang, 
-        SUM(TongTien) AS Revenue
-    FROM DONHANG
-    WHERE TrangThaiDH = 'Hoàn thành'
-    GROUP BY TRUNC(TGDat, 'MM')
-),
-ChiPhi AS (
-    -- Gom nhóm Tổng Chi Phí theo từng tháng
-    SELECT 
-        TRUNC(TGNhap, 'MM') AS Thang, 
-        SUM(TongTien) AS Cost
-    FROM LOHANG
-    GROUP BY TRUNC(TGNhap, 'MM')
-)
-SELECT 
-    COALESCE(dt.Thang, cp.Thang) AS Month,
-    NVL(dt.Revenue, 0) AS Revenue,
-    NVL(cp.Cost, 0) AS Cost
-FROM DoanhThu dt
-FULL OUTER JOIN ChiPhi cp ON dt.Thang = cp.Thang
-ORDER BY Month;
