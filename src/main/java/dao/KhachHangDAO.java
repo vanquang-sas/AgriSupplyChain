@@ -11,13 +11,22 @@ public class KhachHangDAO {
 
     public boolean capNhatHoSoKH(String maKH, String tenKH, String diaChi, String sdt, String email) {
         String sqlUsername = "SELECT Username FROM KHACHHANG WHERE MaKH = ?";
-        try (Connection conn = DBConnection.getConnection()) {
+
+        Connection conn = null;
+
+        try {
+            conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
+
             String username = null;
+
             try (PreparedStatement ps = conn.prepareStatement(sqlUsername)) {
                 ps.setString(1, maKH);
+
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) username = rs.getString("Username");
+                    if (rs.next()) {
+                        username = rs.getString("Username");
+                    }
                 }
             }
 
@@ -43,14 +52,30 @@ public class KhachHangDAO {
 
             conn.commit();
             return true;
+
         } catch (SQLException e) {
+
             try {
-                conn.rollback();
+                if (conn != null) {
+                    conn.rollback();
+                }
             } catch (SQLException rollbackEx) {
                 System.err.println("Lỗi rollback capNhatHoSoKH: " + rollbackEx.getMessage());
             }
+
             System.err.println("Lỗi DAO - capNhatHoSoKH: " + e.getMessage());
             return false;
+
+        } finally {
+
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 

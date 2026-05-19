@@ -12,8 +12,10 @@ public class Session {
     public static TaiKhoanDTO currentUser    = null;
     public static String      tenNguoiDung   = "Người dùng";
     public static String      chucVu         = "Khách hàng";
-    public static String maKH = "KH000001";
-    public static String maNV = "NV000012";
+    
+    // Gán mặc định là null để làm mới mỗi lần đăng nhập
+    public static String      maKH           = null;
+    public static String      maNV           = null;
 
     // ── Cache giỏ hàng (chỉ có ý nghĩa khi LoaiTK == 2 – Khách hàng) ─
     /** Danh sách sản phẩm trong giỏ, nạp từ DB sau khi đăng nhập. */
@@ -27,15 +29,42 @@ public class Session {
     }
 
     // ─────────────────────────────────────────────────────────────────
+    // Khởi tạo phiên làm việc ngay khi đăng nhập thành công
+    // ─────────────────────────────────────────────────────────────────
+    public static void initSession(TaiKhoanDTO tk, String ten, String vaiTro, String maKhachHang, String maNhanVien) {
+        clear(); // Dọn sạch phiên làm việc cũ (nếu có)
+        
+        currentUser = tk;
+        tenNguoiDung = (ten != null && !ten.isEmpty()) ? ten : "Người dùng";
+        chucVu = (vaiTro != null && !vaiTro.isEmpty()) ? vaiTro : "Khách hàng";
+
+        if (tk != null) {
+            // Phân bổ mã chính xác dựa trên loại tài khoản
+            if (tk.getLoaiTK() == 2) { 
+                // 2 = Khách hàng
+                maKH = maKhachHang;
+                maNV = null;
+            } else if (tk.getLoaiTK() == 0 || tk.getLoaiTK() == 1) { 
+                // 0 = Quản lý, 1 = Nhân viên
+                maKH = null;
+                maNV = maNhanVien;
+            } else {
+                maKH = null;
+                maNV = null;
+            }
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────
     // Đăng xuất – xoá toàn bộ trạng thái phiên
     // ─────────────────────────────────────────────────────────────────
     public static void clear() {
         currentUser   = null;
         tenNguoiDung  = "Người dùng";
         chucVu        = "Khách hàng";
+        maKH          = null;
+        maNV          = null;
         cartCache.clear();
-        maKH = "KH000001";
-        maNV = "NV000012";
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -67,22 +96,12 @@ public class Session {
         cartCache.add(item);
     }
 
-
     public static void removeFromCartCache(String maSP) {
         cartCache.removeIf(dto -> dto.getMaSP().equals(maSP));
     }
 
     public static int getCartItemCount() {
         return cartCache.size();
-    }
-
-    // ─────────────────────────────────────────────────────────────────
-    // CÁC HÀM BỔ SUNG ĐỂ FIX LỖI COMPILE CHO GIOHANGDIALOG
-    // ─────────────────────────────────────────────────────────────────
-
-
-    public static void updateCartItemCount() {
-        // Không cần xử lý gì thêm vì cartCache.size() luôn lấy giá trị mới nhất (Real-time)
     }
 
     public static void clearCart() {

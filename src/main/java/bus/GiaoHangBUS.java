@@ -9,10 +9,6 @@ public class GiaoHangBUS {
 
     private GiaoHangDAO dao = new GiaoHangDAO();
 
-    public List<DonHangDTO> layDonChoGiao(String MaNV){
-        return dao.getDanhSachChoGiao(MaNV);
-    }
-
     public boolean nhanDonGiao(String MaDH, String MaNV){
         if(MaDH == null || MaDH.trim().isEmpty()){
             return false;
@@ -30,5 +26,13 @@ public class GiaoHangBUS {
 
     public List<DonHangDTO> lichSuGiaoHang(String MaNV) {
         return dao.getLichSuGiaoHang(MaNV);
+    }
+
+    public List<DonHangDTO> layDonChoGiao(){
+        return dao.getDanhSachChoGiao();
+    }
+
+    public List<DonHangDTO> layDonDaNhan(String MaNV){
+        return dao.getDanhSachDaNhan(MaNV);
     }
 }

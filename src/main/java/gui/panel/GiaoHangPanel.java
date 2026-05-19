@@ -10,844 +10,388 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
-import java.util.List;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 
 public class GiaoHangPanel extends JPanel {
-        public GiaoHangPanel() {}
 
-    // =====================================================
-    // NHÂN VIÊN
-    // =====================================================
     private String maNV;
+    private final GiaoHangBUS bus = new GiaoHangBUS();
 
-    // =====================================================
-    // TABLE
-    // =====================================================
-    private JTable tblChoGiao;
-    private JTable tblLichSu;
+    // Models
+    private DefaultTableModel modelChoGiao, modelDaNhan, modelLichSu;
+    private JTable tblChoGiao, tblDaNhan, tblLichSu;
 
-    // =====================================================
-    // MODEL
-    // =====================================================
-    private DefaultTableModel modelChoGiao;
-    private DefaultTableModel modelLichSu;
+    private static final String[] COLUMNS = {"MÃ ĐH", "MÃ KH", "ĐỊA CHỈ GIAO", "NGÀY ĐẶT", "TỔNG TIỀN", "PHƯƠNG THỨC", "TRẠNG THÁI"};
 
-    // =====================================================
-    // BUTTON
-    // =====================================================
-    private JButton btnNhanDon;
-    private JButton btnThanhCong;
-    private JButton btnThatBai;
-    private JButton btnReload;
-
-    // =====================================================
-    // BUS
-    // =====================================================
-    private GiaoHangBUS bus = new GiaoHangBUS();
-
-    // =====================================================
-    // COLOR
-    // =====================================================
-    private final Color PRIMARY = new Color(46, 125, 50);
-    private final Color SUCCESS = new Color(56, 142, 60);
-    private final Color DANGER = new Color(211, 47, 47);
-    private final Color INFO = new Color(2, 136, 209);
-    private final Color BG = new Color(245, 247, 250);
-
-    // =====================================================
-    // CONSTRUCTOR
-    // =====================================================
     public GiaoHangPanel(String maNV) {
-
         this.maNV = maNV;
-
         setLayout(new BorderLayout());
-        setBackground(BG);
+        setBackground(AppColor.BACKGROUND);
+        setBorder(new EmptyBorder(24, 24, 24, 24));
 
-        // =====================================================
-        // TITLE
-        // =====================================================
-        JLabel lblTitle = new JLabel(
-                "PHÂN HỆ GIAO HÀNG - NHÂN VIÊN: " + maNV
-        );
+        // 1. Tiêu đề
+        RoundedPanel titleCard = new RoundedPanel(16);
+        titleCard.setBackground(AppColor.SURFACE);
+        titleCard.setLayout(new BorderLayout());
+        titleCard.setBorder(new EmptyBorder(24, 24, 24, 24));
+        
+        JLabel title = new JLabel("Phân hệ Giao Hàng - Nhân viên: " + maNV);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        title.setForeground(AppColor.TEXT_PRIMARY);
+        titleCard.add(title, BorderLayout.WEST);
 
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 26));
-        lblTitle.setForeground(Color.BLACK);
-        lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
+        JPanel topWrapper = new JPanel();
+        topWrapper.setLayout(new BoxLayout(topWrapper, BoxLayout.Y_AXIS));
+        topWrapper.setOpaque(false);
+        topWrapper.add(titleCard);
+        topWrapper.add(Box.createVerticalStrut(18));
+        add(topWrapper, BorderLayout.NORTH);
 
-        JPanel pnlTitle = new JPanel(new BorderLayout());
-        pnlTitle.setBackground(BG);
-        pnlTitle.setBorder(new EmptyBorder(20, 10, 15, 10));
-
-        pnlTitle.add(lblTitle, BorderLayout.CENTER);
-
-        add(pnlTitle, BorderLayout.NORTH);
-
-        // =====================================================
-        // TABBED PANE
-        // =====================================================
+        // 2. TabbedPane
         JTabbedPane tabbedPane = new JTabbedPane();
-
-        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 17));
+        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 15));
         tabbedPane.setBackground(Color.WHITE);
         tabbedPane.setFocusable(false);
-        // ============================================================================================================
-        // =====================================================
-        // PANEL ĐƠN GIAO
-        // =====================================================
-        JPanel pnlChoGiao = new JPanel(new BorderLayout(10, 10));
 
-        pnlChoGiao.setBackground(BG);
-        pnlChoGiao.setBorder(new EmptyBorder(15, 15, 15, 15));
+        // Tạo 3 tab
+        tabbedPane.addTab("ĐƠN CHỜ GIAO", buildTabChoGiao());
+        tabbedPane.addTab("ĐƠN ĐÃ NHẬN", buildTabDaNhan());
+        tabbedPane.addTab("LỊCH SỬ GIAO", buildTabLichSu());
 
-        // =====================================================
-        // TOP ACTION
-        // =====================================================
-        JPanel pnlTopAction = new JPanel(new BorderLayout());
+        RoundedPanel mainCard = new RoundedPanel(16);
+        mainCard.setBackground(AppColor.SURFACE);
+        mainCard.setLayout(new BorderLayout());
+        mainCard.setBorder(new EmptyBorder(10, 10, 10, 10));
+        mainCard.add(tabbedPane, BorderLayout.CENTER);
 
-        pnlTopAction.setBackground(BG);
-        pnlTopAction.setBorder(new EmptyBorder(0, 0, 10, 0));
+        add(mainCard, BorderLayout.CENTER);
 
-        JLabel lblChoGiao = new JLabel("Đơn giao hàng");
-
-        lblChoGiao.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        lblChoGiao.setForeground(new Color(120, 120, 120));
-
-        pnlTopAction.add(lblChoGiao, BorderLayout.WEST);
-
-        // =====================================================
-        // BUTTON PANEL
-        // =====================================================
-        JPanel pnlButton = new JPanel(
-                new FlowLayout(FlowLayout.RIGHT, 12, 0)
-        );
-
-        pnlButton.setOpaque(false);
-
-        btnNhanDon = createButton("Nhận đơn", INFO);
-        btnThanhCong = createButton("Giao thành công", SUCCESS);
-        btnThatBai = createButton("Giao thất bại", DANGER);
-        btnReload = createButton("Reload", PRIMARY);
-
-        pnlButton.add(btnNhanDon);
-        pnlButton.add(btnThanhCong);
-        pnlButton.add(btnThatBai);
-        pnlButton.add(btnReload);
-
-        pnlTopAction.add(pnlButton, BorderLayout.EAST);
-
-        pnlChoGiao.add(pnlTopAction, BorderLayout.NORTH);
-
-        // =====================================================
-        // TABLE ĐƠN GIAO
-        // =====================================================
-        modelChoGiao = new DefaultTableModel(
-                new String[]{
-                        "Mã ĐH",
-                        "Mã KH",
-                        "NV Giao",
-                        "Địa chỉ giao",
-                        "Ngày đặt",
-                        "Tổng tiền",
-                        "Trạng thái"
-                },
-                0
-        );
-
-        tblChoGiao = new JTable(modelChoGiao);
-        UIManager.put("TableHeader.cellBorder", BorderFactory.createEmptyBorder());
-        customTables(tblChoGiao);
-    
-
-        JScrollPane scrollChoGiao = new JScrollPane(tblChoGiao);
-
-        scrollChoGiao.setBorder(null);
-        scrollChoGiao.getViewport().setBackground(Color.WHITE);
-
-        // XÓA SCROLLBAR
-        scrollChoGiao.setVerticalScrollBarPolicy(
-                JScrollPane.VERTICAL_SCROLLBAR_NEVER
-        );
-
-        scrollChoGiao.setHorizontalScrollBarPolicy(
-                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-        );
-
-        JPanel tableWrapper = new JPanel(new BorderLayout());
-
-        tableWrapper.setBackground(Color.WHITE);
-
-        tableWrapper.setBorder(
-                BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(
-                                new Color(230, 230, 230)
-                        ),
-                        new EmptyBorder(10, 10, 10, 10)
-                )
-        );
-
-        tableWrapper.add(scrollChoGiao, BorderLayout.CENTER);
-
-        pnlChoGiao.add(tableWrapper, BorderLayout.CENTER);
-        // =======================================================================================================================
-        // =====================================================
-        // PANEL LỊCH SỬ
-        // =====================================================
-       
-        JPanel pnlLichSu = new JPanel(new BorderLayout(10, 10));
-
-        pnlLichSu.setBackground(BG);
-        pnlLichSu.setBorder(new EmptyBorder(15, 15, 15, 15));
-
-        JLabel lblLichSu = new JLabel("Lịch sử giao hàng");
-
-        lblLichSu.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        lblLichSu.setForeground(new Color(120, 120, 120));
-
-        pnlLichSu.add(lblLichSu, BorderLayout.NORTH);
-
-        // =====================================================
-        // TABLE LỊCH SỬ
-        // =====================================================
-        modelLichSu = new DefaultTableModel(
-                new String[]{
-                        "Mã ĐH",
-                        "Mã KH",
-                        "NV giao",
-                        "Ngày đặt",
-                        "Tổng tiền",
-                        "Trạng thái"
-                },
-                0
-        );
-
-        tblLichSu = new JTable(modelLichSu);
-
-        customTables(tblLichSu);
-
-        JScrollPane scrollLichSu = new JScrollPane(tblLichSu);
-
-        scrollLichSu.setBorder(null);
-        scrollLichSu.getViewport().setBackground(Color.WHITE);
-
-        // XÓA SCROLLBAR
-        scrollLichSu.setVerticalScrollBarPolicy(
-                JScrollPane.VERTICAL_SCROLLBAR_NEVER
-        );
-
-        scrollLichSu.setHorizontalScrollBarPolicy(
-                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-        );
-
-        JPanel tableHistoryWrapper = new JPanel(new BorderLayout());
-
-        tableHistoryWrapper.setBackground(Color.WHITE);
-
-        tableHistoryWrapper.setBorder(
-                BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(
-                                new Color(230, 230, 230)
-                        ),
-                        new EmptyBorder(10, 10, 10, 10)
-                )
-        );
-
-        tableHistoryWrapper.add(scrollLichSu, BorderLayout.CENTER);
-
-        pnlLichSu.add(tableHistoryWrapper, BorderLayout.CENTER);
-
-        // =====================================================
-        // ADD TAB
-        // =====================================================
-        tabbedPane.addTab("ĐƠN GIAO HÀNG", pnlChoGiao);
-        tabbedPane.addTab("LỊCH SỬ GIAO HÀNG", pnlLichSu);
-
-        add(tabbedPane, BorderLayout.CENTER);
-
-        // =====================================================
-        // LOAD DATA
-        // =====================================================
-        loadDanhSachChoGiao();
-        loadLichSu();
-
-        // =====================================================
-        // EVENT NHẬN ĐƠN
-        // =====================================================
-        btnNhanDon.addActionListener(e -> {
-
-            int row = tblChoGiao.getSelectedRow();
-
-            if (row == -1) {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Vui lòng chọn đơn hàng"
-                );
-
-                return;
-            }
-
-            String maDH =
-                    modelChoGiao.getValueAt(row, 0).toString();
-
-            boolean result =
-                    bus.nhanDonGiao(maDH, maNV);
-
-            if (result) {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Nhận đơn thành công"
-                );
-
-                loadDanhSachChoGiao();
-                loadLichSu();
-
-            } else {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Nhận đơn thất bại!"
-                );
-            }
-        });
-
-        // =====================================================
-        // EVENT THÀNH CÔNG
-        // =====================================================
-        btnThanhCong.addActionListener(e -> {
-
-            int row = tblChoGiao.getSelectedRow();
-
-            if (row == -1) {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Vui lòng chọn đơn hàng"
-                );
-
-                return;
-            }
-
-            String maDH =
-                    modelChoGiao.getValueAt(row, 0).toString();
-
-            boolean result =
-                    bus.giaoThanhCong(maDH, maNV);
-
-            if (result) {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Giao hàng thành công"
-                );
-
-                loadDanhSachChoGiao();
-                loadLichSu();
-
-            } else {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Đơn chưa ở trạng thái đang giao"
-                );
-            }
-        });
-
-        // =====================================================
-        // EVENT THẤT BẠI
-        // =====================================================
-        btnThatBai.addActionListener(e -> {
-
-            int row = tblChoGiao.getSelectedRow();
-
-            if (row == -1) {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Vui lòng chọn đơn hàng"
-                );
-
-                return;
-            }
-
-            String trangThai =
-                    modelChoGiao.getValueAt(row, 6).toString();
-
-            if (!trangThai.equals("Đang giao")) {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Chỉ được cập nhật khi đơn đang giao"
-                );
-
-                return;
-            }
-
-            String maDH =
-                    modelChoGiao.getValueAt(row, 0).toString();
-
-            JTextArea txtLyDo = new JTextArea();
-
-            txtLyDo.setRows(5);
-            txtLyDo.setColumns(30);
-
-            txtLyDo.setLineWrap(true);
-            txtLyDo.setWrapStyleWord(true);
-
-            txtLyDo.setFont(
-                    new Font("Segoe UI", Font.PLAIN, 14)
-            );
-
-            JScrollPane scrollPane =
-                    new JScrollPane(txtLyDo);
-
-            JPanel panel =
-                    new JPanel(new BorderLayout(5, 5));
-
-            JLabel lbl =
-                    new JLabel("nhập lý do giao thất bại");
-
-            lbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-            lbl.setForeground(new Color(120, 120, 120));
-
-            panel.add(lbl, BorderLayout.NORTH);
-            panel.add(scrollPane, BorderLayout.CENTER);
-
-            int option = JOptionPane.showConfirmDialog(
-                    this,
-                    panel,
-                    "Giao hàng thất bại",
-                    JOptionPane.OK_CANCEL_OPTION,
-                    JOptionPane.PLAIN_MESSAGE
-            );
-
-            if (option != JOptionPane.OK_OPTION) {
-                return;
-            }
-
-            String lyDo =
-                    txtLyDo.getText().trim();
-
-            if (lyDo.isEmpty()) {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Vui lòng nhập lý do"
-                );
-
-                return;
-            }
-
-            boolean result =
-                    bus.giaoThatBai(maDH, maNV, lyDo);
-
-            if (result) {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Cập nhật thành công"
-                );
-
-                loadDanhSachChoGiao();
-                loadLichSu();
-
-            } else {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Cập nhật thất bại"
-                );
-            }
-        });
-
-        // =====================================================
-        // EVENT RELOAD
-        // =====================================================
-        btnReload.addActionListener(e -> {
-
-            loadDanhSachChoGiao();
-            loadLichSu();
-        });
+        // Load dữ liệu lần đầu
+        loadData();
     }
 
-//     // =====================================================
-//     // CUSTOM TABLE
-//     // =====================================================
-    private void customTable(JTable table) {
+    // ================== TAB 1: ĐƠN CHỜ GIAO ==================
+    private JPanel buildTabChoGiao() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+        panel.setBorder(new EmptyBorder(16, 0, 0, 0));
 
-        table.setRowHeight(42);
+        JPanel toolBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        toolBar.setOpaque(false);
 
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JButton btnNhanDon = createActionButton("Xác nhận giao", AppColor.INFO, AppColor.INFO_HOVER, AppColor.INFO_ACTIVE);
+        JButton btnRefresh = createActionButton("Làm mới", AppColor.SUCCESS, AppColor.SUCCESS_HOVER, AppColor.SUCCESS_ACTIVE);
 
-        table.setForeground(new Color(90, 90, 90));
+        btnNhanDon.addActionListener(e -> nhanDonAction());
+        btnRefresh.addActionListener(e -> loadData());
 
-        table.setBackground(Color.WHITE);
+        toolBar.add(btnRefresh);
+        toolBar.add(btnNhanDon);
+        panel.add(toolBar, BorderLayout.NORTH);
 
+        modelChoGiao = new DefaultTableModel(COLUMNS, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+        tblChoGiao = new JTable(modelChoGiao);
+        setupTable(tblChoGiao);
+        panel.add(createTableScroll(tblChoGiao), BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    // ================== TAB 2: ĐƠN ĐÃ NHẬN ==================
+    private JPanel buildTabDaNhan() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+        panel.setBorder(new EmptyBorder(16, 0, 0, 0));
+
+        JPanel toolBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        toolBar.setOpaque(false);
+
+        JButton btnThanhCong = createActionButton("Giao thành công", AppColor.SUCCESS, AppColor.SUCCESS_HOVER, AppColor.SUCCESS_ACTIVE);
+        JButton btnThatBai = createActionButton("Giao thất bại", AppColor.ERROR, AppColor.ERROR_HOVER, AppColor.ERROR_ACTIVE);
+
+        btnThanhCong.addActionListener(e -> giaoThanhCongAction());
+        btnThatBai.addActionListener(e -> giaoThatBaiAction());
+
+        toolBar.add(btnThatBai);
+        toolBar.add(btnThanhCong);
+        panel.add(toolBar, BorderLayout.NORTH);
+
+        modelDaNhan = new DefaultTableModel(COLUMNS, 0){
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+        tblDaNhan = new JTable(modelDaNhan);
+        setupTable(tblDaNhan);
+        panel.add(createTableScroll(tblDaNhan), BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    // ================== TAB 3: LỊCH SỬ GIAO ==================
+    private JPanel buildTabLichSu() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+        panel.setBorder(new EmptyBorder(16, 0, 0, 0));
+
+        modelLichSu = new DefaultTableModel(COLUMNS, 0){
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+        tblLichSu = new JTable(modelLichSu);
+        setupTable(tblLichSu);
+        panel.add(createTableScroll(tblLichSu), BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    // ================== ACTIONS ==================
+    private void nhanDonAction() {
+        int row = tblChoGiao.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn đơn hàng cần nhận!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String maDH = modelChoGiao.getValueAt(row, 0).toString();
+        if (bus.nhanDonGiao(maDH, maNV)) {
+            JOptionPane.showMessageDialog(this, "Nhận đơn thành công!");
+            loadData();
+        } else {
+            JOptionPane.showMessageDialog(this, "Nhận đơn thất bại. Có thể đơn đã bị người khác nhận!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            loadData();
+        }
+    }
+
+    private void giaoThanhCongAction() {
+        int row = tblDaNhan.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn đơn hàng để cập nhật!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String maDH = modelDaNhan.getValueAt(row, 0).toString();
+        if (JOptionPane.showConfirmDialog(this, "Xác nhận đã giao đơn hàng " + maDH + " thành công?", "Xác nhận", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            if (bus.giaoThanhCong(maDH, maNV)) {
+                JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
+                loadData();
+            } else {
+                JOptionPane.showMessageDialog(this, "Cập nhật thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void giaoThatBaiAction() {
+        int row = tblDaNhan.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn đơn hàng báo thất bại!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String maDH = modelDaNhan.getValueAt(row, 0).toString();
+        String lyDo = JOptionPane.showInputDialog(this, "Nhập lý do giao thất bại (Bắt buộc):", "Giao thất bại", JOptionPane.QUESTION_MESSAGE);
+        
+        if (lyDo != null) {
+            if (lyDo.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Lý do không được để trống!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (bus.giaoThatBai(maDH, maNV, lyDo)) {
+                JOptionPane.showMessageDialog(this, "Đã cập nhật trạng thái thất bại.");
+                loadData();
+            } else {
+                JOptionPane.showMessageDialog(this, "Cập nhật thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    // ================== LOAD DATA ==================
+    private void loadData() {
+        // Tab 1
+        modelChoGiao.setRowCount(0);
+        for (DonHangDTO dh : bus.layDonChoGiao()) { // Lưu ý: Hàm này đã không cần truyền MaNV
+            modelChoGiao.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgDat(), dh.getTongTien(), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
+        }
+        // Tab 2
+        modelDaNhan.setRowCount(0);
+        for (DonHangDTO dh : bus.layDonDaNhan(maNV)) {
+            modelDaNhan.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgDat(), dh.getTongTien(), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
+        }
+        // Tab 3
+        modelLichSu.setRowCount(0);
+        for (DonHangDTO dh : bus.lichSuGiaoHang(maNV)) {
+            modelLichSu.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgDat(), dh.getTongTien(), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
+        }
+    }
+
+    // ================== UI HELPERS ==================
+    private JScrollPane createTableScroll(JTable tbl) {
+        JScrollPane scroll = new JScrollPane(tbl);
+        scroll.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        scroll.getViewport().setBackground(Color.WHITE);
+        return scroll;
+    }
+
+    private void setupTable(JTable table) {
+        table.setRowHeight(48);
         table.setShowVerticalLines(false);
-
-        table.setGridColor(new Color(240, 240, 240));
-
-        table.setIntercellSpacing(new Dimension(0, 1));
-
-        table.setSelectionBackground(
-                new Color(232, 245, 233)
-        );
-
-        table.setSelectionForeground(Color.BLACK);
-
+        table.setShowHorizontalLines(true);
+        table.setGridColor(new Color(229, 231, 235));
+        table.setBackground(Color.WHITE);
+        table.setSelectionBackground(new Color(220, 252, 231));
+        table.setSelectionForeground(AppColor.TEXT_PRIMARY);
         table.setFocusable(false);
 
         JTableHeader header = table.getTableHeader();
+        header.setPreferredSize(new Dimension(0, 52));
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(209, 213, 219)));
+        header.setReorderingAllowed(false);
 
-        header.setBackground(Color.WHITE);
+        DefaultTableCellRenderer hdrRdr = new DefaultTableCellRenderer() {
+            @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean isS, boolean hasF, int r, int c) {
+                Component comp = super.getTableCellRendererComponent(t, v, isS, hasF, r, c);
+                comp.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                comp.setForeground(new Color(17, 24, 39));
+                comp.setBackground(new Color(243, 244, 246));
+                ((JLabel) comp).setBorder(new EmptyBorder(0, 16, 0, 8));
+                return comp;
+            }
+        };
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setHeaderRenderer(hdrRdr);
+        }
 
-        header.setForeground(Color.BLACK);
-
-        header.setFont(
-                new Font("Segoe UI", Font.BOLD, 14)
-        );
-
-        header.setBorder(
-                BorderFactory.createMatteBorder(
-                        0,
-                        0,
-                        1,
-                        0,
-                        new Color(230, 230, 230)
-                )
-        );
-
-        
-        header.setPreferredSize(
-                new Dimension(header.getWidth(), 42)
-        );
-
-        table.setDefaultRenderer(
-                Object.class,
-                new DefaultTableCellRenderer() {
-
-                    @Override
-                    public Component getTableCellRendererComponent(
-                            JTable table,
-                            Object value,
-                            boolean isSelected,
-                            boolean hasFocus,
-                            int row,
-                            int column
-                    ) {
-
-                        Component c =
-                                super.getTableCellRendererComponent(
-                                        table,
-                                        value,
-                                        isSelected,
-                                        hasFocus,
-                                        row,
-                                        column
-                                );
-
-                        if (!isSelected) {
-
-                            if (row % 2 == 0) {
-
-                                c.setBackground(Color.WHITE);
-
-                            } else {
-
-                                c.setBackground(
-                                        new Color(248, 249, 251)
-                                );
-                            }
-                        }
-
-                        setBorder(
-                                new EmptyBorder(0, 10, 0, 10)
-                        );
-
-                        return c;
-                    }
-                }
-        );
+        ZebraHoverRenderer zebraRdr = new ZebraHoverRenderer(table);
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            if (i == 6) { // Cột trạng thái
+                table.getColumnModel().getColumn(i).setCellRenderer(new BadgeStatusRenderer(table));
+            } else {
+                table.getColumnModel().getColumn(i).setCellRenderer(zebraRdr);
+            }
+        }
     }
 
-    // =====================================================
-    // BUTTON STYLE
-    // =====================================================
-    private JButton createButton(String text, Color color) {
-
-        JButton btn = new JButton(text);
-
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-
-        btn.setBackground(color);
-
+    private JButton createActionButton(String text, Color bg, Color hoverColor, Color activeColor) {
+        JButton btn = new JButton(text) {
+            private Color current = bg;
+            {
+                addMouseListener(new MouseAdapter() {
+                    @Override public void mouseEntered(MouseEvent e)  { current = hoverColor;  repaint(); }
+                    @Override public void mouseExited(MouseEvent e)   { current = bg;          repaint(); }
+                    @Override public void mousePressed(MouseEvent e)  { current = activeColor; repaint(); }
+                    @Override public void mouseReleased(MouseEvent e) { current = hoverColor;  repaint(); }
+                });
+            }
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(current);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btn.setForeground(Color.WHITE);
-
-        btn.setFocusPainted(false);
-
+        btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
-
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        btn.setPreferredSize(new Dimension(170, 42));
-
-        btn.setBorder(
-                new EmptyBorder(8, 18, 8, 18)
-        );
-
-        btn.addMouseListener(
-                new java.awt.event.MouseAdapter() {
-
-                    @Override
-                    public void mouseEntered(
-                            java.awt.event.MouseEvent evt
-                    ) {
-
-                        btn.setBackground(
-                                color.darker()
-                        );
-                    }
-
-                    @Override
-                    public void mouseExited(
-                            java.awt.event.MouseEvent evt
-                    ) {
-
-                        btn.setBackground(color);
-                    }
-                }
-        );
-
+        btn.setFocusPainted(false);
+        btn.setPreferredSize(new Dimension(130, 36));
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return btn;
     }
 
-    // =====================================================
-    // LOAD ĐƠN CHỜ GIAO
-    // =====================================================
-    private void loadDanhSachChoGiao() {
-
-        modelChoGiao.setRowCount(0);
-
-        List<DonHangDTO> list =
-                bus.layDonChoGiao(maNV);
-
-        for (DonHangDTO dh : list) {
-
-            modelChoGiao.addRow(new Object[]{
-
-                    dh.getMaDH(),
-                    dh.getMaKH(),
-                    dh.getMaNV(),
-                    dh.getDiaChiGiaoHang(),
-                    dh.getTgDat(),
-                    dh.getTongTien(),
-                    dh.getTrangThaiDH()
-            });
+    // ================= INNER CLASSES =================
+    static class RoundedPanel extends JPanel {
+        private final int arc;
+        RoundedPanel(int arc) { this.arc = arc; setOpaque(false); }
+        @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
+            g2.setColor(new Color(229, 231, 235)); // Border mỏng
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
+            g2.dispose();
+            super.paintComponent(g);
         }
     }
 
-    // =====================================================
-    // LOAD LỊCH SỬ
-    // =====================================================
-    private void loadLichSu() {
-
-        modelLichSu.setRowCount(0);
-
-        List<DonHangDTO> list =
-                bus.lichSuGiaoHang(maNV);
-
-        for (DonHangDTO dh : list) {
-
-            modelLichSu.addRow(new Object[]{
-
-                    dh.getMaDH(),
-                    dh.getMaKH(),
-                    dh.getMaNV(),
-                    dh.getTgDat(),
-                    dh.getTongTien(),
-                    dh.getTrangThaiDH()
-            });
-        }
-    }
-    // =====================================================
-// CUSTOM TABLE
-// =====================================================
-        private void customTables(JTable table) {
-
-        // =====================================================
-        // TABLE
-        // =====================================================
-        table.setRowHeight(45);
-
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-
-        table.setForeground(new Color(60, 60, 60));
-
-        table.setBackground(Color.WHITE);
-
-        table.setShowVerticalLines(false);
-
-        table.setShowHorizontalLines(false);
-
-        table.setIntercellSpacing(new Dimension(0, 0));
-
-        table.setFocusable(false);
-
-        table.setBorder(null);
-
-        table.setSelectionBackground(
-                new Color(232, 245, 233)
-        );
-
-        table.setSelectionForeground(Color.BLACK);
-
-        // =====================================================
-        // HEADER
-        // =====================================================
-        JTableHeader header = table.getTableHeader();
-
-        header.setBackground(AppColor.HEADER);
-
-        header.setForeground(Color.BLACK);
-
-        header.setFont(
-                new Font("Segoe UI", Font.BOLD, 15)
-        );
-
-        // XÓA VIỀN HEADER
-        header.setBorder(null);
-
-        header.setPreferredSize(
-                new Dimension(header.getWidth(), 45)
-        );
-
-        // =====================================================
-        // HEADER TITLE IN HOA
-        // =====================================================
-        for (int i = 0; i < table.getColumnCount(); i++) {
-
-                String title =
-                        table.getColumnName(i).toUpperCase();
-
-                table.getColumnModel()
-                        .getColumn(i)
-                        .setHeaderValue(title);
-        }
-
-        // =====================================================
-        // RENDER CELL
-        // =====================================================
-        table.setDefaultRenderer(
-                Object.class,
-                new DefaultTableCellRenderer() {
-
-                        @Override
-                        public Component getTableCellRendererComponent(
-                                JTable table,
-                                Object value,
-                                boolean isSelected,
-                                boolean hasFocus,
-                                int row,
-                                int column
-                        ) {
-
-                        JLabel lbl =
-                                (JLabel)
-                                        super.getTableCellRendererComponent(
-                                                table,
-                                                value,
-                                                isSelected,
-                                                hasFocus,
-                                                row,
-                                                column
-                                        );
-                       
-                        // CAN GIUA TAT CA
-                        // setHorizontalAlignment(SwingConstants.CENTER);
-
-                        // IN DAM TAT CA
-                        // lbl.setFont(new Font("Arial", Font.BOLD, 13));
-
-                        // =========================================
-                        // PADDING
-                        // =========================================
-                        lbl.setBorder(
-                                new EmptyBorder(0, 12, 0, 12)
-                        );
-
-                        // =========================================
-                        // ROW BACKGROUND
-                        // =========================================
-                        if (!isSelected) {
-
-                                if (row % 2 == 0) {
-
-                                lbl.setBackground(Color.WHITE);
-
-                                } else {
-
-                                lbl.setBackground(
-                                        new Color(248, 249, 251)
-                                );
-                                }       
-                        }
-
-                    // =========================================
-                    // MÃ ĐH -> IN HOA
-                    // =========================================
-                    if (column == 0 && value != null) {
-
-                        lbl.setText(
-                                value.toString().toUpperCase()
-                        );
-                        // IN ĐẬM
-                        setFont(getFont().deriveFont(Font.BOLD));
-                        setHorizontalAlignment(SwingConstants.CENTER);
-                    }
-
-                    // =========================================
-                    // STATUS COLOR
-                    // =========================================
-                    if (column == 6 && value != null) {
-
-                        String status =
-                                value.toString();
-
-                        if (status.equalsIgnoreCase(
-                                "Chờ giao hàng"
-                        )) {
-
-                            lbl.setForeground(
-                                    new Color(46, 125, 50)
-                            );
-
-                        } else if (status.equalsIgnoreCase(
-                                "Giao thất bại"
-                        )) {
-
-                            lbl.setForeground(
-                                    new Color(211, 47, 47)
-                            );
-
-                        } else {
-
-                            lbl.setForeground(
-                                    new Color(60, 60, 60)
-                            );
-                        }
-
-                    } else {
-
-                        lbl.setForeground(
-                                new Color(60, 60, 60)
-                        );
-                    }
-                    lbl.setBorder(BorderFactory.createEmptyBorder());
-                    return lbl;
+    static class ZebraHoverRenderer extends DefaultTableCellRenderer {
+        private int hoverRow = -1;
+        ZebraHoverRenderer(JTable tbl) {
+            tbl.addMouseMotionListener(new MouseMotionAdapter() {
+                @Override public void mouseMoved(MouseEvent e) {
+                    int r = tbl.rowAtPoint(e.getPoint());
+                    if (r != hoverRow) { hoverRow = r; tbl.repaint(); }
                 }
-            }
-    );
-}
-}
+            });
+            tbl.addMouseListener(new MouseAdapter() {
+                @Override public void mouseExited(MouseEvent e) { hoverRow = -1; tbl.repaint(); }
+            });
+        }
+        @Override public Component getTableCellRendererComponent(JTable t, Object value, boolean selected, boolean focused, int row, int col) {
+            super.getTableCellRendererComponent(t, value, selected, focused, row, col);
+            setBorder(new EmptyBorder(0, 16, 0, 8));
+            setFont(new Font("Segoe UI", col == 0 ? Font.BOLD : Font.PLAIN, 13));
+            setForeground(col == 0 ? new Color(31, 41, 55) : new Color(75, 85, 99));
 
+            if (selected) setBackground(new Color(220, 252, 231));
+            else if (row == hoverRow) setBackground(new Color(240, 253, 244));
+            else if (row % 2 == 0) setBackground(Color.WHITE);
+            else setBackground(new Color(250, 250, 250));
+            return this;
+        }
+    }
+
+    static class BadgeStatusRenderer extends DefaultTableCellRenderer {
+        private int hoverRow = -1;
+        BadgeStatusRenderer(JTable tbl) {
+            tbl.addMouseMotionListener(new MouseMotionAdapter() {
+                @Override public void mouseMoved(MouseEvent e) {
+                    int r = tbl.rowAtPoint(e.getPoint());
+                    if (r != hoverRow) { hoverRow = r; tbl.repaint(); }
+                }
+            });
+            tbl.addMouseListener(new MouseAdapter() {
+                @Override public void mouseExited(MouseEvent e) { hoverRow = -1; tbl.repaint(); }
+            });
+        }
+        @Override public Component getTableCellRendererComponent(JTable t, Object value, boolean selected, boolean focused, int row, int col) {
+            JPanel cell = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 8));
+            cell.setOpaque(true);
+
+            if (selected) cell.setBackground(new Color(220, 252, 231));
+            else if (row == hoverRow) cell.setBackground(new Color(240, 253, 244));
+            else if (row % 2 == 0) cell.setBackground(Color.WHITE);
+            else cell.setBackground(new Color(250, 250, 250));
+
+            String status = value != null ? value.toString() : "";
+            Color badgeBg, badgeFg;
+            
+            switch (status) {
+                case "Chờ giao hàng": badgeBg = new Color(0xDBEAFE); badgeFg = new Color(0x1E3A8A); break; // Xanh dương
+                case "Đang giao":     badgeBg = new Color(0xFEF3C7); badgeFg = new Color(0xD97706); break; // Vàng
+                case "Hoàn thành":    badgeBg = new Color(0xD1FAE5); badgeFg = new Color(0x065F46); break; // Xanh lá
+                case "Đã huỷ":        badgeBg = new Color(0xFEE2E2); badgeFg = new Color(0x991B1B); break; // Đỏ
+                default:              badgeBg = new Color(0xF3F4F6); badgeFg = new Color(0x374151); break; // Xám
+            }
+
+            JLabel badge = new JLabel(status) {
+                @Override protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(badgeBg);
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+                    g2.dispose();
+                    super.paintComponent(g);
+                }
+            };
+            badge.setFont(new Font("Segoe UI", Font.BOLD, 11));
+            badge.setForeground(badgeFg);
+            badge.setOpaque(false);
+            badge.setBorder(new EmptyBorder(4, 12, 4, 12));
+
+            cell.add(badge);
+            return cell;
+        }
+    }
+}

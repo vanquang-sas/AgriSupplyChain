@@ -670,23 +670,35 @@ BEGIN
 END;
 /
 
--- Procedure Giao hàng thành công
+-- 1. Procedure Nhận đơn giao (Chỉ ghi nhận mã nhân viên, giữ nguyên trạng thái Chờ giao hàng)
+CREATE OR REPLACE PROCEDURE SP_XACNHAN_GIAOHANG (
+    p_MaDH IN VARCHAR2,
+    p_MaNV IN VARCHAR2
+) IS
+BEGIN
+    UPDATE DONHANG 
+    SET MaNV = p_MaNV 
+    WHERE MaDH = p_MaDH AND TrangThaiDH = N'Chờ giao hàng';
+    COMMIT;
+END;
+/
+
+-- 2. Procedure Giao hàng thành công (Cập nhật Hoàn thành và thêm SYSDATE vào TGGIAOTT)
 CREATE OR REPLACE PROCEDURE SP_GIAOHANG_THANHCONG (
     p_MaDH IN VARCHAR2,
     p_MaNV IN VARCHAR2
 ) IS
 BEGIN
-    -- Cập nhật trạng thái hoàn thành, thời gian thực tế và coi như đã thanh toán (nếu là COD)
     UPDATE DONHANG 
-    SET TrangThaiDH = 'Hoàn thành', 
+    SET TrangThaiDH = N'Hoàn thành', 
         TGGiaoTT = SYSDATE,
         TrangThaiTT = 1 
-    WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = 'Đang giao';
+    WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = N'Chờ giao hàng';
     COMMIT;
 END;
 /
 
--- Procedure Giao hàng thất bại
+-- 3. Procedure Giao hàng thất bại (Cập nhật Đã huỷ và ghi nhận lý do huỷ)
 CREATE OR REPLACE PROCEDURE SP_GIAOHANG_THATBAI (
     p_MaDH IN VARCHAR2,
     p_MaNV IN VARCHAR2,
@@ -694,10 +706,10 @@ CREATE OR REPLACE PROCEDURE SP_GIAOHANG_THATBAI (
 ) IS
 BEGIN
     UPDATE DONHANG 
-    SET TrangThaiDH = 'Đã huỷ', 
-        LyDoHuy = p_LyDo 
-    WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = 'Đang giao';
-    -- Ghi chú: Nếu cần trigger trả hàng về XUATKHO, cần viết thêm logic ở đây (Vui lòng xem câu hỏi ở cuối).
+    SET TrangThaiDH = N'Đã huỷ', 
+        TGGiaoTT = SYSDATE,
+        LyDoHuy = p_LyDo
+    WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = N'Chờ giao hàng';
     COMMIT;
 END;
 /
