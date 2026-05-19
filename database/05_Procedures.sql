@@ -670,19 +670,6 @@ BEGIN
 END;
 /
 
--- 1. Procedure Nhận đơn giao (Chỉ ghi nhận mã nhân viên, giữ nguyên trạng thái Chờ giao hàng)
-CREATE OR REPLACE PROCEDURE SP_XACNHAN_GIAOHANG (
-    p_MaDH IN VARCHAR2,
-    p_MaNV IN VARCHAR2
-) IS
-BEGIN
-    UPDATE DONHANG 
-    SET MaNV = p_MaNV 
-    WHERE MaDH = p_MaDH AND TrangThaiDH = N'Chờ giao hàng';
-    COMMIT;
-END;
-/
-
 -- 2. Procedure Giao hàng thành công (Cập nhật Hoàn thành và thêm SYSDATE vào TGGIAOTT)
 CREATE OR REPLACE PROCEDURE SP_GIAOHANG_THANHCONG (
     p_MaDH IN VARCHAR2,

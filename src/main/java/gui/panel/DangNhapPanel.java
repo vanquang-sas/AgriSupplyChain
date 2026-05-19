@@ -195,8 +195,13 @@ public class DangNhapPanel extends JPanel {
             
             // 2. Phân loại và lấy thêm dữ liệu ghi vào Session
             if (loaiTK == 0) {
-                util.Session.chucVu = "Quản lý (Admin)";
-                util.Session.tenNguoiDung = "Quản trị viên"; 
+                bus.NhanVienBUS qlBus = new bus.NhanVienBUS();
+                dto.NhanVienDTO ql = qlBus.getByUsername(username);
+                if (ql != null) {
+                    util.Session.chucVu = "Quản lý (Admin)";
+                    util.Session.tenNguoiDung = ql.getTenNV();
+                    util.Session.maNV = ql.getMaNV();
+                }
             } 
             else if (loaiTK == 1) {
                 bus.NhanVienBUS nvBus = new bus.NhanVienBUS();
@@ -204,6 +209,7 @@ public class DangNhapPanel extends JPanel {
                 if (nv != null) {
                     util.Session.chucVu = nv.getChucVu(); // NV Kho, NV Thu mua,...
                     util.Session.tenNguoiDung = nv.getTenNV();
+                    util.Session.maNV = nv.getMaNV();
                 }
             } 
             else if (loaiTK == 2) {
@@ -212,6 +218,7 @@ public class DangNhapPanel extends JPanel {
                 if (kh != null) {
                     util.Session.chucVu = "Khách hàng";
                     util.Session.tenNguoiDung = kh.getTenKH();
+                    util.Session.maKH = kh.getMaKH();
                 }
             }
 

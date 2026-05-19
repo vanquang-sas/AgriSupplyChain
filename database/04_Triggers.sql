@@ -312,86 +312,7 @@ END;
 
 -- ================================= Bảng TONKHO =================================
 
---*NOTE: mấy cái trigger trong ghi chú ko sài và đổi sang mấy cái ở ngoài
-
-/*CREATE OR REPLACE TRIGGER TRG_CANHBAO_HETHAN
-AFTER INSERT OR UPDATE OF TGHetHan ON TONKHO
-FOR EACH ROW
-DECLARE
-    v_SoNgayHSD NUMBER;
-    v_MaTB VARCHAR2(10);
-    v_TenSP NVARCHAR2(100);
-BEGIN
-    -- 1. Lấy quy định số ngày cảnh báo từ bảng THAMSO
-    BEGIN
-        SELECT GiaTri INTO v_SoNgayHSD FROM THAMSO WHERE TenTS = 'CANHBAO_HETHAN';
-    EXCEPTION 
-        WHEN NO_DATA_FOUND THEN v_SoNgayHSD := 7; -- Mặc định là 7 ngày nếu không cấu hình
-    END;
-
-    -- 2. Kiểm tra nếu thời gian hết hạn sắp tới
-    IF :NEW.TGHetHan IS NOT NULL AND (:NEW.TGHetHan - TRUNC(SYSDATE)) <= v_SoNgayHSD THEN
-        
-        -- Lấy tên sản phẩm thông qua Chi tiết lô hàng
-        SELECT SP.TenSP INTO v_TenSP 
-        FROM CHITIETLOHANG CTLH 
-        JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP 
-        WHERE CTLH.MaCTLH = :NEW.MaCTLH;
-
-        -- Insert vào bảng THONGBAO
-        INSERT INTO THONGBAO (LoaiTB, NoiDung, TrangThaiTB, TGTao)
-        VALUES (N'Sắp hết hạn', N'Lô ' || :NEW.MaTonKho || N' của SP ' || v_TenSP || N' sẽ hết hạn vào ' || TO_CHAR(:NEW.TGHetHan, 'DD/MM/YYYY'), 0, SYSDATE);
-    END IF;
-EXCEPTION
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Lỗi trigger TRG_CANHBAO_HETHAN: ' || SQLERRM);
-END;
-/
-*/
-
-
-/*
-CREATE OR REPLACE TRIGGER TRG_CANHBAO_MIN_TONKHO
-AFTER UPDATE OF SLConLai ON TONKHO
-FOR EACH ROW
-DECLARE
-    -- Sử dụng AUTONOMOUS_TRANSACTION để tránh lỗi (Mutating Table) khi SELECT SUM trên chính bảng đang UPDATE
-    PRAGMA AUTONOMOUS_TRANSACTION;
-    v_MinTonKho NUMBER;
-    v_TongTon NUMBER;
-    v_MaSP VARCHAR2(10);
-    v_TenSP NVARCHAR2(100);
-    v_MaTB VARCHAR2(10);
-BEGIN
-    -- Chỉ kiểm tra khi số lượng bị giảm đi
-    IF :NEW.SLConLai < :OLD.SLConLai THEN
-        -- 1. Lấy ngưỡng tồn kho tối thiểu từ THAMSO
-        BEGIN
-            SELECT GiaTri INTO v_MinTonKho FROM THAMSO WHERE TenTS = 'MIN_TONKHO';
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN v_MinTonKho := 20; -- Mặc định
-        END;
-        -- 2. Tìm Mã SP của lô hàng vừa bị xuất kho
-        SELECT MaSP INTO v_MaSP FROM CHITIETLOHANG WHERE MaCTLH = :NEW.MaCTLH;
-        -- 3. Tính tổng tồn kho khả dụng của sản phẩm đó
-        SELECT SUM(TK.SLConLai) INTO v_TongTon
-        FROM TONKHO TK
-        JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH
-        WHERE CTLH.MaSP = v_MaSP AND TK.TGHetHan >= TRUNC(SYSDATE);
-        -- 4. Nếu tổng kho < mức quy định, tạo thông báo
-        IF NVL(v_TongTon, 0) < v_MinTonKho THEN
-            SELECT TenSP INTO v_TenSP FROM SANPHAM WHERE MaSP = v_MaSP;
-            v_MaTB := 'TB' || DBMS_RANDOM.STRING('X', 8);
-            INSERT INTO THONGBAO (LoaiTB, NoiDung)
-            VALUES ('Cảnh báo tồn kho', 'Sản phẩm ' || v_TenSP || ' sắp hết hàng (Chỉ còn ' || v_TongTon || ' đơn vị).');
-            COMMIT; -- Bắt buộc phải có COMMIT khi dùng AUTONOMOUS_TRANSACTION
-        END IF;
-    END IF;
-END;
-/
-*/
-
--- ✅ TRIGGER 1: Cập nhật trạng thái TONKHO trước khi INSERT/UPDATE
+-- TRIGGER 1: Cập nhật trạng thái TONKHO trước khi INSERT/UPDATE
 CREATE OR REPLACE TRIGGER TRG_CAPNHAT_TRANGTHAI_TONKHO
 BEFORE INSERT OR UPDATE OF TGHetHan, SLConLai, TrangThai ON TONKHO
 FOR EACH ROW
@@ -423,7 +344,7 @@ BEGIN
 END;
 /
 
--- ✅ TRIGGER 2: Cảnh báo HẾT HẠN (dựa trên TrangThai)
+-- TRIGGER 2: Cảnh báo HẾT HẠN (dựa trên TrangThai)
 CREATE OR REPLACE TRIGGER TRG_CANHBAO_HETHAN
 AFTER INSERT OR UPDATE OF TrangThai ON TONKHO
 FOR EACH ROW
@@ -481,7 +402,7 @@ EXCEPTION WHEN OTHERS THEN
 END;
 /
 
--- ✅ TRIGGER 3: Cảnh báo HẾT/SẮP HẾT HÀNG (dựa trên SLConLai)
+-- TRIGGER 3: Cảnh báo HẾT/SẮP HẾT HÀNG (dựa trên SLConLai)
 CREATE OR REPLACE TRIGGER TRG_CANHBAO_NHAP_HANG
 AFTER INSERT OR UPDATE OF SLConLai ON TONKHO
 FOR EACH ROW
@@ -555,7 +476,7 @@ EXCEPTION WHEN OTHERS THEN
 END;
 /
 
--- ✅ TRIGGER 4: Xử lý khi xóa lô hàng
+-- TRIGGER 4: Xử lý khi xóa lô hàng
 CREATE OR REPLACE TRIGGER TRG_CAPNHAT_KHI_XOA_LO
 AFTER DELETE ON TONKHO
 FOR EACH ROW
