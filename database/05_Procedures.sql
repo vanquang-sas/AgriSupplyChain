@@ -657,3 +657,47 @@ BEGIN
 END;
 /
  
+-- Procedure Nhận đơn giao
+CREATE OR REPLACE PROCEDURE SP_XACNHAN_GIAOHANG (
+    p_MaDH IN VARCHAR2,
+    p_MaNV IN VARCHAR2
+) IS
+BEGIN
+    UPDATE DONHANG 
+    SET TrangThaiDH = 'Đang giao', MaNV = p_MaNV 
+    WHERE MaDH = p_MaDH AND TrangThaiDH = 'Chờ giao hàng';
+    COMMIT;
+END;
+/
+
+-- Procedure Giao hàng thành công
+CREATE OR REPLACE PROCEDURE SP_GIAOHANG_THANHCONG (
+    p_MaDH IN VARCHAR2,
+    p_MaNV IN VARCHAR2
+) IS
+BEGIN
+    -- Cập nhật trạng thái hoàn thành, thời gian thực tế và coi như đã thanh toán (nếu là COD)
+    UPDATE DONHANG 
+    SET TrangThaiDH = 'Hoàn thành', 
+        TGGiaoTT = SYSDATE,
+        TrangThaiTT = 1 
+    WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = 'Đang giao';
+    COMMIT;
+END;
+/
+
+-- Procedure Giao hàng thất bại
+CREATE OR REPLACE PROCEDURE SP_GIAOHANG_THATBAI (
+    p_MaDH IN VARCHAR2,
+    p_MaNV IN VARCHAR2,
+    p_LyDo IN NVARCHAR2
+) IS
+BEGIN
+    UPDATE DONHANG 
+    SET TrangThaiDH = 'Đã huỷ', 
+        LyDoHuy = p_LyDo 
+    WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = 'Đang giao';
+    -- Ghi chú: Nếu cần trigger trả hàng về XUATKHO, cần viết thêm logic ở đây (Vui lòng xem câu hỏi ở cuối).
+    COMMIT;
+END;
+/

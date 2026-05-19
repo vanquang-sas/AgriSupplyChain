@@ -126,6 +126,7 @@ INSERT ALL
     INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvgh03', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0983334443', NULL)
     INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvgh04', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0983334444', NULL)
     INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvgh05', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0983334445', NULL)
+
     INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh01', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 1, TP.HCM', '0912345001', 'tra.nguyen@gmail.com')
     INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh02', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 3, TP.HCM', '0912345002', 'lap.tran@gmail.com')
     INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh03', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Thủ Đức, TP.HCM', '0912345003', 'nam.le@yahoo.com')
@@ -149,7 +150,7 @@ INSERT ALL
 SELECT * FROM dual;
 
 -- -------------------------------------------------------------------------
--- 6. NHANVIEN (13 Nhân viên mới - Nối tiếp 2 quản lý ở file 06)
+-- 6. NHANVIEN (13 Nhân viên mới)
 -- -------------------------------------------------------------------------
 INSERT ALL
     INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000003', 'nvtm01', N'Trần Hữu Trọng', N'NV thu mua', 12000000)
@@ -194,9 +195,7 @@ INSERT ALL
 SELECT * FROM dual;
 
 -- ====================================================================================
---        PHẦN 8: DATA ENRICHMENT - Sinh dữ liệu 12 tháng (05/2025 - 05/2026)
---        Tuân thủ: Không bịa ID, Margin 30-50%, Sell-through 75-90%
---        Đảm bảo: Revenue > Cost, Tồn kho > 0
+--        PHẦN 8: DATA ENRICHMENT - Sinh dữ liệu 12 tháng (05/2025 - 05/2026) -     
 -- ====================================================================================
 
 DECLARE
@@ -204,9 +203,11 @@ DECLARE
     v_month_date DATE;
     v_month_start DATE;
     v_month_end DATE;
+    v_days_in_month NUMBER;
     v_day_offset NUMBER;
+    v_simulated_date DATE;
     
-    -- ===== Variables for IDs (NOT fabricated, from DB) =====
+    -- ===== Variables for IDs =====
     v_MaKH VARCHAR2(10);
     v_MaNV_ThuMua VARCHAR2(10);
     v_MaNV_GiaoHang VARCHAR2(10);
@@ -220,14 +221,11 @@ DECLARE
     
     -- ===== Variables for pricing & quantities =====
     v_GiaMua NUMBER(12,2);
-    v_GiaBan_Current NUMBER(12,2);
     v_GiaBan_New NUMBER(12,2);
     v_margin NUMBER := 0;
     v_SoLuong_import NUMBER := 0;
     v_SoLuong_export NUMBER := 0;
     v_total_import_month NUMBER := 0;
-    v_total_import_cost_month NUMBER := 0;
-    v_sell_through_rate NUMBER := 0;
     v_target_export_qty NUMBER := 0;
     v_current_export_qty NUMBER := 0;
     
@@ -236,321 +234,157 @@ DECLARE
     v_num_lohang_items NUMBER := 0;
     v_num_donhang_month NUMBER := 0;
     v_num_items_per_order NUMBER := 0;
-    v_i NUMBER := 0;
-    v_j NUMBER := 0;
-    v_k NUMBER := 0;
-    
-    -- ===== Status tracking =====
-    v_success_count NUMBER := 0;
-    v_error_count NUMBER := 0;
-    v_monthly_revenue NUMBER := 0;
-    v_monthly_cost NUMBER := 0;
+    v_sp1_changes NUMBER := 0;
     
     -- ===== Arrays for 6 focused products =====
     TYPE t_sp_array IS TABLE OF VARCHAR2(10);
     v_focused_products t_sp_array := t_sp_array('SP000001', 'SP000002', 'SP000006', 'SP000007', 'SP000021', 'SP000025');
     
 BEGIN
-    DBMS_OUTPUT.PUT_LINE('============================================================');
-    DBMS_OUTPUT.PUT_LINE('START: DATA ENRICHMENT (05/2025 - 05/2026)');
-    DBMS_OUTPUT.PUT_LINE('============================================================');
+    DBMS_OUTPUT.PUT_LINE('BẮT ĐẦU CHẠY DATA ENRICHMENT - VERSION TỊNH TIẾN THỜI GIAN');
     
-    -- ===== PHASE 1: Disable triggers to avoid mutating table errors =====
-    
-    
-    -- ===== PHASE 2: Main loop - 12 months (May 2025 to May 2026) =====
+    -- Lặp qua 13 tháng (05/2025 - 05/2026)
     FOR v_month_offset IN 0..12 LOOP
         v_month_date := ADD_MONTHS(TO_DATE('2025-05-01', 'YYYY-MM-DD'), v_month_offset);
         v_month_start := TRUNC(v_month_date, 'MM');
         v_month_end := LAST_DAY(v_month_date);
+        v_days_in_month := TO_NUMBER(TO_CHAR(v_month_end, 'DD'));
+        
         v_total_import_month := 0;
-        v_total_import_cost_month := 0;
         v_current_export_qty := 0;
-        v_monthly_revenue := 0;
-        v_monthly_cost := 0;
+        v_sp1_changes := 0;
         
-        DBMS_OUTPUT.PUT_LINE('');
-        DBMS_OUTPUT.PUT_LINE('--- Processing month: ' || TO_CHAR(v_month_date, 'YYYY-MM'));
+        -- =================================================================
+        -- 1. NHẬP KHO (LOHANG)
+        -- =================================================================
+        v_num_lohang_month := TRUNC(5 + DBMS_RANDOM.VALUE(0, 3)); 
+        FOR i IN 1..v_num_lohang_month LOOP
+            BEGIN
+                SELECT MaNCC INTO v_MaNCC FROM (SELECT MaNCC FROM NHACUNGCAP WHERE TrangThaiHopTac = 1 ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+                SELECT MaNV INTO v_MaNV_ThuMua FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV thu mua' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+                SELECT MaKho INTO v_MaKho FROM (SELECT MaKho FROM KHO ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+                
+                v_MaLH := 'LH' || LPAD(SEQ_LOHANG.NEXTVAL, 6, '0');
+                v_day_offset := TRUNC(DBMS_RANDOM.VALUE(0, v_days_in_month));
+                
+                INSERT INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH)
+                VALUES (v_MaLH, v_MaNCC, v_MaNV_ThuMua, v_month_start + v_day_offset, 'Chờ kiểm duyệt');
+                
+                v_num_lohang_items := TRUNC(1 + DBMS_RANDOM.VALUE(0, 3)); 
+                FOR j IN 1..v_num_lohang_items LOOP
+                    v_MaSP := v_focused_products(TRUNC(DBMS_RANDOM.VALUE(1, v_focused_products.COUNT + 1)));
+                    v_SoLuong_import := TRUNC(200 + DBMS_RANDOM.VALUE(0, 801));
+                    v_MaCTLH := 'CTLH' || LPAD(SEQ_CHITIETLOHANG.NEXTVAL, 6, '0');
+                    
+                    INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong)
+                    VALUES (v_MaCTLH, v_MaLH, v_MaSP, v_SoLuong_import);
+                    
+                    v_total_import_month := v_total_import_month + v_SoLuong_import;
+                    SP_XACNHAN_VITRI_CTLH(v_MaCTLH, v_MaKho, TO_DATE('2028-12-31', 'YYYY-MM-DD'), 'Kệ A' || TRUNC(DBMS_RANDOM.VALUE(1, 11)));
+                END LOOP;
+            EXCEPTION WHEN OTHERS THEN NULL; END;
+        END LOOP;
         
-        BEGIN
-            -- ===== SUB-PHASE 2.1: Generate import lots (LOHANG) =====
-            v_num_lohang_month := TRUNC(5 + DBMS_RANDOM.VALUE(0, 3)); -- 5-7 lots per month
-            DBMS_OUTPUT.PUT_LINE('  Generating ' || v_num_lohang_month || ' import lots...');
-            
-            FOR i IN 1..v_num_lohang_month LOOP
-                BEGIN
-                    -- Get random IDs from DB (NOT fabricated)
-                    SELECT MaNCC INTO v_MaNCC FROM (
-                        SELECT MaNCC FROM NHACUNGCAP WHERE TrangThaiHopTac = 1 
-                        ORDER BY DBMS_RANDOM.VALUE
-                    ) WHERE ROWNUM = 1;
-                    
-                    SELECT MaNV INTO v_MaNV_ThuMua FROM (
-                        SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV thu mua'
-                        ORDER BY DBMS_RANDOM.VALUE
-                    ) WHERE ROWNUM = 1;
-                    
-                    SELECT MaKho INTO v_MaKho FROM (
-                        SELECT MaKho FROM KHO ORDER BY DBMS_RANDOM.VALUE
-                    ) WHERE ROWNUM = 1;
-                    
-                    -- Generate MaLH (using sequence)
-                    v_MaLH := 'LH' || LPAD(SEQ_LOHANG.NEXTVAL, 6, '0');
-                    
-                    -- Random date in month
-                    v_day_offset := TRUNC(DBMS_RANDOM.VALUE(0, TO_NUMBER(TO_CHAR(v_month_end, 'DD'))));
-                    
-                    -- Insert LOHANG
-                    INSERT INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH)
-                    VALUES (v_MaLH, v_MaNCC, v_MaNV_ThuMua, v_month_start + v_day_offset, 'Chờ kiểm duyệt');
-                    
-                    -- ===== SUB-PHASE 2.1.1: Generate import details (CHITIETLOHANG) =====
-                    v_num_lohang_items := TRUNC(1 + DBMS_RANDOM.VALUE(0, 3)); -- 1-3 items per lot
-                    
-                    FOR j IN 1..v_num_lohang_items LOOP
-                        BEGIN
-                            -- Get random product from focused list
-                            v_MaSP := v_focused_products(TRUNC(DBMS_RANDOM.VALUE(1, v_focused_products.COUNT + 1)));
-                            
-                            -- Get current price
-                            SELECT GiaMua INTO v_GiaMua FROM SANPHAM WHERE MaSP = v_MaSP;
-                            
-                            -- Random quantity: 200-1000 kg
-                            v_SoLuong_import := TRUNC(200 + DBMS_RANDOM.VALUE(0, 801));
-                            
-                            -- Generate MaCTLH
-                            v_MaCTLH := 'CTLH' || LPAD(SEQ_CHITIETLOHANG.NEXTVAL, 6, '0');
-                            
-                            -- Insert CHITIETLOHANG (trigger will calculate ThanhTien)
-                            INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong)
-                            VALUES (v_MaCTLH, v_MaLH, v_MaSP, v_SoLuong_import);
-                            
-                            -- Track totals
-                            v_total_import_month := v_total_import_month + v_SoLuong_import;
-                            v_total_import_cost_month := v_total_import_cost_month + (v_SoLuong_import * v_GiaMua);
-                            v_monthly_cost := v_monthly_cost + (v_SoLuong_import * v_GiaMua);
-                            
-                            -- Call procedure to confirm storage location
-                            SP_XACNHAN_VITRI_CTLH(v_MaCTLH, v_MaKho, TO_DATE('2027-12-31', 'YYYY-MM-DD'), 
-                                                  'Kệ A' || TRUNC(DBMS_RANDOM.VALUE(1, 11)));
-                            
-                        EXCEPTION
-                            WHEN OTHERS THEN
-                                v_error_count := v_error_count + 1;
-                                DBMS_OUTPUT.PUT_LINE('    ✗ Error inserting CTLH: ' || SQLERRM);
-                        END;
-                    END LOOP;
-                    
-                    v_success_count := v_success_count + 1;
-                    
-                EXCEPTION
-                    WHEN OTHERS THEN
-                        v_error_count := v_error_count + 1;
-                        DBMS_OUTPUT.PUT_LINE('    ✗ Error inserting LOHANG: ' || SQLERRM);
-                END;
-            END LOOP;
-            
-            DBMS_OUTPUT.PUT_LINE('  ✓ Import lots: ' || v_success_count || ' successful, ' || v_error_count || ' errors');
-            DBMS_OUTPUT.PUT_LINE('    Total imported: ' || ROUND(v_total_import_month, 2) || ' kg, Cost: ' || ROUND(v_total_import_cost_month, 0) || ' VND');
-            
-            -- ===== SUB-PHASE 2.2: Update prices (SP_CAPNHAT_GIA) =====
-            DBMS_OUTPUT.PUT_LINE('  Updating product prices...');
-            FOR sp_idx IN 1..v_focused_products.COUNT LOOP
-                BEGIN
-                    SELECT GiaMua, GiaBan INTO v_GiaMua, v_GiaBan_Current 
-                    FROM SANPHAM WHERE MaSP = v_focused_products(sp_idx);
-                    
-                    -- Random margin: 30-50%
-                    v_margin := 0.30 + (DBMS_RANDOM.VALUE(0, 1) * 0.20);
+        -- =================================================================
+        -- 2. XUẤT BÁN & BIẾN ĐỘNG GIÁ CHRONOLOGICAL (Tịnh tiến theo thời gian)
+        -- =================================================================
+        v_target_export_qty := ROUND(v_total_import_month * (0.75 + DBMS_RANDOM.VALUE(0, 0.15)), 0);
+        v_num_donhang_month := TRUNC(12 + DBMS_RANDOM.VALUE(0, 7)); 
+        
+        FOR j IN 1..v_num_donhang_month LOOP
+            BEGIN
+                -- Bắt buộc thời gian đi tới (ngày mùng 1 -> mùng 2 -> ... cuối tháng)
+                v_day_offset := TRUNC((j / v_num_donhang_month) * v_days_in_month);
+                IF v_day_offset >= v_days_in_month THEN v_day_offset := v_days_in_month - 1; END IF;
+                v_simulated_date := v_month_start + v_day_offset;
+                
+                -- ================= [CHÈN BIẾN ĐỘNG GIÁ] ================= --
+                -- 2.1 Cập nhật giá cho SP000001 (Đủ 4 lần/tháng) rải rác đan xen tạo đơn
+                IF MOD(j, TRUNC(v_num_donhang_month / 4)) = 0 AND v_sp1_changes < 4 THEN
+                    SELECT GiaMua INTO v_GiaMua FROM SANPHAM WHERE MaSP = 'SP000001';
+                    v_margin := 0.30 + DBMS_RANDOM.VALUE(0, 0.20);
                     v_GiaBan_New := ROUND(v_GiaMua * (1 + v_margin), 0);
                     
-                    -- Update price (trigger TRG_SP_LUU_LSG will auto-log to LICHSUGIA)
-                    SP_CAPNHAT_GIA(v_focused_products(sp_idx), v_GiaMua, v_GiaBan_New);
+                    -- Lệnh này gọi Trigger insert SYSDATE
+                    SP_CAPNHAT_GIA('SP000001', v_GiaMua, v_GiaBan_New);
                     
-                EXCEPTION
-                    WHEN OTHERS THEN
-                        DBMS_OUTPUT.PUT_LINE('    ⚠ Error updating price for ' || v_focused_products(sp_idx) || ': ' || SQLERRM);
-                END;
-            END LOOP;
-            DBMS_OUTPUT.PUT_LINE('  ✓ Prices updated');
-            
-            -- ===== SUB-PHASE 2.3: Generate sales orders (DONHANG) =====
-            -- Calculate sell-through rate: 75-90% of total imported
-            v_sell_through_rate := 0.75 + (DBMS_RANDOM.VALUE(0, 1) * 0.15);
-            v_target_export_qty := ROUND(v_total_import_month * v_sell_through_rate, 0);
-            v_current_export_qty := 0;
-            
-            v_num_donhang_month := TRUNC(12 + DBMS_RANDOM.VALUE(0, 7)); -- 12-18 orders per month
-            DBMS_OUTPUT.PUT_LINE('  Generating ' || v_num_donhang_month || ' sales orders...');
-            DBMS_OUTPUT.PUT_LINE('    Target export: ' || v_target_export_qty || ' kg (sell-through rate: ' || ROUND(v_sell_through_rate * 100, 1) || '%)');
-            
-            FOR j IN 1..v_num_donhang_month LOOP
-                BEGIN
-                    -- Get random customer
-                    SELECT MaKH INTO v_MaKH FROM (
-                        SELECT MaKH FROM KHACHHANG ORDER BY DBMS_RANDOM.VALUE
-                    ) WHERE ROWNUM = 1;
+                    -- [MẸO BACKDATE] Ép dòng vừa được tạo về lại ngày ảo của kịch bản
+                    UPDATE LICHSUGIA SET TGApDung = v_simulated_date 
+                    WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = 'SP000001' ORDER BY MaGia DESC) WHERE ROWNUM = 1);
                     
-                    -- Random delivery staff (or NULL)
-                    IF DBMS_RANDOM.VALUE(0, 1) > 0.3 THEN
-                        SELECT MaNV INTO v_MaNV_GiaoHang FROM (
-                            SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV giao hàng'
-                            ORDER BY DBMS_RANDOM.VALUE
-                        ) WHERE ROWNUM = 1;
-                    ELSE
-                        v_MaNV_GiaoHang := NULL;
-                    END IF;
-                    
-                    -- Generate MaDH
-                    v_MaDH := 'DH' || LPAD(SEQ_DONHANG.NEXTVAL, 6, '0');
-                    
-                    -- Random dates in month
-                    v_day_offset := TRUNC(DBMS_RANDOM.VALUE(0, TO_NUMBER(TO_CHAR(v_month_end, 'DD')) - 1));
-                    
-                    -- Insert DONHANG
-                    INSERT INTO DONHANG (MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, TrangThaiDH, TrangThaiTT, PhuongThucTT)
-                    VALUES (v_MaDH, v_MaKH, v_MaNV_GiaoHang, 
-                            v_month_start + v_day_offset, 
-                            v_month_start + v_day_offset + TRUNC(DBMS_RANDOM.VALUE(1, 3)),
-                            N'TP.HCM - Quận ' || TRUNC(DBMS_RANDOM.VALUE(1, 13)),
-                            'Đã đặt', 0, 'COD');
-                    
-                    -- ===== SUB-PHASE 2.3.1: Generate order details (CHITIETDONHANG) =====
-                    v_num_items_per_order := TRUNC(2 + DBMS_RANDOM.VALUE(0, 5)); -- 2-6 items per order
-                    
-                    FOR k IN 1..v_num_items_per_order LOOP
-                        BEGIN
-                            -- Exit if we've reached target export
-                            IF v_current_export_qty >= v_target_export_qty THEN
-                                EXIT;
-                            END IF;
+                    v_sp1_changes := v_sp1_changes + 1;
+                END IF;
+                
+                -- 2.2 Cập nhật giá cho các SP khác (1-2 lần/tháng) tại giữa & cuối tháng
+                IF j = TRUNC(v_num_donhang_month / 2) OR j = v_num_donhang_month THEN
+                    FOR sp_idx IN 2..v_focused_products.COUNT LOOP 
+                        IF DBMS_RANDOM.VALUE(0, 1) > 0.3 THEN 
+                            SELECT GiaMua INTO v_GiaMua FROM SANPHAM WHERE MaSP = v_focused_products(sp_idx);
+                            v_margin := 0.30 + DBMS_RANDOM.VALUE(0, 0.20);
+                            SP_CAPNHAT_GIA(v_focused_products(sp_idx), v_GiaMua, ROUND(v_GiaMua * (1 + v_margin), 0));
                             
-                            -- Get random product
-                            v_MaSP := v_focused_products(TRUNC(DBMS_RANDOM.VALUE(1, v_focused_products.COUNT + 1)));
-                            
-                            -- Random quantity: 5-50 kg (B2B small orders)
-                            v_SoLuong_export := TRUNC(5 + DBMS_RANDOM.VALUE(0, 46));
-                            
-                            -- Don't exceed target
-                            IF (v_current_export_qty + v_SoLuong_export) > v_target_export_qty THEN
-                                v_SoLuong_export := v_target_export_qty - v_current_export_qty;
-                            END IF;
-                            
-                            -- Generate MaCTDH
-                            v_MaCTDH := 'CTDH' || LPAD(SEQ_CHITIETDONHANG.NEXTVAL, 6, '0');
-                            
-                            -- Insert CHITIETDONHANG (trigger will calculate GiaBan and ThanhTien)
-                            INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong)
-                            VALUES (v_MaCTDH, v_MaDH, v_MaSP, v_SoLuong_export);
-                            
-                            v_current_export_qty := v_current_export_qty + v_SoLuong_export;
-                            
-                        EXCEPTION
-                            WHEN OTHERS THEN
-                                DBMS_OUTPUT.PUT_LINE('      ⚠ Error inserting CTDH: ' || SQLERRM);
-                        END;
+                            -- [MẸO BACKDATE]
+                            UPDATE LICHSUGIA SET TGApDung = v_simulated_date 
+                            WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = v_focused_products(sp_idx) ORDER BY MaGia DESC) WHERE ROWNUM = 1);
+                        END IF;
                     END LOOP;
-                    
-                    -- ===== Call SP_YEUCAU_XUATKHO to create export requests =====
+                END IF;
+                
+                -- ================= [TẠO ĐƠN HÀNG MỚI] ================= --
+                SELECT MaKH INTO v_MaKH FROM (SELECT MaKH FROM KHACHHANG ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+                
+                IF DBMS_RANDOM.VALUE(0, 1) > 0.3 THEN
+                    SELECT MaNV INTO v_MaNV_GiaoHang FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV giao hàng' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+                ELSE
+                    v_MaNV_GiaoHang := NULL;
+                END IF;
+                
+                v_MaDH := 'DH' || LPAD(SEQ_DONHANG.NEXTVAL, 6, '0');
+                
+                INSERT INTO DONHANG (MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, TrangThaiDH, TrangThaiTT, PhuongThucTT)
+                VALUES (v_MaDH, v_MaKH, v_MaNV_GiaoHang, v_simulated_date, v_simulated_date + TRUNC(DBMS_RANDOM.VALUE(1, 3)),
+                        N'TP.HCM - Quận ' || TRUNC(DBMS_RANDOM.VALUE(1, 13)), 'Đã đặt', 0, 'COD');
+                
+                v_num_items_per_order := TRUNC(2 + DBMS_RANDOM.VALUE(0, 5)); 
+                
+                FOR k IN 1..v_num_items_per_order LOOP
                     BEGIN
-                        SP_YEUCAU_XUATKHO(v_MaDH);
-                    EXCEPTION
-                        WHEN OTHERS THEN
-                            DBMS_OUTPUT.PUT_LINE('    ✗ Error in SP_YEUCAU_XUATKHO for ' || v_MaDH || ': ' || SQLERRM);
-                    END;
-                    
-                    -- ===== If month <= March 2026: confirm export and complete order =====
-                    IF v_month_date <= TO_DATE('2026-03-31', 'YYYY-MM-DD') THEN
-                        BEGIN
-                            SELECT MaNV INTO v_MaNV_GiaoHang FROM (
-                                SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV giao hàng'
-                                ORDER BY DBMS_RANDOM.VALUE
-                            ) WHERE ROWNUM = 1;
-                            
-                            -- Đảm bảo có người giao hàng
-                            IF v_MaNV_GiaoHang IS NULL THEN
-                                SELECT MaNV INTO v_MaNV_GiaoHang FROM (
-                                    SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV giao hàng' ORDER BY DBMS_RANDOM.VALUE
-                                ) WHERE ROWNUM = 1;
-                            END IF;
-
-                            SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
-
-                            -- Cập nhật đầy đủ trạng thái và thông tin
-                            UPDATE DONHANG 
-                            SET TrangThaiDH = 'Hoàn thành',
-                                TrangThaiTT = 1,
-                                TGGiaoTT = TGGiaoYC + DBMS_RANDOM.VALUE(0, 1),
-                                PhiVanChuyen = TRUNC(DBMS_RANDOM.VALUE(15, 50)) * 1000,
-                                MaNV = v_MaNV_GiaoHang
-                            WHERE MaDH = v_MaDH;
-
-                            -- Cập nhật lại tổng tiền vì trigger không tự cộng PhiVanChuyen khi update trực tiếp trên DONHANG
-                            UPDATE DONHANG SET TongTien = NVL(TongTienHang, 0) + NVL(PhiVanChuyen, 0) - NVL(GiamGia, 0) WHERE MaDH = v_MaDH;
-                            
-                        EXCEPTION
-                            WHEN OTHERS THEN
-                                DBMS_OUTPUT.PUT_LINE('    ⚠ Error confirming export for ' || v_MaDH || ': ' || SQLERRM);
-                        END;
-                    END IF;
-                    
-                EXCEPTION
-                    WHEN OTHERS THEN
-                        v_error_count := v_error_count + 1;
-                        DBMS_OUTPUT.PUT_LINE('    ✗ Error inserting DONHANG: ' || SQLERRM);
-                END;
-            END LOOP;
-            
-            DBMS_OUTPUT.PUT_LINE('  ✓ Sales orders: exported ' || ROUND(v_current_export_qty, 2) || ' kg');
-            
-            -- ===== Calculate monthly revenue for completed orders =====
-            BEGIN
-                SELECT NVL(SUM(TongTien), 0) INTO v_monthly_revenue
-                FROM DONHANG
-                WHERE TRUNC(TGDat, 'MM') = v_month_start AND TrangThaiDH = 'Hoàn thành';
-            EXCEPTION
-                WHEN OTHERS THEN
-                    v_monthly_revenue := 0;
-            END;
-            
-            DBMS_OUTPUT.PUT_LINE('  ✓ Monthly Summary:');
-            DBMS_OUTPUT.PUT_LINE('    Cost:   ' || ROUND(v_monthly_cost, 0) || ' VND');
-            DBMS_OUTPUT.PUT_LINE('    Revenue: ' || ROUND(v_monthly_revenue, 0) || ' VND');
-            DBMS_OUTPUT.PUT_LINE('    Profit:  ' || ROUND(v_monthly_revenue - v_monthly_cost, 0) || ' VND');
-            
-            IF v_monthly_revenue >= v_monthly_cost THEN
-                DBMS_OUTPUT.PUT_LINE('    ✓ Revenue >= Cost (Condition met!)');
-            ELSE
-                DBMS_OUTPUT.PUT_LINE('    ⚠ Revenue < Cost (May happen for partial months)');
-            END IF;
-            
-        EXCEPTION
-            WHEN OTHERS THEN
-                DBMS_OUTPUT.PUT_LINE('✗ Critical error in month ' || TO_CHAR(v_month_date, 'YYYY-MM') || ': ' || SQLERRM);
-        END;
-        
-    END LOOP; -- End of 12-month loop
+                        IF v_current_export_qty >= v_target_export_qty THEN EXIT; END IF;
+                        
+                        v_MaSP := v_focused_products(TRUNC(DBMS_RANDOM.VALUE(1, v_focused_products.COUNT + 1)));
+                        v_SoLuong_export := TRUNC(5 + DBMS_RANDOM.VALUE(0, 46));
+                        IF (v_current_export_qty + v_SoLuong_export) > v_target_export_qty THEN v_SoLuong_export := v_target_export_qty - v_current_export_qty; END IF;
+                        
+                        v_MaCTDH := 'CTDH' || LPAD(SEQ_CHITIETDONHANG.NEXTVAL, 6, '0');
+                        INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES (v_MaCTDH, v_MaDH, v_MaSP, v_SoLuong_export);
+                        v_current_export_qty := v_current_export_qty + v_SoLuong_export;
+                    EXCEPTION WHEN OTHERS THEN NULL; END;
+                END LOOP;
+                
+                BEGIN SP_YEUCAU_XUATKHO(v_MaDH); EXCEPTION WHEN OTHERS THEN NULL; END;
+                
+                IF v_month_date <= TO_DATE('2026-04-30', 'YYYY-MM-DD') THEN
+                    BEGIN
+                        IF v_MaNV_GiaoHang IS NULL THEN
+                            SELECT MaNV INTO v_MaNV_GiaoHang FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV giao hàng' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+                        END IF;
+                        SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
+                        
+                        UPDATE DONHANG 
+                        SET TrangThaiDH = 'Hoàn thành', TrangThaiTT = 1, TGGiaoTT = TGGiaoYC + DBMS_RANDOM.VALUE(0, 1),
+                            PhiVanChuyen = TRUNC(DBMS_RANDOM.VALUE(15, 50)) * 1000, MaNV = v_MaNV_GiaoHang
+                        WHERE MaDH = v_MaDH;
+                        UPDATE DONHANG SET TongTien = NVL(TongTienHang, 0) + NVL(PhiVanChuyen, 0) - NVL(GiamGia, 0) WHERE MaDH = v_MaDH;
+                    EXCEPTION WHEN OTHERS THEN NULL; END;
+                END IF;
+                
+            EXCEPTION WHEN OTHERS THEN NULL; END;
+        END LOOP;
+    END LOOP;
     
-    -- ===== PHASE 3: Re-enable triggers =====
-    
-    
-    -- ===== COMMIT all changes =====
     COMMIT;
-    
-    DBMS_OUTPUT.PUT_LINE('');
-    DBMS_OUTPUT.PUT_LINE('============================================================');
-    DBMS_OUTPUT.PUT_LINE('✅ DATA ENRICHMENT COMPLETED SUCCESSFULLY!');
-    DBMS_OUTPUT.PUT_LINE('============================================================');
-    DBMS_OUTPUT.PUT_LINE('Total operations: ' || v_success_count || ' successful, ' || v_error_count || ' errors');
-    DBMS_OUTPUT.PUT_LINE('Period: 05/2025 - 05/2026');
-    DBMS_OUTPUT.PUT_LINE('Products focused: 6 SKUs (SP000001, 002, 006, 007, 021, 025)');
-    DBMS_OUTPUT.PUT_LINE('============================================================');
-    
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK;
-        DBMS_OUTPUT.PUT_LINE('❌ FATAL ERROR: ' || SQLERRM);
-        DBMS_OUTPUT.PUT_LINE('Transaction rolled back.');
+    DBMS_OUTPUT.PUT_LINE('HOÀN TẤT SINH DATA KÈM LỊCH SỬ BIẾN ĐỘNG GIÁ!');
+EXCEPTION WHEN OTHERS THEN ROLLBACK; DBMS_OUTPUT.PUT_LINE('LỖI: ' || SQLERRM);
 END;
 /
 
@@ -574,3 +408,27 @@ UNION ALL
 SELECT 'LICHSUGIA Count', COUNT(*) FROM LICHSUGIA;
 
 
+WITH DoanhThu AS (
+    -- Gom nhóm Tổng Doanh Thu theo từng tháng
+    SELECT 
+        TRUNC(TGDat, 'MM') AS Thang, 
+        SUM(TongTien) AS Revenue
+    FROM DONHANG
+    WHERE TrangThaiDH = 'Hoàn thành'
+    GROUP BY TRUNC(TGDat, 'MM')
+),
+ChiPhi AS (
+    -- Gom nhóm Tổng Chi Phí theo từng tháng
+    SELECT 
+        TRUNC(TGNhap, 'MM') AS Thang, 
+        SUM(TongTien) AS Cost
+    FROM LOHANG
+    GROUP BY TRUNC(TGNhap, 'MM')
+)
+SELECT 
+    COALESCE(dt.Thang, cp.Thang) AS Month,
+    NVL(dt.Revenue, 0) AS Revenue,
+    NVL(cp.Cost, 0) AS Cost
+FROM DoanhThu dt
+FULL OUTER JOIN ChiPhi cp ON dt.Thang = cp.Thang
+ORDER BY Month;
