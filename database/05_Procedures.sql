@@ -664,8 +664,8 @@ CREATE OR REPLACE PROCEDURE SP_XACNHAN_GIAOHANG (
 ) IS
 BEGIN
     UPDATE DONHANG 
-    SET TrangThaiDH = 'Đang giao', MaNV = p_MaNV 
-    WHERE MaDH = p_MaDH AND TrangThaiDH = 'Chờ giao hàng';
+    SET TrangThaiDH = N'Đang giao', MaNV = p_MaNV 
+    WHERE MaDH = p_MaDH AND TrangThaiDH = N'Chờ giao hàng';
     COMMIT;
 END;
 /
@@ -680,7 +680,7 @@ BEGIN
     SET TrangThaiDH = N'Hoàn thành', 
         TGGiaoTT = SYSDATE,
         TrangThaiTT = 1 
-    WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = N'Chờ giao hàng';
+    WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = N'Đang giao';
     COMMIT;
 END;
 /
@@ -696,7 +696,7 @@ BEGIN
     SET TrangThaiDH = N'Đã huỷ', 
         TGGiaoTT = SYSDATE,
         LyDoHuy = p_LyDo
-    WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = N'Chờ giao hàng';
+    WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = N'Đang giao';
     COMMIT;
 END;
 /
