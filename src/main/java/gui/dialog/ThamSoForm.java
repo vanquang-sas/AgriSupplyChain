@@ -76,7 +76,7 @@ public class ThamSoForm extends JPanel {
 
     private String getHintText(String tenTS) {
         if (tenTS.contains("GG_")) return "Nhập số thập phân (Ví dụ: 0.1 tương ứng giảm 10%)";
-        if (tenTS.equals("DON_GIA_VANCHUYEN")) return "Nhập số tiền VNĐ trên mỗi km vận chuyển";
+        if (tenTS.startsWith("SHIP_")) return "Nhập phí vận chuyển cố định bằng tiền VNĐ";
         return "Nhập giá trị số nguyên phù hợp với đơn vị đo lường.";
     }
 

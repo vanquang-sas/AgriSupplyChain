@@ -24,6 +24,10 @@ public class ProductCard extends JPanel {
     private MainFrame parentFrame;
     private int quantity = 1;
     private JLabel lblQty;
+    private JLabel lblTonKho;
+    private JButton btnMinus;
+    private JButton btnPlus;
+    private JButton btnAdd;
 
     // UI
     private int radius = 25;
@@ -61,6 +65,41 @@ public class ProductCard extends JPanel {
     private void setBorderColor(Color color) {
         borderColor = color;
         repaint();
+    }
+
+    private double getHienThiTonKho() {
+        double slKhaDung = new bus.GioHangBUS().getSlKhaDung(sp.getMaSP());
+        if (slKhaDung < 0) slKhaDung = 0;
+        
+        double dangGiuTrongGio = 0;
+        if (Session.isLogged() && Session.currentUser != null && Session.currentUser.getLoaiTK() == 2) {
+            try {
+                String username = Session.currentUser.getUsername();
+                String maKH = null;
+                try (Connection con = util.DBConnection.getConnection();
+                     PreparedStatement ps = con.prepareStatement("SELECT MaKH FROM KHACHHANG WHERE Username = ?")) {
+                    ps.setString(1, username);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            maKH = rs.getString("MaKH");
+                        }
+                    }
+                }
+                if (maKH != null) {
+                    Session.cartCache = new bus.GioHangBUS().getCart(maKH);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            for (dto.GioHangDTO item : Session.cartCache) {
+                if (item.getMaSP().equals(sp.getMaSP())) {
+                    dangGiuTrongGio = item.getSoLuong();
+                    break;
+                }
+            }
+        }
+        double conLai = slKhaDung - dangGiuTrongGio;
+        return conLai < 0 ? 0 : conLai;
     }
 
     private void initComponents() {
@@ -105,27 +144,23 @@ public class ProductCard extends JPanel {
         pnlInfo.setBorder(new EmptyBorder(10, 0, 0, 0));
         pnlInfo.setMaximumSize(new Dimension(200, 120));
 
-        JLabel lblMaSP = new JLabel(sp.getMaSP());
-        lblMaSP.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblMaSP.setForeground(Color.GRAY);
+        double tonKhoHienThi = getHienThiTonKho();
 
         JLabel lblTenSP = new JLabel(sp.getTenSP());
         lblTenSP.setFont(new Font("Segoe UI", Font.BOLD, 17));
         lblTenSP.setForeground(Color.BLACK);
 
-        JLabel lblLoai = new JLabel(sp.getMaLSP());
-        lblLoai.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        lblLoai.setForeground(new Color(120,120,120));
+        lblTonKho = new JLabel("Còn lại: " + String.format("%.0f", tonKhoHienThi) + " " + sp.getDonViTinh());
+        lblTonKho.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblTonKho.setForeground(new Color(120,120,120));
 
         JLabel lblGia = new JLabel(String.format("%,.0f đ", sp.getGiaBan()));
         lblGia.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblGia.setForeground(new Color(0,153,51));
 
-        pnlInfo.add(lblMaSP);
-        pnlInfo.add(Box.createVerticalStrut(5));
         pnlInfo.add(lblTenSP);
         pnlInfo.add(Box.createVerticalStrut(5));
-        pnlInfo.add(lblLoai);
+        pnlInfo.add(lblTonKho);
         pnlInfo.add(Box.createVerticalStrut(12));
         pnlInfo.add(lblGia);
         add(pnlInfo, BorderLayout.CENTER);
@@ -140,12 +175,19 @@ public class ProductCard extends JPanel {
         JPanel pnlQty = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 6));
         pnlQty.setOpaque(false);
 
-        JButton btnMinus = new JButton("-");
+        btnMinus = new JButton("-");
         styleQtyBtn(btnMinus);
-        lblQty = new JLabel("1", SwingConstants.CENTER);
+
+        if (tonKhoHienThi <= 0) {
+            quantity = 0;
+        } else {
+            quantity = 1;
+        }
+
+        lblQty = new JLabel(String.valueOf(quantity), SwingConstants.CENTER);
         lblQty.setPreferredSize(new Dimension(26, 30));
         lblQty.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        JButton btnPlus = new JButton("+");
+        btnPlus = new JButton("+");
         styleQtyBtn(btnPlus);
 
         btnMinus.addActionListener(e -> {
@@ -156,6 +198,13 @@ public class ProductCard extends JPanel {
         });
 
         btnPlus.addActionListener(e -> {
+            double currentTonKho = getHienThiTonKho();
+            if (quantity + 1 > currentTonKho) {
+                JOptionPane.showMessageDialog(this,
+                    "Không thể thêm vượt quá số lượng tồn kho khả dụng (" + String.format("%.0f", currentTonKho) + ")!",
+                    "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             quantity++;
             lblQty.setText(String.valueOf(quantity));
         });
@@ -166,7 +215,7 @@ public class ProductCard extends JPanel {
         pnlBottom.add(pnlQty, BorderLayout.WEST);
 
         // NÚT THÊM (+)
-        JButton btnAdd = new JButton("+");
+        btnAdd = new JButton("+");
         btnAdd.setPreferredSize(new Dimension(42,42));
         btnAdd.setFocusPainted(false);
         btnAdd.setBorderPainted(false);
@@ -176,6 +225,12 @@ public class ProductCard extends JPanel {
         btnAdd.setFont(new Font("Segoe UI", Font.BOLD, 22));
         btnAdd.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnAdd = createRoundButton(btnAdd);
+
+        if (tonKhoHienThi <= 0) {
+            btnMinus.setEnabled(false);
+            btnPlus.setEnabled(false);
+            btnAdd.setEnabled(false);
+        }
 
         JPanel pnlBtnRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         pnlBtnRight.setOpaque(false);
@@ -239,6 +294,16 @@ public class ProductCard extends JPanel {
 
         // XỬ LÝ LƯU VÀO DB
         GioHangBUS ghBus = new GioHangBUS();
+        
+        // Double-check real-time stock limits
+        double tonKhoHienThi = getHienThiTonKho();
+        if (quantity > tonKhoHienThi) {
+            JOptionPane.showMessageDialog(this, 
+                "Không thể thêm. Số lượng muốn thêm vượt quá số lượng tồn kho khả dụng còn lại (" + String.format("%.0f", tonKhoHienThi) + ")!", 
+                "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         String errorMsg = ghBus.addToCart(maKH, sp.getMaSP(), quantity);
 
         if (errorMsg == null) {
@@ -249,9 +314,20 @@ public class ProductCard extends JPanel {
             }
             JOptionPane.showMessageDialog(this, "Đã thêm " + quantity + " sản phẩm:\n" + sp.getTenSP() + " vào giỏ hàng!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
             
-            // Reset hiển thị
-            quantity = 1;
-            lblQty.setText("1");
+            // Refresh stock label & counters
+            double newStock = getHienThiTonKho();
+            lblTonKho.setText("Còn lại: " + String.format("%.0f", newStock) + " " + sp.getDonViTinh());
+            
+            if (newStock <= 0) {
+                quantity = 0;
+                lblQty.setText("0");
+                btnMinus.setEnabled(false);
+                btnPlus.setEnabled(false);
+                btnAdd.setEnabled(false);
+            } else {
+                quantity = 1;
+                lblQty.setText("1");
+            }
         } else {
             JOptionPane.showMessageDialog(this, errorMsg, "Không thể thêm", JOptionPane.WARNING_MESSAGE);
         }
@@ -272,7 +348,9 @@ public class ProductCard extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                if (getModel().isPressed()) {
+                if (!isEnabled()) {
+                    g2.setColor(new Color(200, 200, 200));
+                } else if (getModel().isPressed()) {
                     g2.setColor(new Color(0,150,70));
                 } else {
                     g2.setColor(new Color(0,180,90));

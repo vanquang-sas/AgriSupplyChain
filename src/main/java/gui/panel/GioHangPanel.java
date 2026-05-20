@@ -36,6 +36,9 @@ public class GioHangPanel extends JPanel {
 
     public GioHangPanel(MainFrame parent) {
         this.parentFrame = parent;
+        if (Session.isLogged() && Session.currentUser != null && Session.currentUser.getLoaiTK() == 2 && Session.maKH != null) {
+            Session.cartCache = new bus.GioHangBUS().getCart(Session.maKH);
+        }
         initComponents();
         loadCartItems();
     }
@@ -120,6 +123,7 @@ public class GioHangPanel extends JPanel {
         btnClearAll.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn xóa tất cả sản phẩm?", "Xác nhận", JOptionPane.YES_NO_OPTION);
             if(confirm == JOptionPane.YES_OPTION){
+                new bus.GioHangBUS().clearCart(Session.maKH);
                 Session.clearCart();
                 if (parentFrame != null) parentFrame.updateCartBadge();
                 loadCartItems();
@@ -199,7 +203,7 @@ public class GioHangPanel extends JPanel {
         pnlThanhTien.add(lblThanhTien, BorderLayout.SOUTH);
         pnlBillDetail.add(pnlThanhTien);
 
-        RoundedButton btnCheckout = new RoundedButton("TIẾN HÀNH ĐẶT HÀNG", 12, new Color(16, 185, 129));
+        RoundedButton btnCheckout = new RoundedButton("ĐẶT HÀNG", 12, new Color(16, 185, 129));
         btnCheckout.setPreferredSize(new Dimension(0, 50));
         btnCheckout.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btnCheckout.setForeground(Color.WHITE);
@@ -335,26 +339,47 @@ public class GioHangPanel extends JPanel {
 
         btnMinus.addActionListener(e -> {
             if (item.getSoLuong() > 1) {
-                item.setSoLuong(item.getSoLuong() - 1);
-                lblQty.setText(String.valueOf((int)item.getSoLuong()));
-                lblItemTotal.setText(currencyFormat.format(item.getThanhTien()));
-                Session.upsertCartCache(item);
-                updateTotalPrice();
+                double newQty = item.getSoLuong() - 1;
+                bus.GioHangBUS ghBus = new bus.GioHangBUS();
+                String error = ghBus.updateQuantity(Session.maKH, item.getMaSP(), newQty);
+                if (error == null) {
+                    item.setSoLuong(newQty);
+                    lblQty.setText(String.valueOf((int)newQty));
+                    lblItemTotal.setText(currencyFormat.format(item.getThanhTien()));
+                    Session.upsertCartCache(item);
+                    updateTotalPrice();
+                    if (parentFrame != null) parentFrame.updateCartBadge();
+                } else {
+                    JOptionPane.showMessageDialog(this, error, "Không thể giảm số lượng", JOptionPane.WARNING_MESSAGE);
+                }
             }
         });
 
         btnPlus.addActionListener(e -> {
-            item.setSoLuong(item.getSoLuong() + 1);
-            lblQty.setText(String.valueOf((int)item.getSoLuong()));
-            lblItemTotal.setText(currencyFormat.format(item.getThanhTien()));
-            Session.upsertCartCache(item);
-            updateTotalPrice();
+            double newQty = item.getSoLuong() + 1;
+            bus.GioHangBUS ghBus = new bus.GioHangBUS();
+            String error = ghBus.updateQuantity(Session.maKH, item.getMaSP(), newQty);
+            if (error == null) {
+                item.setSoLuong(newQty);
+                lblQty.setText(String.valueOf((int)newQty));
+                lblItemTotal.setText(currencyFormat.format(item.getThanhTien()));
+                Session.upsertCartCache(item);
+                updateTotalPrice();
+                if (parentFrame != null) parentFrame.updateCartBadge();
+            } else {
+                JOptionPane.showMessageDialog(this, error, "Không thể tăng số lượng", JOptionPane.WARNING_MESSAGE);
+            }
         });
 
         btnDelete.addActionListener(e -> {
-            Session.removeFromCartCache(item.getMaSP());
-            if (parentFrame != null) parentFrame.updateCartBadge();
-            loadCartItems();
+            boolean ok = new bus.GioHangBUS().deleteItem(Session.maKH, item.getMaSP());
+            if (ok) {
+                Session.removeFromCartCache(item.getMaSP());
+                if (parentFrame != null) parentFrame.updateCartBadge();
+                loadCartItems();
+            } else {
+                JOptionPane.showMessageDialog(this, "Không thể xóa sản phẩm khỏi giỏ hàng trên DB", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         card.add(lblImage, BorderLayout.WEST);

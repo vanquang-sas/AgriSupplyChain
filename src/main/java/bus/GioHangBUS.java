@@ -110,7 +110,7 @@ public class GioHangBUS {
     // ─────────────────────────────────────────────────────────────────
     // Helper – Lấy tổng SLKhaDung của sản phẩm (chưa hết hạn)
     // ─────────────────────────────────────────────────────────────────
-    private double getSlKhaDung(String maSP) {
+    public double getSlKhaDung(String maSP) {
         String sql = """
             SELECT NVL(SUM(TK.SLKhaDung), 0)
             FROM   TONKHO TK

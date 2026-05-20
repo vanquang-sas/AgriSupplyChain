@@ -387,7 +387,9 @@ public class ThamSoPanel extends JPanel {
             case "MIN_TONKHO":          return "Tồn kho tối thiểu";
             case "CANHBAO_HETHAN":      return "Cảnh báo hạn sử dụng";
             case "MAX_TG_THANHTOAN":    return "Thời gian chờ thanh toán";
-            case "DON_GIA_VANCHUYEN":   return "Đơn giá vận chuyển";
+            case "SHIP_THUONG":         return "Phí ship Khách Thường";
+            case "SHIP_THANTHIET":     return "Phí ship Khách Thân thiết";
+            case "SHIP_VIP":            return "Phí ship Khách VIP";
             case "GG_THUONG":           return "Ưu đãi Khách Thường";
             case "GG_THANTHIET":        return "Ưu đãi Khách Thân thiết";
             case "GG_VIP":              return "Ưu đãi Khách VIP";
@@ -397,8 +399,8 @@ public class ThamSoPanel extends JPanel {
 
     private String formatValue(ThamSoDTO ts) {
         switch (ts.getTenTS()) {
-            case "DON_GIA_VANCHUYEN":
-                return NumberFormat.getCurrencyInstance(new Locale("vi", "VN")).format(ts.getGiaTri()) + "/km";
+            case "SHIP_THUONG": case "SHIP_THANTHIET": case "SHIP_VIP":
+                return NumberFormat.getCurrencyInstance(new Locale("vi", "VN")).format(ts.getGiaTri());
             case "MIN_TONKHO": return (long) ts.getGiaTri() + " SP";
             case "CANHBAO_HETHAN": return (long) ts.getGiaTri() + " Ngày";
             case "MAX_TG_THANHTOAN": return (long) ts.getGiaTri() + " Giờ";
@@ -413,7 +415,9 @@ public class ThamSoPanel extends JPanel {
             case "MIN_TONKHO": return "📦";
             case "CANHBAO_HETHAN": return "⌛";
             case "MAX_TG_THANHTOAN": return "💳";
-            case "DON_GIA_VANCHUYEN": return "🚚";
+            case "SHIP_THUONG": return "🛵";
+            case "SHIP_THANTHIET": return "🚚";
+            case "SHIP_VIP": return "🚀";
             case "GG_THUONG": return "🎫";
             case "GG_THANTHIET": return "✨";
             case "GG_VIP": return "💎";
@@ -423,7 +427,7 @@ public class ThamSoPanel extends JPanel {
 
     private Color getIconBg(String tenTS) {
         switch (tenTS) {
-            case "DON_GIA_VANCHUYEN": return new Color(255, 247, 237); 
+            case "SHIP_THUONG": case "SHIP_THANTHIET": case "SHIP_VIP": return new Color(255, 247, 237); 
             case "MIN_TONKHO": return new Color(240, 253, 244); 
             case "CANHBAO_HETHAN": return new Color(254, 242, 242); 
             case "MAX_TG_THANHTOAN": return new Color(239, 246, 255); 

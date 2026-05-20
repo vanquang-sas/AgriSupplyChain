@@ -40,9 +40,11 @@ public class ThamSoBUS {
                     if (giaTri < 1 || giaTri > 365)
                         throw new IllegalArgumentException("Số ngày cảnh báo phải từ 1 đến 365!");
                     break;
-                case "DON_GIA_VANCHUYEN":
-                    if (giaTri < 1000)
-                        throw new IllegalArgumentException("Đơn giá vận chuyển phải ≥ 1,000 VNĐ/km!");
+                case "SHIP_THUONG":
+                case "SHIP_THANTHIET":
+                case "SHIP_VIP":
+                    if (giaTri < 0)
+                        throw new IllegalArgumentException("Phí vận chuyển không được âm!");
                     break;
                 case "GG_THUONG": case "GG_THANTHIET": case "GG_VIP":
                     if (giaTri < 0 || giaTri > 1)

@@ -6,22 +6,37 @@
 -- Ý tưởng: Khi người dùng nhập DiaChiGiaoHang, gọi API tới bên thứ 3
 -- để tính khoảng cách giao hàng rồi truyền vào hàm để tính phí
 CREATE OR REPLACE FUNCTION FN_TINH_PHIVANCHUYEN (
-    p_KhoangCach IN NUMBER
+    p_MaKH IN VARCHAR2
 ) RETURN NUMBER
 IS
-    v_DonGia NUMBER := 0;
+    v_LoaiKH NVARCHAR2(50) := 'Thường';
     v_PhiVanChuyen NUMBER := 0;
 BEGIN
-    SELECT GiaTri INTO v_DonGia
-    FROM THAMSO
-    WHERE TenTS = 'DON_GIA_VANCHUYEN';
+    -- Lấy loại khách hàng
+    SELECT NVL(LoaiKH, 'Thường') INTO v_LoaiKH
+    FROM KHACHHANG
+    WHERE MaKH = p_MaKH;
 
-    v_PhiVanChuyen := p_KhoangCach * v_DonGia;
+    -- Lấy phí ship từ bảng tham số dựa trên loại khách hàng
+    IF v_LoaiKH = 'VIP' THEN
+        SELECT GiaTri INTO v_PhiVanChuyen FROM THAMSO WHERE TenTS = 'SHIP_VIP';
+    ELSIF v_LoaiKH = 'Thân thiết' THEN
+        SELECT GiaTri INTO v_PhiVanChuyen FROM THAMSO WHERE TenTS = 'SHIP_THANTHIET';
+    ELSE
+        SELECT GiaTri INTO v_PhiVanChuyen FROM THAMSO WHERE TenTS = 'SHIP_THUONG';
+    END IF;
+
     RETURN v_PhiVanChuyen;
 
 EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        RETURN -1;
+    WHEN OTHERS THEN
+        BEGIN
+            SELECT GiaTri INTO v_PhiVanChuyen FROM THAMSO WHERE TenTS = 'SHIP_THUONG';
+            RETURN v_PhiVanChuyen;
+        EXCEPTION
+            WHEN OTHERS THEN
+                RETURN 500000; -- Mức phí dự phòng tuyệt đối
+        END;
 END;
 /
 

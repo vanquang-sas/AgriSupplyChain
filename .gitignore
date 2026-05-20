@@ -4,6 +4,8 @@ bin/
 out/
 *.class
 test/
+.maven/
+scratch/
 
 # --- 2. Ignore cấu hình của IDE Eclipse ---
 .classpath

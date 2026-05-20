@@ -140,9 +140,9 @@ public class DonHangDAO {
             pstmtDH.setString(1, donHang.getMaDH());
             pstmtDH.setString(2, donHang.getMaKH());
             pstmtDH.setTimestamp(3, new java.sql.Timestamp(donHang.getTgDat().getTime()));
-            pstmtDH.setDouble(4, donHang.getTongTienHang());
+            pstmtDH.setDouble(4, 0.0);
             pstmtDH.setDouble(5, donHang.getPhiVanChuyen());
-            pstmtDH.setDouble(6, donHang.getTongTien());
+            pstmtDH.setDouble(6, donHang.getPhiVanChuyen());
             pstmtDH.setString(7, donHang.getTrangThaiDH());
             pstmtDH.setString(8, donHang.getDiaChiGiaoHang());
             pstmtDH.setString(9, donHang.getPhuongThucTT());

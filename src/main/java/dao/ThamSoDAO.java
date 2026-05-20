@@ -49,6 +49,20 @@ public class ThamSoDAO {
         }
     }
 
+    public double getValueByName(String name, double defaultValue) {
+        String sql = "SELECT GiaTri FROM THAMSO WHERE TenTS = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getDouble("GiaTri");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return defaultValue;
+    }
+
     // ===================== HELPER =====================
     private ThamSoDTO mapRow(ResultSet rs) throws SQLException {
         return new ThamSoDTO(

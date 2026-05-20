@@ -11,7 +11,7 @@ public class TestCuaHangGUI {
         JFrame frame = new JFrame("Giao Hàng");
 
         String maKH = "KH000001";
-        frame.setContentPane(new CuaHangPanel());
+        frame.setContentPane(new CuaHangPanel(null));
 
         frame.setSize(1050, 700);
 

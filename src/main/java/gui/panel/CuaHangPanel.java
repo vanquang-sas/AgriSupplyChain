@@ -29,7 +29,7 @@ public class CuaHangPanel extends JPanel {
     // COMPONENT
     // =========================================
     private JTextField txtTimKiem;
-    private JComboBox<String> cboLoai;
+    private JComboBox<Object> cboLoai;
 
     private JButton btnReload;
 
@@ -148,17 +148,22 @@ public class CuaHangPanel extends JPanel {
         lblLoai.setForeground(AppColor.TEXT_PRIMARY);
 
         cboLoai = new JComboBox<>();
-
         cboLoai.setPreferredSize(new Dimension(180, 40));
-
         cboLoai.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
         cboLoai.addItem("Tất cả");
-        cboLoai.addItem("LSP00001");
-        cboLoai.addItem("LSP00002");
-        cboLoai.addItem("LSP00003");
-        cboLoai.addItem("LSP00004");
-        cboLoai.addItem("LSP00005");
+
+        // Tải danh mục loại sản phẩm từ database
+        try {
+            bus.LoaiSanPhamBUS lspBus = new bus.LoaiSanPhamBUS();
+            List<dto.LoaiSanPhamDTO> categories = lspBus.getAll();
+            if (categories != null) {
+                for (dto.LoaiSanPhamDTO cat : categories) {
+                    cboLoai.addItem(new CategoryItem(cat.getMaLSP(), cat.getTenLSP()));
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
         // =========================================
         // RELOAD BUTTON
@@ -304,7 +309,14 @@ public class CuaHangPanel extends JPanel {
 
         String keyword = txtTimKiem.getText().trim();
 
-        String loai = cboLoai.getSelectedItem().toString();
+        Object selected = cboLoai.getSelectedItem();
+        String loaiTemp = "Tất cả";
+        if (selected instanceof CategoryItem) {
+            loaiTemp = ((CategoryItem) selected).getId();
+        } else if (selected != null) {
+            loaiTemp = selected.toString();
+        }
+        final String loai = loaiTemp;
 
         // =====================================
         // SEARCH + FILTER
@@ -342,6 +354,29 @@ public class CuaHangPanel extends JPanel {
             loadData(
                     bus.getAllSanPham()
             );
+        }
+    }
+
+    public static class CategoryItem {
+        private final String id;
+        private final String name;
+
+        public CategoryItem(String id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
         }
     }
 }

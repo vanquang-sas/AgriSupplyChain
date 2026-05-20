@@ -12,10 +12,8 @@ import util.Session;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -28,6 +26,7 @@ public class ThanhToanForm extends JDialog {
     private final MainFrame parentFrame;
     private final BigDecimal tongTienHang;
     private BigDecimal phiVanChuyen = BigDecimal.ZERO;
+    private BigDecimal giamGia = BigDecimal.ZERO;
     private BigDecimal tongThanhToan = BigDecimal.ZERO;
 
     private static final NumberFormat FMT = NumberFormat.getCurrencyInstance(Locale.of("vi", "VN"));
@@ -39,6 +38,7 @@ public class ThanhToanForm extends JDialog {
     private JComboBox<String> cbxPhuongThuc;
 
     private JLabel lblPhiVC;
+    private JLabel lblGiamGiaVal;
     private JLabel lblTongCong;
     private JLabel lblDiscountInfo; // Hiển thị thông tin giảm giá ship
 
@@ -55,6 +55,7 @@ public class ThanhToanForm extends JDialog {
         getRootPane().putClientProperty(FlatClientProperties.STYLE, "arc: 20");
 
         initComponents();
+        capNhatTongTien();
     }
 
     private void initComponents() {
@@ -157,6 +158,12 @@ public class ThanhToanForm extends JDialog {
         lblDiscountInfo.setFont(new Font("Segoe UI", Font.ITALIC, 12));
         lblDiscountInfo.setForeground(new Color(16, 185, 129)); // Màu xanh lá nhẹ
         pnlSummary.add(makeAmountRowWithComp("", lblDiscountInfo));
+        pnlSummary.add(Box.createVerticalStrut(8));
+
+        lblGiamGiaVal = new JLabel("0 đ (0%)");
+        lblGiamGiaVal.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblGiamGiaVal.setForeground(new Color(239, 68, 68)); // Màu đỏ nhạt / deep error shade
+        pnlSummary.add(makeAmountRowWithComp("Giảm giá sản phẩm:", lblGiamGiaVal));
         
         pnlSummary.add(Box.createVerticalStrut(12));
         JPanel divider = new JPanel();
@@ -269,9 +276,6 @@ public class ThanhToanForm extends JDialog {
         return row;
     }
 
-    // --- Logic Tỉnh/Phường & Phí Ship ---
-    // --- Logic Tỉnh/Phường & Phí Ship Doanh Nghiệp (B2B) ---
-
     private void onTinhTPChanged() {
         String tinh = (String) cbxTinhTP.getSelectedItem();
         cbxQuanPhuong.removeAllItems();
@@ -299,11 +303,11 @@ public class ThanhToanForm extends JDialog {
     // Hàm phụ: Xóa trắng phí ship khi địa chỉ chưa hoàn chỉnh
     private void resetPhiShip() {
         phiVanChuyen = BigDecimal.ZERO;
-        capNhatTongTien();
         lblPhiVC.setText("--- (Vui lòng nhập đầy đủ địa chỉ)");
         lblDiscountInfo.setText("");
+        capNhatTongTien();
     }
-
+ 
     // HÀM MỚI: Chỉ tính tiền khi gọi (sau khi nhập xong Textfield)
     private void tinhToanPhiShip() {
         String tinh = (String) cbxTinhTP.getSelectedItem();
@@ -318,39 +322,58 @@ public class ThanhToanForm extends JDialog {
             return; // Chưa đủ thì thoát, không tính tiền
         }
 
-        // Đã nhập đủ -> Bắt đầu tính giá
-        double baseFee = 300000; 
-        if (tinh.equals("Hà Nội") || tinh.equals("TP. Hồ Chí Minh")) baseFee = 350000;
-        else if (tinh.equals("Đà Nẵng")) baseFee = 400000;
-        else baseFee = 450000;
-
-        // Cộng random từ 10k đến 50k
-        double randomFee = 10000 + (Math.random() * 40000);
-        double totalFee = baseFee + randomFee;
-
-        // Xử lý giảm giá hội viên
+        // Đã nhập đủ -> Bắt đầu tính giá dựa trên loại khách hàng từ bảng tham số
         String loaiKH = getLoaiKhachHang();
+        String tsName = "SHIP_THUONG";
+        double defaultVal = 500000;
         
         if ("VIP".equalsIgnoreCase(loaiKH)) {
-            totalFee *= 0.7; // Giảm 30%
-            lblDiscountInfo.setText("(Đã áp dụng giảm 30% phí ship cho thẻ VIP)");
+            tsName = "SHIP_VIP";
+            defaultVal = 100000;
+            lblDiscountInfo.setText("(Áp dụng phí ship đặc quyền thẻ VIP)");
         } else if ("Thân thiết".equalsIgnoreCase(loaiKH)) {
-            totalFee *= 0.9; // Giảm 10%
-            lblDiscountInfo.setText("(Đã áp dụng giảm 10% phí ship cho thẻ Thân thiết)");
+            tsName = "SHIP_THANTHIET";
+            defaultVal = 300000;
+            lblDiscountInfo.setText("(Áp dụng phí ship ưu đãi thẻ Thân thiết)");
         } else {
-            lblDiscountInfo.setText("");
+            lblDiscountInfo.setText("(Áp dụng phí ship thẻ Thường)");
         }
-
-        // Làm tròn đến hàng nghìn
-        totalFee = Math.round(totalFee / 1000.0) * 1000.0;
+        
+        double totalFee = new dao.ThamSoDAO().getValueByName(tsName, defaultVal);
         phiVanChuyen = new BigDecimal(totalFee);
         
-        capNhatTongTien();
         lblPhiVC.setText(FMT.format(phiVanChuyen));
+        capNhatTongTien();
     }                           
 
     private void capNhatTongTien() {
-        tongThanhToan = tongTienHang.add(phiVanChuyen);
+        String loaiKH = getLoaiKhachHang();
+        String ggName = "GG_THUONG";
+        double defaultGG = 0.0;
+        if ("VIP".equalsIgnoreCase(loaiKH)) {
+            ggName = "GG_VIP";
+            defaultGG = 0.05;
+        } else if ("Thân thiết".equalsIgnoreCase(loaiKH)) {
+            ggName = "GG_THANTHIET";
+            defaultGG = 0.02;
+        }
+        
+        double tyLeGiamGia = new dao.ThamSoDAO().getValueByName(ggName, defaultGG);
+        giamGia = tongTienHang.multiply(BigDecimal.valueOf(tyLeGiamGia));
+        
+        int phanTram = (int) Math.round(tyLeGiamGia * 100);
+        if (lblGiamGiaVal != null) {
+            if (giamGia.compareTo(BigDecimal.ZERO) > 0) {
+                lblGiamGiaVal.setText("- " + FMT.format(giamGia) + " (" + phanTram + "%)");
+            } else {
+                lblGiamGiaVal.setText("0 đ (" + phanTram + "%)");
+            }
+        }
+        
+        tongThanhToan = tongTienHang.add(phiVanChuyen).subtract(giamGia);
+        if (tongThanhToan.compareTo(BigDecimal.ZERO) < 0) {
+            tongThanhToan = BigDecimal.ZERO;
+        }
         lblTongCong.setText(FMT.format(tongThanhToan));
     }
     
@@ -436,6 +459,7 @@ public class ThanhToanForm extends JDialog {
             
             donHang.setPhiVanChuyen(phiVanChuyen.doubleValue());
             donHang.setTongTienHang(tongTienHang.doubleValue());
+            donHang.setGiamGia(giamGia.doubleValue());
             donHang.setTongTien(tongThanhToan.doubleValue());
             donHang.setTrangThaiDH("Đã đặt");
 
