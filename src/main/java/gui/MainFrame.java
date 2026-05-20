@@ -43,9 +43,7 @@ public class MainFrame extends JFrame {
     private ThamSoPanel pnlThamSo;
     private DonHangPanel pnlDonHang;
     private GiaoHangPanel pnlGiaoHang;
-    // THEM DONG NAY
     private CuaHangPanel pnlCuaHang;
-    //
     private LoaiSanPhamPanel pnlLoaiSanPham;
     private UserProfilePanel pnlUserProfile;
     private SanPhamPanel pnlSanPham;
@@ -74,6 +72,9 @@ public class MainFrame extends JFrame {
         buildTopHeader(); // Gọi hàm tạo Header giỏ hàng
         buildSidebar();
 
+        // Mặc định ẩn Header, chỉ hiện khi gọi hàm điều hướng
+        topHeader.setVisible(false);
+
         // Tạo Wrapper chứa Header ở trên, Content ở dưới
         JPanel mainContentWrapper = new JPanel(new BorderLayout());
         mainContentWrapper.add(topHeader, BorderLayout.NORTH);
@@ -81,24 +82,41 @@ public class MainFrame extends JFrame {
 
         // Thêm vào Frame chính
         add(sidebarPanel, BorderLayout.WEST);
-        add(mainContentWrapper, BorderLayout.CENTER); // Add wrapper thay vì contentPanel
+        add(mainContentWrapper, BorderLayout.CENTER); 
         
         // Cập nhật số lượng giỏ hàng lần đầu
         updateCartBadge();
     }
 
     // ================================================================
-    // HEADER & GIỎ HÀNG (MỚI THÊM)
+    // HÀM ĐIỀU HƯỚNG TRUNG TÂM (ĐÓNG MỞ HEADER TỰ ĐỘNG)
+    // ================================================================
+    private void navigateToCard(String cardName) {
+        cardLayout.show(contentPanel, cardName);
+        
+        // ĐÃ SỬA: Bỏ "GioHang" đi, nút này giờ CHỈ hiện khi đang ở trang "CuaHang"
+        if (cardName.equals("CuaHang")) {
+            topHeader.setVisible(true);
+        } else {
+            topHeader.setVisible(false);
+        }
+
+        // Tự động làm mới dữ liệu cho các Panel chức năng khi chuyển trang
+        if (cardName.equals("DonHang") && pnlDonHang != null) {
+            pnlDonHang.loadData(null);
+        }
+    }
+
+    // ================================================================
+    // HEADER & GIỎ HÀNG 
     // ================================================================
     private void buildTopHeader() {
         topHeader = new JPanel(new BorderLayout());
         topHeader.setBackground(AppColor.BACKGROUND);
         
-        // ĐÃ SỬA: Đổi Padding trên/dưới từ 10 thành 0 để thả rông chiều cao cho nút Giỏ hàng
         topHeader.setBorder(new EmptyBorder(0, 20, 0, 20));
-        topHeader.setPreferredSize(new Dimension(0, 60)); // Chiều cao tổng của header là 60px
+        topHeader.setPreferredSize(new Dimension(0, 60)); 
 
-        // ĐÃ SỬA: Thêm VGap (Khoảng cách dọc) = 5px để nút canh lọt ra giữa chiều cao 60px
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 5));
         rightPanel.setBackground(AppColor.BACKGROUND);
 
@@ -115,15 +133,13 @@ public class MainFrame extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
-                // Bật khử răng cưa
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-                int size = 42; // Đường kính hình tròn
-                int x = 2;     // Tọa độ X bắt đầu vẽ
-                int y = 4;     // Tọa độ Y bắt đầu vẽ
+                int size = 42; 
+                int x = 2;     
+                int y = 4;     
 
-                // 1. Vẽ hình tròn nền
                 if (isHovered) g2.setColor(new Color(226, 232, 240));
                 else g2.setColor(Color.WHITE);
                 g2.fillOval(x, y, size, size);
@@ -131,7 +147,6 @@ public class MainFrame extends JFrame {
                 g2.setColor(new Color(203, 213, 225));
                 g2.drawOval(x, y, size, size);
 
-                // 2. Vẽ Icon 🛒 vào giữa hình tròn
                 g2.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
                 g2.setColor(Color.BLACK);
                 String emoji = "🛒";
@@ -140,7 +155,6 @@ public class MainFrame extends JFrame {
                 int textY = y + ((size - fm.getHeight()) / 2) + fm.getAscent();
                 g2.drawString(emoji, textX, textY);
 
-                // 3. Vẽ Badge thông báo màu đỏ
                 int count = Session.getCartItemCount();
                 if (count > 0) {
                     String countStr = String.valueOf(count);
@@ -152,10 +166,10 @@ public class MainFrame extends JFrame {
                     int badgeX = x + size - badgeW / 2 - 2;
                     int badgeY = y - 2;
 
-                    g2.setColor(new Color(239, 68, 68)); // Nền đỏ
+                    g2.setColor(new Color(239, 68, 68)); 
                     g2.fillRoundRect(badgeX, badgeY, badgeW, badgeH, badgeH, badgeH);
                     
-                    g2.setColor(Color.WHITE); // Chữ trắng
+                    g2.setColor(Color.WHITE); 
                     int countX = badgeX + (badgeW - badgeFm.stringWidth(countStr)) / 2;
                     int countY = badgeY + ((badgeH - badgeFm.getHeight()) / 2) + badgeFm.getAscent();
                     g2.drawString(countStr, countX, countY);
@@ -164,7 +178,6 @@ public class MainFrame extends JFrame {
             }
         };
 
-        // Khóa khung vẽ nút bằng 50x50 (Kết hợp Vgap 5px ở trên và 5px ở dưới -> Vừa khít 60px)
         btnCart.setPreferredSize(new Dimension(50, 50));
         btnCart.setContentAreaFilled(false);
         btnCart.setBorderPainted(false);
@@ -173,7 +186,7 @@ public class MainFrame extends JFrame {
 
         btnCart.addActionListener(e -> {
             try {
-                navigateToGioHang(); // Chuyển sang Panel Giỏ hàng
+                navigateToGioHang(); 
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Lỗi hiển thị Giỏ hàng: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -182,7 +195,6 @@ public class MainFrame extends JFrame {
 
         rightPanel.add(btnCart);
 
-        // Hiển thị nếu là khách hàng
         int roleId = Session.isLogged() ? Session.currentUser.getLoaiTK() : 2;
         if (roleId == 2) {
             topHeader.add(rightPanel, BorderLayout.EAST);
@@ -191,9 +203,6 @@ public class MainFrame extends JFrame {
         }
     }
 
-    /**
-     * Hàm public để CuaHangPanel gọi mỗi khi khách ấn "Thêm vào giỏ"
-     */
     public void updateCartBadge() {
         if (topHeader != null) {
             topHeader.repaint(); 
@@ -216,7 +225,6 @@ public class MainFrame extends JFrame {
         JPanel logoInner = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 16));
         logoInner.setBackground(AppColor.SIDEBAR_ACTIVE);
 
-        // Load ảnh Logo từ resources/images/logo.jpg
         JLabel iconLogo = new JLabel();
         ImageIcon logoImg = getImageIcon("images/logo.jpg", 36, 36);
         if (logoImg != null) {
@@ -234,7 +242,6 @@ public class MainFrame extends JFrame {
         lblAppName.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblAppName.setForeground(Color.WHITE);
 
-        // Hiển thị chức vụ người dùng
         int roleId = util.Session.isLogged() ? util.Session.currentUser.getLoaiTK() : 2;
         String roleName = util.Session.chucVu != null ? util.Session.chucVu : "Khách Hàng";
 
@@ -254,7 +261,6 @@ public class MainFrame extends JFrame {
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
         menuPanel.setBorder(new EmptyBorder(16, 0, 12, 0));
 
-        // Khởi tạo các nút menu với icon Emoji
         JButton btnTrangChu = createMenuButton("🏠", "Trang chủ", "TrangChu");
         JButton btnKhachHang = createMenuButton("👥", "Quản lý Khách hàng", "KhachHang");
         JButton btnNhanVien = createMenuButton("👤", "Quản lý Nhân viên", "NhanVien");
@@ -271,14 +277,11 @@ public class MainFrame extends JFrame {
         JButton btnGiaoHang = createMenuButton("🚚", "Giao hàng", "GiaoHang");
         JButton btnLoHang = createMenuButton("🧾", "Lô hàng nhập", "LoHang");
         JButton btnLichSuLoHang = createMenuButton("🕘", "Lịch sử nhập hàng", "LichSuLoHang");
-        
-        // THEM DONG NAY
         JButton btnCuaHang = createMenuButton("🛒", "Cửa hàng Nông sản", "CuaHang");
 
         JButton defaultActiveBtn = null;
 
-        // Logic phân quyền (Hiển thị các nút tương ứng với từng Role)
-        if (roleId == 0) { // ADMIN - QUẢN LÝ
+        if (roleId == 0) { // ADMIN
             menuPanel.add(buildSectionLabel("TỔNG QUAN"));
             menuPanel.add(btnTrangChu);
             menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
@@ -310,24 +313,21 @@ public class MainFrame extends JFrame {
         } else if (roleId == 1) { // NHÂN VIÊN
             String cv = util.Session.chucVu != null ? util.Session.chucVu.toLowerCase() : "";
             
-            if (cv.contains("kho")) { // NHÂN VIÊN KHO
+            if (cv.contains("kho")) {
                 menuPanel.add(buildSectionLabel("QUẢN LÝ KHO BÃI"));
-                menuPanel.add(btnTonKho);
-                menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
-                menuPanel.add(btnNhapKho);
-                menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
-                menuPanel.add(btnXuatKho);
-                menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+                menuPanel.add(btnTonKho); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+                menuPanel.add(btnNhapKho); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+                menuPanel.add(btnXuatKho); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 defaultActiveBtn = btnTonKho;
                 
-            } else if (cv.contains("thu mua")) { // NV THU MUA
+            } else if (cv.contains("thu mua")) {
                 menuPanel.add(buildSectionLabel("ĐỐI TÁC & SẢN PHẨM"));
                 menuPanel.add(btnNhaCungCap); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 menuPanel.add(btnSanPham); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 menuPanel.add(btnLoHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 menuPanel.add(btnLichSuLoHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 defaultActiveBtn = btnNhaCungCap;
-            } else if (cv.contains("giao hàng")) { // NV GIAO HÀNG
+            } else if (cv.contains("giao hàng")) {
                 menuPanel.add(buildSectionLabel("VẬN CHUYỂN"));
                 menuPanel.add(btnGiaoHang); menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
                 defaultActiveBtn = btnGiaoHang;
@@ -337,7 +337,6 @@ public class MainFrame extends JFrame {
             menuPanel.add(btnCuaHang);
             menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
             
-            // THÊM NÚT GIỎ HÀNG VÀO SIDEBAR
             btnGioHangMenu = createMenuButton("🛍", "Giỏ hàng", "GioHang");
             menuPanel.add(btnGioHangMenu);
             menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
@@ -347,24 +346,20 @@ public class MainFrame extends JFrame {
             defaultActiveBtn = btnCuaHang;
         }
 
-        // Thanh cuộn cho sidebar nếu menu quá dài
         JScrollPane scrollMenu = new JScrollPane(menuPanel);
         scrollMenu.setBorder(null);
         scrollMenu.getViewport().setBackground(AppColor.SIDEBAR_BG);
-        scrollMenu.getVerticalScrollBar().setPreferredSize(new Dimension(0, 0)); // Ẩn thanh cuộn
+        scrollMenu.getVerticalScrollBar().setPreferredSize(new Dimension(0, 0)); 
 
-        // ---------- 3. FOOTER (THÔNG TIN USER & ĐĂNG XUẤT) ----------
         JPanel footerPanel = buildFooter();
 
         sidebarPanel.add(logoPanel, BorderLayout.NORTH);
         sidebarPanel.add(scrollMenu, BorderLayout.CENTER);
         sidebarPanel.add(footerPanel, BorderLayout.SOUTH);
 
-        // Kích hoạt nút menu mặc định
         if (defaultActiveBtn != null) {
             final JButton finalDefaultBtn = defaultActiveBtn;
             setActiveMenu(finalDefaultBtn);
-            // Kích hoạt hành động của nút ngay khi mở ứng dụng
             SwingUtilities.invokeLater(() -> {
                 for (ActionListener a : finalDefaultBtn.getActionListeners()) {
                     a.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
@@ -433,21 +428,12 @@ public class MainFrame extends JFrame {
 
         userText.add(lblViewProfile);
 
-        // Nút Đăng xuất: Nền trắng, Chữ đỏ
         JButton btnLogout = new JButton("Đăng xuất") {
             private boolean isHovered = false;
             {
                 addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        isHovered = true;
-                        repaint();
-                    }
-                    @Override
-                    public void mouseExited(MouseEvent e) {
-                        isHovered = false;
-                        repaint();
-                    }
+                    @Override public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                    @Override public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
                 });
             }
 
@@ -456,12 +442,11 @@ public class MainFrame extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
-                // Thay đổi màu sắc dựa trên trạng thái Hover
                 if (isHovered) {
-                    g2.setColor(new Color(220, 38, 38)); // Màu đỏ đậm
+                    g2.setColor(new Color(220, 38, 38)); 
                     setForeground(Color.WHITE);
                 } else {
-                    g2.setColor(Color.GRAY); // Màu trắng
+                    g2.setColor(Color.GRAY); 
                     setForeground(Color.WHITE);
                 }
                 
@@ -482,7 +467,7 @@ public class MainFrame extends JFrame {
         btnLogout.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn đăng xuất?", "Đăng xuất", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                Session.clear(); // Xóa sạch cả giỏ hàng cache và user
+                Session.clear(); 
                 dispose();
                 new AuthFrame().setVisible(true);
             }
@@ -497,44 +482,40 @@ public class MainFrame extends JFrame {
     private void showUserProfile() {
         if (pnlUserProfile != null) {
             pnlUserProfile.loadProfile();
-            cardLayout.show(contentPanel, "Profile");
+            navigateToCard("Profile");
             setActiveMenu(null);
         }
     }
 
-    // TỰ VẼ ICON NÚT NGUỒN (POWER) CỰC NÉT BẰNG CODE
     private Icon createPowerIcon(int size) {
         return new Icon() {
             @Override
             public void paintIcon(Component c, Graphics g, int x, int y) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(c.getForeground()); // Tự động đổi màu theo chữ
+                g2.setColor(c.getForeground()); 
                 g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 
                 int cx = x + size / 2;
                 int cy = y + size / 2;
                 
-                // Vẽ cung tròn khuyết phía trên
                 g2.drawArc(x + 2, y + 3, size - 4, size - 4, -60, 300);
-                // Vẽ thanh gạt dọc ở giữa
                 g2.drawLine(cx, y + 1, cx, cy);
-                
                 g2.dispose();
             }
             @Override public int getIconWidth() { return size; }
             @Override public int getIconHeight() { return size; }
         };
     }
+
     // ================================================================
-    // CONTENT AREA (LẤY LẠI CÁC PANEL CỐT LÕI)
+    // CONTENT AREA 
     // ================================================================
     private void buildContentArea() {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         contentPanel.setBackground(AppColor.BACKGROUND);
 
-        // Khởi tạo các panel thực tế
         pnlKhachHang = new KhachHangPanel();
         pnlNhanVien = new NhanVienPanel();
         pnlNhaCungCap = new NhaCungCapPanel();
@@ -542,7 +523,10 @@ public class MainFrame extends JFrame {
         pnlThamSo = new ThamSoPanel();
         pnlDonHang = new DonHangPanel();
         pnlGiaoHang = new GiaoHangPanel(Session.maNV);
-        pnlCuaHang = new CuaHangPanel();
+        
+        // ĐÃ SỬA LỖI Ở ĐÂY: Thêm 'this' vào trong constructor
+        pnlCuaHang = new CuaHangPanel(this);
+        
         pnlLoaiSanPham = new LoaiSanPhamPanel();
         pnlSanPham = new SanPhamPanel();
         pnlNhapKho = new NhapKhoPanel();
@@ -554,7 +538,6 @@ public class MainFrame extends JFrame {
         pnlLichSuLoHang = new LichSuLoHangPanel();
         pnlGioHang = new GioHangPanel(this);
 
-        // Thêm vào CardLayout với tên gọi tương ứng
         contentPanel.add(createPlaceholder("🏠", "Trang chủ", "Dashboard tổng quan"), "TrangChu");
         contentPanel.add(pnlSanPham, "SanPham");
         contentPanel.add(pnlKhachHang, "KhachHang");
@@ -576,22 +559,13 @@ public class MainFrame extends JFrame {
         contentPanel.add(pnlGioHang, "GioHang");
     }
 
-    // Hàm tạo nút menu
     private JButton createMenuButton(String emojiStr, String label, String cardName) {
         JButton btn = new JButton(label) {
             private boolean isHovered = false;
             {
                 addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        isHovered = true;
-                        repaint();
-                    }
-                    @Override
-                    public void mouseExited(MouseEvent e) {
-                        isHovered = false;
-                        repaint();
-                    }
+                    @Override public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                    @Override public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
                 });
             }
 
@@ -607,15 +581,11 @@ public class MainFrame extends JFrame {
                 int arc = 12;
 
                 if (getBackground().equals(AppColor.SIDEBAR_ACTIVE)) {
-                    // Trạng thái nút đang được chọn
                     g2.setColor(AppColor.SIDEBAR_ACTIVE);
                     g2.fillRoundRect(marginX, marginY, w, h, arc, arc);
-
-                    // Vẽ vạch trắng báo hiệu ở bên trái
                     g2.setColor(Color.WHITE);
                     g2.fillRoundRect(marginX, marginY + 8, 4, h - 16, 4, 4);
                 } else if (isHovered) {
-                    // Trạng thái khi di chuyển chuột qua
                     g2.setColor(new Color(255, 255, 255, 20));
                     g2.fillRoundRect(marginX, marginY, w, h, arc, arc);
                 }
@@ -625,7 +595,6 @@ public class MainFrame extends JFrame {
             }
         };
 
-        // Gắn Icon Emoji bằng hàm tự vẽ để fix lỗi font
         btn.setIcon(createEmojiIcon(emojiStr, 16));
         btn.setIconTextGap(16);
 
@@ -642,7 +611,7 @@ public class MainFrame extends JFrame {
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         btn.addActionListener(e -> {
-            cardLayout.show(contentPanel, cardName);
+            navigateToCard(cardName); // Đã thay thế cardLayout.show() bằng hàm điều hướng
             setActiveMenu(btn);
         });
 
@@ -659,7 +628,6 @@ public class MainFrame extends JFrame {
         }
     }
 
-    // Hàm tạo Icon từ Emoji bằng Graphics2D (Giải pháp tốt nhất cho lỗi font)
     private Icon createEmojiIcon(String emojiText, int size) {
         return new Icon() {
             @Override
@@ -670,7 +638,6 @@ public class MainFrame extends JFrame {
                 g2.setColor(c.getForeground());
                 FontMetrics fm = g2.getFontMetrics();
                 
-                // ĐÃ SỬA: Bổ sung tính toán tọa độ X để CĂN GIỮA THEO CHIỀU NGANG
                 int textX = x + (getIconWidth() - fm.stringWidth(emojiText)) / 2;
                 int textY = y + ((getIconHeight() - fm.getHeight()) / 2) + fm.getAscent();
                 
@@ -678,19 +645,11 @@ public class MainFrame extends JFrame {
                 g2.dispose();
             }
 
-            @Override
-            public int getIconWidth() {
-                return size + 4;
-            }
-
-            @Override
-            public int getIconHeight() {
-                return size + 4;
-            }
+            @Override public int getIconWidth() { return size + 4; }
+            @Override public int getIconHeight() { return size + 4; }
         };
     }
 
-    // Panel dự phòng cho những trang đang phát triển
     private JPanel createPlaceholder(String emojiIcon, String title, String subtitle) {
         JPanel p = new JPanel(new GridBagLayout());
         p.setBackground(AppColor.BACKGROUND);
@@ -726,7 +685,6 @@ public class MainFrame extends JFrame {
         return p;
     }
 
-    // Hàm load ảnh từ file hệ thống hoặc tài nguyên
     private ImageIcon getImageIcon(String path, int width, int height) {
         try {
             URL imgURL = getClass().getClassLoader().getResource(path);
@@ -747,12 +705,12 @@ public class MainFrame extends JFrame {
     }
 
     public void navigateToGioHang() {
-        cardLayout.show(contentPanel, "GioHang");
+        navigateToCard("GioHang");
         if (btnGioHangMenu != null) {
             setActiveMenu(btnGioHangMenu);
         }
         if (pnlGioHang != null) {
-            pnlGioHang.loadCartItems(); // Yêu cầu tải lại dữ liệu phiên giỏ hàng mới nhất
+            pnlGioHang.loadCartItems(); 
         }
     }
 }

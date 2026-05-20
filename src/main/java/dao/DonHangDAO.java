@@ -135,19 +135,21 @@ public class DonHangDAO {
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
             // Đã bổ sung DiaChiGiaoHang và PhuongThucTT (bỏ GhiChu)
-            String sqlDH = "INSERT INTO DONHANG (MaDH, MaKH, TgDat, TongTien, TrangThaiDH, DiaChiGiaoHang, PhuongThucTT) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            String sqlDH = "INSERT INTO DONHANG (MaDH, MaKH, TgDat, TongTienHang, PhiVanChuyen, TongTien, TrangThaiDH, DiaChiGiaoHang, PhuongThucTT) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             pstmtDH = conn.prepareStatement(sqlDH);
             pstmtDH.setString(1, donHang.getMaDH());
             pstmtDH.setString(2, donHang.getMaKH());
             pstmtDH.setTimestamp(3, new java.sql.Timestamp(donHang.getTgDat().getTime()));
-            pstmtDH.setDouble(4, donHang.getTongTien());
-            pstmtDH.setString(5, donHang.getTrangThaiDH());
-            pstmtDH.setString(6, donHang.getDiaChiGiaoHang());
-            pstmtDH.setString(7, donHang.getPhuongThucTT());
+            pstmtDH.setDouble(4, donHang.getTongTienHang());
+            pstmtDH.setDouble(5, donHang.getPhiVanChuyen());
+            pstmtDH.setDouble(6, donHang.getTongTien());
+            pstmtDH.setString(7, donHang.getTrangThaiDH());
+            pstmtDH.setString(8, donHang.getDiaChiGiaoHang());
+            pstmtDH.setString(9, donHang.getPhuongThucTT());
             pstmtDH.executeUpdate();
 
             // 2. Insert Chi tiết đơn hàng vào bảng CHITIETDONHANG
-            String sqlCT = "INSERT INTO CHITIETDONHANG (MaDH, MaSP, GiaBan, SoLuong) VALUES (?, ?, ?, ?)";
+            String sqlCT = "INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, GiaBan, SoLuong) VALUES ('CTDH' || LPAD(SEQ_CHITIETDONHANG.NEXTVAL, 4, '0'), ?, ?, ?, ?)";
             pstmtCT = conn.prepareStatement(sqlCT);
 
             for (ChiTietDonHangDTO ct : chiTietList) {

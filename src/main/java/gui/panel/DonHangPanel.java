@@ -50,13 +50,14 @@ import javax.swing.table.TableCellRenderer;
 import bus.DonHangBUS;
 import dto.DonHangDTO;
 import util.AppColor;
+import util.Session;
 
 public class DonHangPanel extends JPanel {
 
     // ── Data ──────────────────────────────────────────────────────────────────
     private final DonHangBUS bus = new DonHangBUS();
     private List<DonHangDTO> currentDataList = new ArrayList<>();
-    private String currentMaKH = "KH000017"; // Giả lập mã KH đang đăng nhập
+    private String currentMaKH = Session.maKH != null ? Session.maKH : "KH000017"; // Giả lập mã KH đang đăng nhập
 
     // ── UI ────────────────────────────────────────────────────────────────────
     private JTable table;
@@ -314,7 +315,10 @@ public class DonHangPanel extends JPanel {
     // ─────────────────────────────────────────────────────────────────────────
     // DATA LOGIC
     // ─────────────────────────────────────────────────────────────────────────
-    private void loadData(String keyword) {
+    public void loadData(String keyword) {
+        if (Session.maKH != null) {
+            this.currentMaKH = Session.maKH;
+        }
         try {
             currentDataList = bus.getDanhSachDonHang(currentMaKH);
             

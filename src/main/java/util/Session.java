@@ -1,6 +1,7 @@
 package util;
 
 import dto.GioHangDTO;
+import dto.KhachHangDTO;
 import dto.TaiKhoanDTO;
 
 import java.util.ArrayList;
