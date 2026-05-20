@@ -18,28 +18,29 @@ public class GioHangDAO {
         // MERGE xử lý cả hai nhánh trong một câu lệnh duy nhất
         String sql = """
             MERGE INTO GIOHANG GH
-            USING (SELECT ? AS MaKH, ? AS MaSP FROM DUAL) SRC
+            USING (SELECT ? AS MaKH, ? AS MaSP, ? AS SoLuong FROM DUAL) SRC
             ON (GH.MaKH = SRC.MaKH AND GH.MaSP = SRC.MaSP)
             WHEN MATCHED THEN
-                UPDATE SET GH.SoLuong = GH.SoLuong + ?
+                UPDATE SET GH.SoLuong = GH.SoLuong + SRC.SoLuong, GH.TGCapNhat = SYSDATE
             WHEN NOT MATCHED THEN
-                INSERT (MaKH, MaSP, SoLuong)
-                VALUES (?, ?, ?)
+                INSERT (MaKH, MaSP, SoLuong, TGCapNhat)
+                VALUES (SRC.MaKH, SRC.MaSP, SRC.SoLuong, SYSDATE)
             """;
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, maKH);
-            ps.setString(2, maSP);
-            ps.setDouble(3, soLuong);   // cho WHEN MATCHED
-            ps.setString(4, maKH);
-            ps.setString(5, maSP);
-            ps.setDouble(6, soLuong);   // cho WHEN NOT MATCHED
-            ps.executeUpdate();
-            con.commit();
-            return true;
-
+        try (Connection con = DBConnection.getConnection()) {
+            if (con == null) return false;
+            con.setAutoCommit(false);
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+                ps.setString(1, maKH);
+                ps.setString(2, maSP);
+                ps.setDouble(3, soLuong);
+                ps.executeUpdate();
+                con.commit();
+                return true;
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            }
         } catch (SQLException e) {
             System.err.println("GioHangDAO.addToCart() lỗi: " + e.getMessage());
             return false;

@@ -180,8 +180,6 @@ public class GioHangPanel extends JPanel {
         pnlBillDetail.add(lblBillTitle);
         pnlBillDetail.add(Box.createVerticalStrut(30));
         pnlBillDetail.add(createRow("Tổng tiền hàng", lblTongTienHang = new JLabel("0 đ")));
-        pnlBillDetail.add(Box.createVerticalStrut(15));
-        pnlBillDetail.add(createRow("Phí vận chuyển", new JLabel("Miễn phí", SwingConstants.RIGHT) {{ setForeground(new Color(16, 185, 129)); }}));
         pnlBillDetail.add(Box.createVerticalStrut(20));
         
         JSeparator sep = new JSeparator();

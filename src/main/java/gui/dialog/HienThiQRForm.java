@@ -2,6 +2,10 @@ package gui.dialog;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import gui.MainFrame;
+import util.Session;
+import dto.DonHangDTO;
+import dto.ChiTietDonHangDTO;
+import dao.DonHangDAO;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -9,136 +13,161 @@ import java.awt.*;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.List;
 
 public class HienThiQRForm extends JDialog {
 
-    private final BigDecimal tongTien;
-    private final String phuongThuc;
-    private final String maDH;
+    private final MainFrame parentFrame; 
+    private final DonHangDTO donHang;
+    private final List<ChiTietDonHangDTO> chiTietList;
     private static final NumberFormat FMT = NumberFormat.getCurrencyInstance(Locale.of("vi", "VN"));
 
-    public HienThiQRForm(MainFrame parent, BigDecimal tongTien, String phuongThuc, String maDH) {
-        super(parent, "Xác nhận thanh toán", true);
-        this.tongTien = tongTien;
-        this.phuongThuc = phuongThuc;
-        this.maDH = maDH;
+    public HienThiQRForm(MainFrame parent, DonHangDTO donHang, List<ChiTietDonHangDTO> chiTietList) {
+        super(parent, "Quét mã thanh toán", true);
+        this.parentFrame = parent;
+        this.donHang = donHang;
+        this.chiTietList = chiTietList;
 
-        setSize(450, phuongThuc.equals("Tiền mặt (COD)") ? 350 : 550);
+        setSize(480, 580);
         setLocationRelativeTo(parent);
         setLayout(new BorderLayout());
-        
+        setBackground(new Color(245, 247, 250));
+        getRootPane().putClientProperty(FlatClientProperties.STYLE, "arc: 16");
+
         initComponents();
     }
 
     private void initComponents() {
+        String maDH = donHang.getMaDH();
+        double tongThanhToan = donHang.getTongTien();
+        String phuongThuc = donHang.getPhuongThucTT();
+
         // --- HEADER ---
         JPanel pnlHeader = new JPanel(new BorderLayout());
         pnlHeader.setBackground(Color.WHITE);
-        JLabel lblTitle = new JLabel("MÃ ĐƠN: " + maDH);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lblTitle.setBorder(new EmptyBorder(20, 20, 10, 20));
+        pnlHeader.setBorder(new EmptyBorder(15, 20, 15, 20));
+        pnlHeader.putClientProperty(FlatClientProperties.STYLE, "border: 0,0,1,0,#E2E8F0");
+        
+        JLabel lblTitle = new JLabel("Xác nhận thanh toán");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
         pnlHeader.add(lblTitle, BorderLayout.WEST);
+
+        JLabel lblMaDH = new JLabel("Mã Đơn: " + maDH);
+        lblMaDH.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblMaDH.setForeground(new Color(100, 116, 139));
+        pnlHeader.add(lblMaDH, BorderLayout.EAST);
+        
         add(pnlHeader, BorderLayout.NORTH);
 
         // --- BODY ---
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBackground(new Color(245, 246, 250)); 
-        contentPanel.setBorder(new EmptyBorder(10, 15, 10, 15));
+        contentPanel.setBackground(new Color(245, 247, 250)); 
+        contentPanel.setBorder(new EmptyBorder(25, 30, 25, 30));
 
-        // THẺ TRẮNG BO TRÒN CHỨA QR (Chuẩn theo code mẫu của bạn)
-        JPanel card = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Color.WHITE);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-                g2.dispose();
-            }
-        };
-        card.setOpaque(false);
+        JPanel card = new JPanel();
+        card.setBackground(Color.WHITE);
+        card.putClientProperty(FlatClientProperties.STYLE, "arc: 20; border: 1,1,1,1,#E2E8F0");
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(new EmptyBorder(20, 20, 20, 20));
+        card.setBorder(new EmptyBorder(30, 25, 30, 25));
 
-        JLabel lblAmountText = new JLabel(phuongThuc.equals("Tiền mặt (COD)") ? "Số tiền cần thanh toán:" : "Số tiền cần chuyển khoản:");
+        JLabel lblAmountText = new JLabel("Số tiền cần chuyển khoản");
         lblAmountText.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblAmountText.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         lblAmountText.setForeground(new Color(100, 116, 139));
         
-        JLabel lblAmount = new JLabel(FMT.format(tongTien));
+        JLabel lblAmount = new JLabel(FMT.format(tongThanhToan));
         lblAmount.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblAmount.setFont(new Font("Segoe UI", Font.BOLD, 32));
-        lblAmount.setForeground(new Color(16, 185, 129)); // Màu Primary xanh lanh
+        lblAmount.setFont(new Font("Segoe UI", Font.BOLD, 36));
+        lblAmount.setForeground(new Color(15, 23, 42));
 
         card.add(lblAmountText);
         card.add(Box.createVerticalStrut(5));
         card.add(lblAmount);
-        card.add(Box.createVerticalStrut(20));
+        card.add(Box.createVerticalStrut(25));
 
-        if (!phuongThuc.equals("Tiền mặt (COD)")) {
-            // HỘP QR BO GÓC DÙNG FlatClientProperties
-            JPanel pnlQRBox = new JPanel(new BorderLayout(0, 10));
-            pnlQRBox.setBackground(Color.WHITE);
-            pnlQRBox.putClientProperty(FlatClientProperties.STYLE, "arc: 15; border: 1,1,1,1,#E2E8F0");
-            pnlQRBox.setBorder(new EmptyBorder(15, 15, 15, 15));
-            pnlQRBox.setMaximumSize(new Dimension(280, 280));
-            pnlQRBox.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // HỘP QR
+        JPanel pnlQRBox = new JPanel(new BorderLayout());
+        pnlQRBox.setBackground(Color.WHITE);
+        pnlQRBox.putClientProperty(FlatClientProperties.STYLE, "arc: 15");
+        pnlQRBox.setBorder(new EmptyBorder(10, 10, 10, 10));
+        pnlQRBox.setMaximumSize(new Dimension(240, 240));
+        pnlQRBox.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-            JLabel lblQRCode = new JLabel("<html><div style='text-align: center;'><b>[ HÌNH ẢNH MÃ QR ]</b><br><br>Quét mã bằng ứng dụng<br>" + phuongThuc + "</div></html>", SwingConstants.CENTER);
-            lblQRCode.setPreferredSize(new Dimension(200, 200));
-            lblQRCode.setOpaque(true);
-            lblQRCode.setBackground(Color.WHITE);
-            lblQRCode.putClientProperty(FlatClientProperties.STYLE, "border: 2,2,2,2,#10B981"); // Border màu xanh Primary
+        String colorScheme = phuongThuc.equals("Ví điện tử") ? "#D82D8B" : "#2563EB"; 
+        JLabel lblQRCode = new JLabel(
+            "<html><div style='text-align: center; color: " + colorScheme + ";'>"
+            + "<h2 style='margin:0;'>[ MÃ QR " + (phuongThuc.equals("Ví điện tử") ? "MOMO" : "CHUYỂN KHOẢN") + " ]</h2><br>"
+            + "<span style='color: #475569;'>Quét mã bằng ứng dụng của bạn</span>"
+            + "</div></html>", SwingConstants.CENTER);
+        
+        lblQRCode.setPreferredSize(new Dimension(220, 220));
+        lblQRCode.setOpaque(true);
+        lblQRCode.setBackground(new Color(248, 250, 252));
+        lblQRCode.putClientProperty(FlatClientProperties.STYLE, "border: 2,2,2,2," + colorScheme + "; arc: 15");
 
-            pnlQRBox.add(lblQRCode, BorderLayout.CENTER);
-            card.add(pnlQRBox);
+        pnlQRBox.add(lblQRCode, BorderLayout.CENTER);
+        card.add(pnlQRBox);
 
-            card.add(Box.createVerticalStrut(20));
-            JLabel lblNote = new JLabel("Hệ thống sẽ tự động xác nhận sau khi nhận được tiền.");
-            lblNote.setAlignmentX(Component.CENTER_ALIGNMENT);
-            lblNote.setFont(new Font("Segoe UI", Font.ITALIC, 13));
-            lblNote.setForeground(new Color(100, 116, 139));
-            card.add(lblNote);
-        } else {
-            JLabel lblNoteCOD = new JLabel("<html><div style='text-align: center;'>Đặt hàng thành công!<br>Vui lòng giữ điện thoại để nhân viên giao hàng liên hệ.</div></html>", SwingConstants.CENTER);
-            lblNoteCOD.setAlignmentX(Component.CENTER_ALIGNMENT);
-            lblNoteCOD.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-            lblNoteCOD.setForeground(new Color(100, 116, 139));
-            card.add(lblNoteCOD);
-        }
+        card.add(Box.createVerticalStrut(25));
+        JLabel lblNote = new JLabel("Hệ thống sẽ tự động xác nhận sau khi nhận được tiền.");
+        lblNote.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblNote.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+        lblNote.setForeground(new Color(100, 116, 139));
+        card.add(lblNote);
 
         contentPanel.add(card);
-        
-        JScrollPane scrollPane = new JScrollPane(contentPanel);
-        scrollPane.setBorder(null);
-        add(scrollPane, BorderLayout.CENTER);
+        add(contentPanel, BorderLayout.CENTER);
 
         // --- BOTTOM ACTION ---
-        JPanel pnlAction = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        pnlAction.setBackground(new Color(236, 239, 241));
-        pnlAction.setBorder(new EmptyBorder(12, 0, 12, 0));
+        JPanel pnlAction = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        pnlAction.setBackground(Color.WHITE);
+        pnlAction.setBorder(new EmptyBorder(10, 0, 10, 0));
+        pnlAction.putClientProperty(FlatClientProperties.STYLE, "border: 1,0,0,0,#E2E8F0");
 
-        JButton btnDone = new JButton("Hoàn tất") {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(71, 85, 105));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                g2.dispose();
-                super.paintComponent(g);
+        // NÚT HỦY GIAO DỊCH (Giữ nguyên giỏ hàng, KHÔNG lưu đơn hàng)
+        JButton btnHuy = new JButton("Hủy giao dịch");
+        btnHuy.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        btnHuy.setPreferredSize(new Dimension(150, 45));
+        btnHuy.putClientProperty(FlatClientProperties.STYLE, 
+                "arc: 12; background: #FEF2F2; foreground: #DC2626; hoverBackground: #FEE2E2; borderWidth: 0;");
+        btnHuy.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnHuy.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this, 
+                    "Bạn có chắc chắn muốn hủy giao dịch cho đơn hàng này?\n(Giỏ hàng của bạn vẫn sẽ được giữ nguyên)", 
+                    "Xác nhận hủy", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            
+            if (confirm == JOptionPane.YES_OPTION) {
+                JOptionPane.showMessageDialog(this, "Đã hủy giao dịch. Giỏ hàng được giữ nguyên!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                dispose();
             }
-        };
-        btnDone.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnDone.setForeground(Color.WHITE);
-        btnDone.setPreferredSize(new Dimension(120, 38));
-        btnDone.setContentAreaFilled(false);
-        btnDone.setBorderPainted(false);
-        btnDone.setFocusPainted(false);
-        btnDone.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnDone.addActionListener(e -> dispose());
+        });
 
+        // NÚT ĐÃ THANH TOÁN (Chỉ tạo đơn hàng & xóa giỏ hàng khi thực sự thành công)
+        JButton btnDone = new JButton("Đã thanh toán");
+        btnDone.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        btnDone.setPreferredSize(new Dimension(150, 45));
+        btnDone.putClientProperty(FlatClientProperties.STYLE, 
+                "arc: 12; background: #0F172A; foreground: #FFFFFF; hoverBackground: #334155; borderWidth: 0;");
+        btnDone.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnDone.addActionListener(e -> {
+            DonHangDAO dao = new DonHangDAO();
+            boolean isSaved = dao.insertDonHang(donHang, chiTietList);
+            
+            if (isSaved) {
+                Session.clearCart();
+                if (parentFrame != null) {
+                    parentFrame.updateCartBadge();
+                    parentFrame.navigateToGioHang();
+                }
+                JOptionPane.showMessageDialog(this, "Hệ thống ghi nhận đặt hàng & thanh toán thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(this, "Có lỗi xảy ra khi tạo đơn hàng trên hệ thống. Vui lòng thanh toán lại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        pnlAction.add(btnHuy);
         pnlAction.add(btnDone);
         add(pnlAction, BorderLayout.SOUTH);
     }

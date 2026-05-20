@@ -1,8 +1,8 @@
-
 package gui.panel;
 
 import bus.CuaHangBUS;
 import dto.SanPhamDTO;
+import gui.MainFrame;
 import gui.component.ProductCard;
 import gui.component.RoundedButton;
 import util.AppColor;
@@ -15,6 +15,8 @@ import java.awt.*;
 import java.util.List;
 import gui.component.WrapLayout;
 public class CuaHangPanel extends JPanel {
+
+    private MainFrame parentFrame;
 
     // private String maKH;
 
@@ -38,7 +40,9 @@ public class CuaHangPanel extends JPanel {
 
     private JScrollPane scrollPane;
 
-    public CuaHangPanel() {
+    public CuaHangPanel(MainFrame parentFrame) {
+
+        this.parentFrame = parentFrame;
 
         // this.maKH = maKH;
 
@@ -283,7 +287,7 @@ public class CuaHangPanel extends JPanel {
         for (SanPhamDTO sp : list) {
 
             // ProductCard card = new ProductCard(sp,maKH);
-            ProductCard card = new ProductCard(sp);
+            ProductCard card = new ProductCard(sp, parentFrame);
 
             pnlProducts.add(card);
         }
