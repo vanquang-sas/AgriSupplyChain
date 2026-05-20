@@ -13,11 +13,12 @@ public class GioHangDTO {
     private String     tenSP;
     private BigDecimal donGia;
     private String     hinhAnh;
+    private BigDecimal thanhTien;
 
     public GioHangDTO() {}
 
     public GioHangDTO(String maKH, String maSP, double soLuong,
-                      Timestamp tgCapNhat, String tenSP, BigDecimal donGia, String hinhAnh) {
+                      Timestamp tgCapNhat, String tenSP, BigDecimal donGia, String hinhAnh, BigDecimal thanhTien) {
         this.maKH       = maKH;
         this.maSP       = maSP;
         this.soLuong    = soLuong;
@@ -25,11 +26,15 @@ public class GioHangDTO {
         this.tenSP      = tenSP;
         this.donGia     = donGia;
         this.hinhAnh    = hinhAnh;
+        this.thanhTien  = thanhTien;
     }
 
     public BigDecimal getThanhTien() {
-        if (donGia == null) return BigDecimal.ZERO;
-        return donGia.multiply(BigDecimal.valueOf(soLuong));
+        return thanhTien;
+    }
+
+    public void setThanhTien(BigDecimal thanhTien) {
+        this.thanhTien = thanhTien;
     }
 
     public String getMaKH() { return maKH; }
@@ -57,6 +62,6 @@ public class GioHangDTO {
     public String toString() {
         return "GioHangDTO{maKH='" + maKH + "', maSP='" + maSP
              + "', tenSP='" + tenSP + "', soLuong=" + soLuong
-             + ", donGia=" + donGia + ", thanhTien=" + getThanhTien() + '}';
+             + ", donGia=" + donGia + ", thanhTien=" + thanhTien + '}';
     }
 }

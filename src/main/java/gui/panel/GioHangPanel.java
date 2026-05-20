@@ -17,6 +17,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,7 @@ public class GioHangPanel extends JPanel {
     private JLabel lblBadgeCount;
     private ModernSearchField txtSearch;
     private JScrollPane scrollPane;
+    private JComboBox<String> cbxSort;
 
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
 
@@ -108,10 +110,11 @@ public class GioHangPanel extends JPanel {
         lblSort.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblSort.setForeground(new Color(75, 85, 99));
         
-        JComboBox<String> cbxSort = new JComboBox<>(new String[]{"Mới nhất", "Cũ nhất", "Giá cao - thấp"});
+        cbxSort = new JComboBox<>(new String[]{"Giá thấp - cao", "Giá cao - thấp"});
         cbxSort.setPreferredSize(new Dimension(130, 36));
         cbxSort.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         cbxSort.setBackground(Color.WHITE);
+        cbxSort.addActionListener(e -> filterCart());
         
         pnlToolLeft.add(lblSort);
         pnlToolLeft.add(cbxSort);
@@ -246,6 +249,31 @@ public class GioHangPanel extends JPanel {
         renderCartItems(filteredList);
     }
 
+    private void sortCartItems(List<GioHangDTO> list) {
+        if (list == null || list.isEmpty() || cbxSort == null) return;
+        String selected = (String) cbxSort.getSelectedItem();
+        if (selected == null) return;
+
+        list.sort((a, b) -> {
+            if ("Giá thấp - cao".equals(selected)) {
+                BigDecimal p1 = a.getThanhTien();
+                BigDecimal p2 = b.getThanhTien();
+                if (p1 == null && p2 == null) return 0;
+                if (p1 == null) return 1;
+                if (p2 == null) return -1;
+                return p1.compareTo(p2); // Ascending (lowest total price first)
+            } else if ("Giá cao - thấp".equals(selected)) {
+                BigDecimal p1 = a.getThanhTien();
+                BigDecimal p2 = b.getThanhTien();
+                if (p1 == null && p2 == null) return 0;
+                if (p1 == null) return 1;
+                if (p2 == null) return -1;
+                return p2.compareTo(p1); // Descending (highest total price first)
+            }
+            return 0;
+        });
+    }
+
     private void renderCartItems(List<GioHangDTO> listToRender) {
         pnlItems.removeAll();
         if (listToRender == null || listToRender.isEmpty()) {
@@ -257,7 +285,9 @@ public class GioHangPanel extends JPanel {
             pnlEmpty.add(lblEmpty);
             pnlItems.add(pnlEmpty);
         } else {
-            for (GioHangDTO item : listToRender) {
+            List<GioHangDTO> mutableList = new ArrayList<>(listToRender);
+            sortCartItems(mutableList);
+            for (GioHangDTO item : mutableList) {
                 pnlItems.add(createItemCard(item));
                 pnlItems.add(Box.createRigidArea(new Dimension(0, 16)));
             }
@@ -280,12 +310,35 @@ public class GioHangPanel extends JPanel {
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 125));
         card.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblImage = new JLabel("IMG", SwingConstants.CENTER);
+        JLabel lblImage = new JLabel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setClip(new java.awt.geom.RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 16, 16));
+                super.paintComponent(g2);
+                g2.dispose();
+            }
+        };
         lblImage.setPreferredSize(new Dimension(90, 90));
-        lblImage.setBackground(new Color(243, 244, 246));
-        lblImage.setOpaque(true);
-        lblImage.setForeground(new Color(156, 163, 175));
-        lblImage.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblImage.setOpaque(false);
+
+        String imagePath = "src/main/resources/images/" + item.getMaSP() + ".jpg";
+        ImageIcon icon = new ImageIcon(imagePath);
+        if (icon.getIconWidth() <= 0) {
+            icon = new ImageIcon("src/image/default.png");
+        }
+        if (icon.getIconWidth() > 0) {
+            Image img = icon.getImage().getScaledInstance(90, 90, Image.SCALE_SMOOTH);
+            lblImage.setIcon(new ImageIcon(img));
+        } else {
+            lblImage.setText("IMG");
+            lblImage.setBackground(new Color(243, 244, 246));
+            lblImage.setOpaque(true);
+            lblImage.setForeground(new Color(156, 163, 175));
+            lblImage.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            lblImage.setHorizontalAlignment(SwingConstants.CENTER);
+        }
 
         JPanel pnlInfo = new JPanel(new BorderLayout());
         pnlInfo.setOpaque(false);

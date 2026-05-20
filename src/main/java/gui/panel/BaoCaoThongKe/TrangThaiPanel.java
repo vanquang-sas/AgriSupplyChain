@@ -165,6 +165,7 @@ public class TrangThaiPanel extends JPanel {
         chart.setBackgroundPaint(Color.WHITE);
         chart.getTitle().setFont(new Font("Segoe UI", Font.BOLD, 16));
 
+        @SuppressWarnings("unchecked")
         PiePlot<String> plot = (PiePlot<String>) chart.getPlot();
         plot.setBackgroundPaint(Color.WHITE);
         plot.setOutlineVisible(false);

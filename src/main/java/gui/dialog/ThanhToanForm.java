@@ -55,7 +55,7 @@ public class ThanhToanForm extends JDialog {
         getRootPane().putClientProperty(FlatClientProperties.STYLE, "arc: 20");
 
         initComponents();
-        capNhatTongTien();
+        tinhToanPhiShip();
     }
 
     private void initComponents() {
@@ -290,14 +290,9 @@ public class ThanhToanForm extends JDialog {
         } else {
             cbxQuanPhuong.addItem("Trung tâm TP/Tx"); cbxQuanPhuong.addItem("Ngoại ô/Huyện");
         }
-
-        // Khi đổi tỉnh thành, reset phí ship về 0 chờ nhập đủ địa chỉ
-        resetPhiShip();
     }
 
     private void onQuanPhuongChanged() {
-        // Khi đổi quận huyện, cũng reset chờ nhập số nhà
-        resetPhiShip();
     }
 
     // Hàm phụ: Xóa trắng phí ship khi địa chỉ chưa hoàn chỉnh
@@ -308,20 +303,8 @@ public class ThanhToanForm extends JDialog {
         capNhatTongTien();
     }
  
-    // HÀM MỚI: Chỉ tính tiền khi gọi (sau khi nhập xong Textfield)
+    // HÀM MỚI: Chỉ tính tiền khi gọi (phí ship cố định theo thẻ khách hàng)
     private void tinhToanPhiShip() {
-        String tinh = (String) cbxTinhTP.getSelectedItem();
-        String qp = (String) cbxQuanPhuong.getSelectedItem();
-        String soNha = txtSoNha.getText().trim();
-        
-        // Kiểm tra xem đã chọn/nhập đủ 3 ô chưa
-        if (tinh == null || tinh.contains("...") || 
-            qp == null || qp.contains("...") || 
-            soNha.isEmpty()) {
-            resetPhiShip();
-            return; // Chưa đủ thì thoát, không tính tiền
-        }
-
         // Đã nhập đủ -> Bắt đầu tính giá dựa trên loại khách hàng từ bảng tham số
         String loaiKH = getLoaiKhachHang();
         String tsName = "SHIP_THUONG";

@@ -117,7 +117,7 @@ public class GioHangDAO {
         List<GioHangDTO> list = new ArrayList<>();
 
         String sql = """
-            SELECT GH.MaKH, GH.MaSP, GH.SoLuong, GH.TGCapNhat,
+            SELECT GH.MaKH, GH.MaSP, GH.SoLuong, GH.TGCapNhat, GH.ThanhTien,
                    SP.TenSP, SP.GiaBan AS DonGia, SP.HinhAnh
             FROM   GIOHANG GH
             JOIN   SANPHAM SP ON GH.MaSP = SP.MaSP
@@ -138,7 +138,8 @@ public class GioHangDAO {
                         rs.getTimestamp("TGCapNhat"),
                         rs.getString("TenSP"),
                         rs.getBigDecimal("DonGia"),
-                        rs.getString("HinhAnh")
+                        rs.getString("HinhAnh"),
+                        rs.getBigDecimal("ThanhTien")
                     );
                     list.add(dto);
                 }
