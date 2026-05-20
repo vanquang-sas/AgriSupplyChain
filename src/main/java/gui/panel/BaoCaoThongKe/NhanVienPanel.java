@@ -267,9 +267,9 @@ public class NhanVienPanel extends JPanel {
         if (chucVu != null && chucVu.contains("kho")) {
             DefaultCategoryDataset dsQuantity = new DefaultCategoryDataset();
             for (ThongKeDTO.HieuSuatChiTiet d : detailData) {
-                dsQuantity.addValue(d.soLuong, "Số lượng xuất", d.thangNam);
+                dsQuantity.addValue(d.soLuong, "Số lần xuất", d.thangNam);
             }
-            NumberAxis rangeAxis = new NumberAxis("Số lượng hàng");
+            NumberAxis rangeAxis = new NumberAxis("Số lần xuất");
             plot.setDataset(0, dsQuantity);
             plot.setRangeAxis(0, rangeAxis);
             BarRenderer barRenderer = new BarRenderer();
@@ -280,7 +280,7 @@ public class NhanVienPanel extends JPanel {
             DefaultCategoryDataset dsQuantity = new DefaultCategoryDataset();
             for (ThongKeDTO.HieuSuatChiTiet d : detailData) {
                 dsMoney.addValue(d.tongGiaTri, "Tổng Tiền", d.thangNam);
-                dsQuantity.addValue(d.soLuong, "Số lượng HĐ", d.thangNam);
+                dsQuantity.addValue(d.soLuong, "Số lượng CV", d.thangNam);
             }
 
             NumberAxis moneyAxis = new NumberAxis("Tổng Tiền (Triệu VNĐ)");

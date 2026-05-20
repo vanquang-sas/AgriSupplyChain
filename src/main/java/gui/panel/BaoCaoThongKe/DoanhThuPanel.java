@@ -43,6 +43,10 @@ public class DoanhThuPanel extends JPanel {
     private JCheckBox chkRevenue, chkCost;
     private List<ThongKeDTO.TaiChinh> lastData;
 
+    private JLabel lblAvgRevenueValue;
+    private JLabel lblAvgCostValue;
+    private JLabel lblAvgProfitValue;
+
     public DoanhThuPanel() {
         setLayout(new BorderLayout(0, 15));
         setBackground(AppColor.BACKGROUND);
@@ -112,6 +116,24 @@ public class DoanhThuPanel extends JPanel {
         chartContainer.setBackground(Color.WHITE);
         chartContainer.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230)));
 
+        // Khởi tạo các JLabel hiển thị giá trị của Card
+        lblAvgRevenueValue = new JLabel("0.0 Tr VND");
+        lblAvgCostValue = new JLabel("0.0 Tr VND");
+        lblAvgProfitValue = new JLabel("0.0 Tr VND");
+
+        // Tạo Panel chứa 3 Card xếp ngang
+        JPanel pnlCards = new JPanel(new GridLayout(1, 3, 15, 0));
+        pnlCards.setBackground(AppColor.BACKGROUND);
+        pnlCards.add(createCardPanel("Doanh thu TB mỗi tháng", lblAvgRevenueValue, AppColor.PRIMARY));
+        pnlCards.add(createCardPanel("Chi phí TB mỗi tháng", lblAvgCostValue, AppColor.ERROR));
+        pnlCards.add(createCardPanel("Lợi nhuận TB mỗi tháng", lblAvgProfitValue, AppColor.INFO));
+
+        // Tạo wrapper panel kết hợp 3 Card và biểu đồ
+        JPanel pnlChartAndCards = new JPanel(new BorderLayout(0, 15));
+        pnlChartAndCards.setBackground(AppColor.BACKGROUND);
+        pnlChartAndCards.add(pnlCards, BorderLayout.NORTH);
+        pnlChartAndCards.add(chartContainer, BorderLayout.CENTER);
+
         String[] cols = {"Tháng", "Doanh thu (VND)", "Chi phí (VND)", "Lợi nhuận (VND)", "Tỷ lệ Lãi/Vốn"};
         tableModel = new DefaultTableModel(cols, 0) { @Override public boolean isCellEditable(int r, int c) { return false; } };
         table = new JTable(tableModel);
@@ -120,7 +142,7 @@ public class DoanhThuPanel extends JPanel {
         JScrollPane scrollTable = new JScrollPane(table);
         scrollTable.setPreferredSize(new Dimension(800, 200));
 
-        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, chartContainer, scrollTable);
+        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pnlChartAndCards, scrollTable);
         split.setResizeWeight(0.65);
         split.setBorder(null);
 
@@ -171,6 +193,7 @@ public class DoanhThuPanel extends JPanel {
                 df.format(profit), percentStr
             });
         }
+        updateAverageCards();
         updateChartOnly();
     }
 
@@ -330,5 +353,61 @@ public class DoanhThuPanel extends JPanel {
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setPreferredSize(new Dimension(110, 32));
+    }
+
+    private JPanel createCardPanel(String title, JLabel lblValue, Color valueColor) {
+        JPanel card = new JPanel(new BorderLayout(0, 8));
+        card.setBackground(AppColor.SURFACE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(230, 230, 230), 1, true),
+                BorderFactory.createEmptyBorder(12, 15, 12, 15)
+        ));
+
+        JLabel lblTitle = new JLabel(title);
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblTitle.setForeground(AppColor.TEXT_SECONDARY);
+
+        lblValue.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblValue.setForeground(valueColor);
+
+        card.add(lblTitle, BorderLayout.NORTH);
+        card.add(lblValue, BorderLayout.CENTER);
+
+        return card;
+    }
+
+    private void updateAverageCards() {
+        if (lastData == null || lastData.isEmpty()) {
+            lblAvgRevenueValue.setText("0.0 Tr VND");
+            lblAvgCostValue.setText("0.0 Tr VND");
+            lblAvgProfitValue.setText("0.0 Tr VND");
+            return;
+        }
+
+        double totalRevenue = 0;
+        double totalCost = 0;
+
+        for (ThongKeDTO.TaiChinh d : lastData) {
+            totalRevenue += d.doanhThu;
+            totalCost += d.chiPhi;
+        }
+
+        int count = lastData.size();
+        double avgRevenue = totalRevenue / count;
+        double avgCost = totalCost / count;
+
+        String type = cbLoaiThongKe.getSelectedIndex() == 0 ? "MONTH" : "DAY";
+        if (type.equals("DAY")) {
+            // Quy đổi ước lượng ra tháng: nhân 30
+            avgRevenue *= 30;
+            avgCost *= 30;
+        }
+
+        double avgProfit = avgRevenue - avgCost;
+
+        DecimalFormat cardFormat = new DecimalFormat("#,##0.0");
+        lblAvgRevenueValue.setText(cardFormat.format(avgRevenue / 1000000.0) + " Tr VND");
+        lblAvgCostValue.setText(cardFormat.format(avgCost / 1000000.0) + " Tr VND");
+        lblAvgProfitValue.setText(cardFormat.format(avgProfit / 1000000.0) + " Tr VND");
     }
 }

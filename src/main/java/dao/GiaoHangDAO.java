@@ -28,7 +28,7 @@ public class GiaoHangDAO {
     // TAB 2: Lấy danh sách ĐÃ NHẬN (Trạng thái vẫn là 'Chờ giao hàng' nhưng đã gán mã nhân viên cụ thể)
     public List<DonHangDTO> getDanhSachDaNhan(String MaNV) {
         List<DonHangDTO> list = new ArrayList<>();
-        String sql = "SELECT * FROM DONHANG WHERE TRIM(MANV) = ? AND TRANGTHAIDH = N'Chờ giao hàng' ORDER BY TGDAT ASC";
+        String sql = "SELECT * FROM DONHANG WHERE TRIM(MANV) = ? AND TRANGTHAIDH = N'Đang giao' ORDER BY TGDAT ASC";
         try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, MaNV.trim());
             ResultSet rs = ps.executeQuery();

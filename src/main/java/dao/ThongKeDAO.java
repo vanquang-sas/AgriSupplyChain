@@ -33,13 +33,14 @@ public class ThongKeDAO {
 
     public List<ThongKeDTO.SanPham> getThongKeSanPham(java.util.Date tuNgay, java.util.Date denNgay) {
         List<ThongKeDTO.SanPham> list = new ArrayList<>();
-        String sql = "SELECT MaSP, TenSP, " +
-                     "SUM(SoLuongBan) AS TongSoLuong, " +
-                     "SUM(DoanhThu) AS TongDoanhThu, " +
-                     "SUM(ChiPhi) AS TongChiPhi " +
-                     "FROM V_THONGKE_SP " +
-                     "WHERE NgayGD >= ? AND NgayGD <= ? " +
-                     "GROUP BY MaSP, TenSP";
+        String sql = "SELECT sp.MaSP, sp.TenSP, " +
+                     "NVL(SUM(v.SoLuongBan), 0) AS TongSoLuong, " +
+                     "NVL(SUM(v.DoanhThu), 0) AS TongDoanhThu, " +
+                     "NVL(SUM(v.ChiPhi), 0) AS TongChiPhi " +
+                     "FROM SANPHAM sp " +
+                     "LEFT JOIN V_THONGKE_SP v ON sp.MaSP = v.MaSP " +
+                     "     AND v.NgayGD >= ? AND v.NgayGD <= ? " +
+                     "GROUP BY sp.MaSP, sp.TenSP";
                      
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
