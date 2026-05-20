@@ -134,26 +134,40 @@ public class DonHangDAO {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
-            // Đã bổ sung DiaChiGiaoHang và PhuongThucTT (bỏ GhiChu)
-            String sqlDH = "INSERT INTO DONHANG (MaDH, MaKH, TgDat, TongTienHang, PhiVanChuyen, TongTien, TrangThaiDH, DiaChiGiaoHang, PhuongThucTT) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            pstmtDH = conn.prepareStatement(sqlDH);
-            pstmtDH.setString(1, donHang.getMaDH());
-            pstmtDH.setString(2, donHang.getMaKH());
-            pstmtDH.setTimestamp(3, new java.sql.Timestamp(donHang.getTgDat().getTime()));
-            pstmtDH.setDouble(4, 0.0);
+            // Đã bổ dung DiaChiGiaoHang và PhuongThucTT (bỏ GhiChu, MaDH để trigger sinh tự động)
+            String sqlDH = "INSERT INTO DONHANG (MaKH, TgDat, TongTienHang, PhiVanChuyen, TongTien, TrangThaiDH, DiaChiGiaoHang, PhuongThucTT) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            pstmtDH = conn.prepareStatement(sqlDH, new String[]{"MADH"});
+            pstmtDH.setString(1, donHang.getMaKH());
+            pstmtDH.setTimestamp(2, new java.sql.Timestamp(donHang.getTgDat().getTime()));
+            pstmtDH.setDouble(3, 0.0);
+            pstmtDH.setDouble(4, donHang.getPhiVanChuyen());
             pstmtDH.setDouble(5, donHang.getPhiVanChuyen());
-            pstmtDH.setDouble(6, donHang.getPhiVanChuyen());
-            pstmtDH.setString(7, donHang.getTrangThaiDH());
-            pstmtDH.setString(8, donHang.getDiaChiGiaoHang());
-            pstmtDH.setString(9, donHang.getPhuongThucTT());
+            pstmtDH.setString(6, donHang.getTrangThaiDH());
+            pstmtDH.setString(7, donHang.getDiaChiGiaoHang());
+            pstmtDH.setString(8, donHang.getPhuongThucTT());
             pstmtDH.executeUpdate();
+
+            // Lấy mã đơn hàng được sinh tự động bởi trigger
+            String generatedMaDH = null;
+            try (ResultSet rs = pstmtDH.getGeneratedKeys()) {
+                if (rs.next()) {
+                    generatedMaDH = rs.getString(1);
+                }
+            }
+
+            if (generatedMaDH == null || generatedMaDH.isEmpty()) {
+                throw new SQLException("Không thể lấy Mã Đơn Hàng tự động sinh từ trigger!");
+            }
+
+            // Gán ngược lại mã đơn hàng thật vào donHang DTO để bên ngoài sử dụng
+            donHang.setMaDH(generatedMaDH);
 
             // 2. Insert Chi tiết đơn hàng vào bảng CHITIETDONHANG
             String sqlCT = "INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, GiaBan, SoLuong) VALUES ('CTDH' || LPAD(SEQ_CHITIETDONHANG.NEXTVAL, 4, '0'), ?, ?, ?, ?)";
             pstmtCT = conn.prepareStatement(sqlCT);
 
             for (ChiTietDonHangDTO ct : chiTietList) {
-                pstmtCT.setString(1, ct.getMaDH());
+                pstmtCT.setString(1, generatedMaDH); // Dùng mã thật được trigger sinh ra
                 pstmtCT.setString(2, ct.getMaSP());
                 pstmtCT.setDouble(3, ct.getGiaBan());
                 pstmtCT.setDouble(4, ct.getSoLuong());

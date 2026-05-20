@@ -3,6 +3,7 @@ package gui.dialog;
 import bus.XuatKhoBUS;
 import dto.XuatKhoDTO;
 import util.AppColor;
+import util.Session;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -14,7 +15,6 @@ public class SoanHangDialog extends JDialog {
 
     private final String maDH;
     private JTable table;
-    private JComboBox<String> cbNhanVien;
     private JButton btnXacNhan;
 
     public SoanHangDialog(Frame parent, String maDH) {
@@ -121,21 +121,12 @@ public class SoanHangDialog extends JDialog {
         label.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         label.setForeground(AppColor.TEXT_PRIMARY);
 
-        cbNhanVien = new JComboBox<>();
-        cbNhanVien.addItem("");
-        try {
-            for (String maNV : new XuatKhoBUS().getAllMaNhanVien()) {
-                cbNhanVien.addItem(maNV);
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
-                    "Không thể tải danh sách nhân viên: " + e.getMessage(),
-                    "Lỗi", JOptionPane.ERROR_MESSAGE);
-        }
-        cbNhanVien.setPreferredSize(new Dimension(240, 34));
+        JLabel lblMaNV = new JLabel(Session.maNV != null ? Session.maNV : "NV000012");
+        lblMaNV.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblMaNV.setForeground(AppColor.PRIMARY);
 
         employee.add(label);
-        employee.add(cbNhanVien);
+        employee.add(lblMaNV);
         wrap.add(employee, BorderLayout.NORTH);
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 12));
@@ -178,13 +169,7 @@ public class SoanHangDialog extends JDialog {
     }
 
     private void onXacNhan() {
-        String maNV = cbNhanVien.getSelectedItem() == null ? "" : cbNhanVien.getSelectedItem().toString().trim();
-        if (maNV.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Vui lòng chọn nhân viên thực hiện!",
-                    "Thiếu thông tin", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        String maNV = Session.maNV != null ? Session.maNV : "NV000012";
 
         btnXacNhan.setEnabled(false);
         btnXacNhan.setText("Đang xử lý...");

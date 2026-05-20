@@ -6,6 +6,7 @@ out/
 test/
 .maven/
 scratch/
+test/
 
 # --- 2. Ignore cấu hình của IDE Eclipse ---
 .classpath

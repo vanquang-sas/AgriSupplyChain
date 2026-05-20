@@ -461,13 +461,14 @@ public class ThanhToanForm extends JDialog {
                 DonHangDAO dao = new DonHangDAO();
                 boolean isSaved = dao.insertDonHang(donHang, chiTietList);
                 if (isSaved) {
+                    new bus.GioHangBUS().clearCart(Session.maKH);
                     Session.clearCart();
                     if (parentFrame != null) {
                         parentFrame.updateCartBadge();
                         parentFrame.navigateToGioHang();
                     }
                     this.dispose(); 
-                    JOptionPane.showMessageDialog(parentFrame, "Đặt hàng thành công!\nĐơn hàng sẽ được giao theo hình thức thanh toán khi nhận hàng (COD).", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(parentFrame, "Đặt hàng thành công!\nMã đơn hàng: " + donHang.getMaDH() + "\nĐơn hàng sẽ được giao theo hình thức thanh toán khi nhận hàng (COD).", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(this, "Lỗi khi tạo đơn hàng COD trên hệ thống.", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 }

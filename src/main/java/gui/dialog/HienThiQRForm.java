@@ -155,12 +155,13 @@ public class HienThiQRForm extends JDialog {
             boolean isSaved = dao.insertDonHang(donHang, chiTietList);
             
             if (isSaved) {
+                new bus.GioHangBUS().clearCart(Session.maKH);
                 Session.clearCart();
                 if (parentFrame != null) {
                     parentFrame.updateCartBadge();
                     parentFrame.navigateToGioHang();
                 }
-                JOptionPane.showMessageDialog(this, "Hệ thống ghi nhận đặt hàng & thanh toán thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Hệ thống ghi nhận đặt hàng & thanh toán thành công!\nMã đơn hàng: " + donHang.getMaDH(), "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "Có lỗi xảy ra khi tạo đơn hàng trên hệ thống. Vui lòng thanh toán lại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
