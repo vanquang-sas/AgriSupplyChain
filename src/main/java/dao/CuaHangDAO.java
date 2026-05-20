@@ -43,6 +43,7 @@ public class CuaHangDAO {
                 sp.setTenSP(rs.getString("TENSP"));
                 sp.setMaLSP(rs.getString("MALSP"));
                 sp.setGiaBan(rs.getDouble("GIABAN"));
+                sp.setDonViTinh(rs.getString("DONVITINH"));
 
                 list.add(sp);
             }
@@ -90,6 +91,7 @@ public class CuaHangDAO {
                 sp.setTenSP(rs.getString("TENSP"));
                 sp.setMaLSP(rs.getString("MALSP"));
                 sp.setGiaBan(rs.getDouble("GIABAN"));
+                sp.setDonViTinh(rs.getString("DONVITINH"));
 
                 list.add(sp);
             }
@@ -137,6 +139,7 @@ public class CuaHangDAO {
                 sp.setTenSP(rs.getString("TENSP"));
                 sp.setMaLSP(rs.getString("MALSP"));
                 sp.setGiaBan(rs.getDouble("GIABAN"));
+                sp.setDonViTinh(rs.getString("DONVITINH"));
 
                 list.add(sp);
             }
@@ -154,9 +157,10 @@ public class CuaHangDAO {
 
         try {
              String sql = """
-            SELECT *
-            FROM SANPHAM
-            WHERE MASP = ?
+            SELECT SP.*, LSP.TENLSP
+            FROM SANPHAM SP
+            LEFT JOIN LOAISANPHAM LSP ON SP.MALSP = LSP.MALSP
+            WHERE SP.MASP = ?
         """;
             Connection con = DBConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql);
@@ -172,6 +176,7 @@ public class CuaHangDAO {
                 sp.setMaSP(rs.getString("MASP"));
                 sp.setTenSP(rs.getString("TENSP"));
                 sp.setMaLSP(rs.getString("MALSP"));
+                sp.setTenLSP(rs.getString("TENLSP"));
                 sp.setChatLuong(rs.getString("CHATLUONG"));
                 sp.setGiaMua(rs.getDouble("GIAMUA"));
                 sp.setGiaBan(rs.getDouble("GIABAN"));

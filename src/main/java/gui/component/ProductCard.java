@@ -23,8 +23,10 @@ public class ProductCard extends JPanel {
     // Khai báo giao diện & giỏ hàng
     private MainFrame parentFrame;
     private int quantity = 1;
-    private JLabel lblQty;
+    private JTextField txtQty;   // Ô nhập số lượng trực tiếp
+    private JLabel lblQty;       // Kept for backward compat – aliased to txtQty display
     private JLabel lblTonKho;
+    private JLabel lblWarning;   // Cảnh báo số lượng không hợp lệ (hiện inline)
     private JButton btnMinus;
     private JButton btnPlus;
     private JButton btnAdd;
@@ -104,7 +106,7 @@ public class ProductCard extends JPanel {
 
     private void initComponents() {
         setLayout(new BorderLayout());
-        setPreferredSize(new Dimension(210, 340));
+        setPreferredSize(new Dimension(210, 360));
         setBackground(Color.WHITE);
         setCursor(new Cursor(Cursor.HAND_CURSOR));
         setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -165,14 +167,27 @@ public class ProductCard extends JPanel {
         pnlInfo.add(lblGia);
         add(pnlInfo, BorderLayout.CENTER);
 
-        // --- BOTTOM PANEL (Nút Thêm Giỏ Hàng) ---
-        JPanel pnlBottom = new JPanel(new BorderLayout());
+        // --- BOTTOM PANEL (Cảnh báo + Qty + Nút Thêm) ---
+        JPanel pnlBottom = new JPanel();
+        pnlBottom.setLayout(new BoxLayout(pnlBottom, BoxLayout.Y_AXIS));
         pnlBottom.setOpaque(false);
-        pnlBottom.setBorder(new EmptyBorder(10, 0, 0, 0));
-        pnlBottom.setPreferredSize(new Dimension(0, 55));
+        pnlBottom.setBorder(new EmptyBorder(6, 0, 0, 0));
 
-        // BỘ NÚT TĂNG GIẢM SỐ LƯỢNG
-        JPanel pnlQty = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 6));
+        // Dòng cảnh báo (hiện khi số lượng không hợp lệ)
+        lblWarning = new JLabel("⚠ Sản phẩm hiện không đủ hàng");
+        lblWarning.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblWarning.setForeground(new Color(220, 38, 38)); // Đỏ
+        lblWarning.setVisible(false);
+        lblWarning.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Hàng chứa qty selector + nút thêm
+        JPanel pnlQtyRow = new JPanel(new BorderLayout());
+        pnlQtyRow.setOpaque(false);
+        pnlQtyRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlQtyRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+
+        // BỘ NÚT TĂNG GIẢM SỐ LƯỢNG + Ô NHẬP
+        JPanel pnlQty = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 5));
         pnlQty.setOpaque(false);
 
         btnMinus = new JButton("-");
@@ -184,59 +199,159 @@ public class ProductCard extends JPanel {
             quantity = 1;
         }
 
-        lblQty = new JLabel(String.valueOf(quantity), SwingConstants.CENTER);
-        lblQty.setPreferredSize(new Dimension(26, 30));
-        lblQty.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        // Ô nhập số lượng
+        txtQty = new JTextField(String.valueOf(quantity), 3);
+        txtQty.setPreferredSize(new Dimension(44, 30));
+        txtQty.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        txtQty.setHorizontalAlignment(JTextField.CENTER);
+        txtQty.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 1, 0, new Color(209, 213, 219)),
+            BorderFactory.createEmptyBorder(0, 4, 0, 4)
+        ));
+        txtQty.setBackground(Color.WHITE);
+        txtQty.setForeground(new Color(31, 41, 55));
+
+        // Giữ biến alias cho các chỗ dùng lblQty.setText() cũ
+        lblQty = new JLabel() {
+            @Override public void setText(String t) {
+                if (txtQty != null) txtQty.setText(t);
+            }
+        };
+
         btnPlus = new JButton("+");
         styleQtyBtn(btnPlus);
+
+        // Helper: kiểm tra và hiển/ẩn cảnh báo dựa trên giá trị hiện tại trong txtQty
+        Runnable checkWarning = () -> {
+            double tonKho = getHienThiTonKho();
+            try {
+                int val = Integer.parseInt(txtQty.getText().trim());
+                boolean over = (tonKho >= 0 && val > (int) tonKho);
+                lblWarning.setVisible(over);
+                txtQty.setForeground(over ? new Color(220, 38, 38) : new Color(31, 41, 55));
+            } catch (NumberFormatException ex) {
+                // chưa phải số hợp lệ, không cần hiển cảnh báo
+                lblWarning.setVisible(false);
+            }
+        };
+
+        // Validation helper: clamp + ẩn cảnh báo khi focus-lost / Enter
+        Runnable validateInput = () -> {
+            double currentTonKho = getHienThiTonKho();
+            int max = (int) currentTonKho;
+            try {
+                int val = Integer.parseInt(txtQty.getText().trim());
+                if (val < 1) val = 1;
+                if (val > max && max > 0) val = max;
+                if (max <= 0) val = 0;
+                quantity = val;
+            } catch (NumberFormatException ex) {
+                // không hợp lệ → khôi phục giá trị cũ
+            }
+            txtQty.setText(String.valueOf(quantity));
+            lblWarning.setVisible(false);
+            txtQty.setForeground(new Color(31, 41, 55));
+        };
+
+        // Xác nhận khi nhấn Enter
+        txtQty.addActionListener(e -> validateInput.run());
+        // Xác nhận khi mất focus
+        txtQty.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override public void focusLost(java.awt.event.FocusEvent e) { validateInput.run(); }
+        });
+        // Live warning khi gõ phím
+        txtQty.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { checkWarning.run(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { checkWarning.run(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { checkWarning.run(); }
+        });
+        // Chỉ cho phép gõ chữ số
+        ((javax.swing.text.AbstractDocument) txtQty.getDocument()).setDocumentFilter(
+            new javax.swing.text.DocumentFilter() {
+                @Override public void insertString(FilterBypass fb, int off, String str, javax.swing.text.AttributeSet a)
+                        throws javax.swing.text.BadLocationException {
+                    if (str != null && str.matches("\\d*")) super.insertString(fb, off, str, a);
+                }
+                @Override public void replace(FilterBypass fb, int off, int len, String str, javax.swing.text.AttributeSet a)
+                        throws javax.swing.text.BadLocationException {
+                    if (str != null && str.matches("\\d*")) super.replace(fb, off, len, str, a);
+                }
+            }
+        );
 
         btnMinus.addActionListener(e -> {
             if (quantity > 1) {
                 quantity--;
-                lblQty.setText(String.valueOf(quantity));
+                txtQty.setText(String.valueOf(quantity));
+                // Hiển lại warning nếu cần (thường một bước giảm sẽ hờ warning)
+                checkWarning.run();
             }
         });
 
         btnPlus.addActionListener(e -> {
             double currentTonKho = getHienThiTonKho();
-            if (quantity + 1 > currentTonKho) {
-                JOptionPane.showMessageDialog(this,
-                    "Không thể thêm vượt quá số lượng tồn kho khả dụng (" + String.format("%.0f", currentTonKho) + ")!",
-                    "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
             quantity++;
-            lblQty.setText(String.valueOf(quantity));
+            txtQty.setText(String.valueOf(quantity));
+            if (quantity > (int) currentTonKho) {
+                // Hiển cảnh báo inline, không popup
+                lblWarning.setVisible(true);
+                txtQty.setForeground(new Color(220, 38, 38));
+            } else {
+                lblWarning.setVisible(false);
+                txtQty.setForeground(new Color(31, 41, 55));
+            }
         });
 
         pnlQty.add(btnMinus);
-        pnlQty.add(lblQty);
+        pnlQty.add(txtQty);
         pnlQty.add(btnPlus);
-        pnlBottom.add(pnlQty, BorderLayout.WEST);
 
-        // NÚT THÊM (+)
-        btnAdd = new JButton("+");
-        btnAdd.setPreferredSize(new Dimension(42,42));
+        // NÚT THÊM (+) - Dấu "+" nhỏ gọn
+        btnAdd = new JButton("+") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                if (!isEnabled()) {
+                    g2.setColor(new Color(200, 200, 200));
+                } else if (getModel().isPressed()) {
+                    g2.setColor(new Color(0, 140, 70));
+                } else if (getModel().isRollover()) {
+                    g2.setColor(new Color(0, 160, 80));
+                } else {
+                    g2.setColor(new Color(0, 180, 90));
+                }
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnAdd.setPreferredSize(new Dimension(36, 36));
+        btnAdd.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        btnAdd.setForeground(Color.WHITE);
         btnAdd.setFocusPainted(false);
         btnAdd.setBorderPainted(false);
         btnAdd.setContentAreaFilled(false);
         btnAdd.setOpaque(false);
-        btnAdd.setForeground(Color.WHITE);
-        btnAdd.setFont(new Font("Segoe UI", Font.BOLD, 22));
         btnAdd.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnAdd = createRoundButton(btnAdd);
 
         if (tonKhoHienThi <= 0) {
             btnMinus.setEnabled(false);
             btnPlus.setEnabled(false);
             btnAdd.setEnabled(false);
+            txtQty.setEnabled(false);
         }
 
-        JPanel pnlBtnRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        JPanel pnlBtnRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 4));
         pnlBtnRight.setOpaque(false);
         pnlBtnRight.add(btnAdd);
 
-        pnlBottom.add(pnlBtnRight, BorderLayout.EAST);
+        pnlQtyRow.add(pnlQty, BorderLayout.WEST);
+        pnlQtyRow.add(pnlBtnRight, BorderLayout.EAST);
+
+        pnlBottom.add(lblWarning);
+        pnlBottom.add(pnlQtyRow);
+
         add(pnlBottom, BorderLayout.SOUTH);
 
         // SỰ KIỆN NÚT THÊM
@@ -378,8 +493,8 @@ public class ProductCard extends JPanel {
 
         if (component instanceof Container) {
             for (Component child : ((Container) component).getComponents()) {
-                // Đảm bảo không gắn sự kiện click-card vào các nút bấm (JButton)
-                if (!(child instanceof JButton)) {
+                // Không gắn sự kiện click-card vào các nút bấm (JButton) và ô nhập (JTextField)
+                if (!(child instanceof JButton) && !(child instanceof JTextField)) {
                     addCardClick(child);
                 }
             }

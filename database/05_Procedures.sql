@@ -580,7 +580,7 @@ BEGIN
             GROUP BY TRUNC(TGNhap, 'MM')
         )
         SELECT 
-            TO_CHAR(mr.ThoiGian, 'MM/YYYY') AS ThangNam, -- Giữ tên cột là ThangNam để tương thích Java DTO
+            TO_CHAR(mr.ThoiGian, 'MM/YYYY') AS ThangNam, 
             NVL(rd.DoanhThu, 0) AS DoanhThu,
             NVL(cd.ChiPhi, 0) AS ChiPhi
         FROM MonthRange mr

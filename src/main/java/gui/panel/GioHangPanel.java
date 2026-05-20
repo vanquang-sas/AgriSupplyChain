@@ -17,7 +17,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -391,26 +390,44 @@ public class GioHangPanel extends JPanel {
         pnlAction.add(btnDelete);
 
         btnMinus.addActionListener(e -> {
-            if (item.getSoLuong() > 1) {
-                double newQty = item.getSoLuong() - 1;
-                bus.GioHangBUS ghBus = new bus.GioHangBUS();
-                String error = ghBus.updateQuantity(Session.maKH, item.getMaSP(), newQty);
-                if (error == null) {
-                    item.setSoLuong(newQty);
-                    lblQty.setText(String.valueOf((int)newQty));
-                    lblItemTotal.setText(currencyFormat.format(item.getThanhTien()));
-                    Session.upsertCartCache(item);
-                    updateTotalPrice();
-                    if (parentFrame != null) parentFrame.updateCartBadge();
-                } else {
-                    JOptionPane.showMessageDialog(this, error, "Không thể giảm số lượng", JOptionPane.WARNING_MESSAGE);
-                }
+            if (Session.maKH == null || Session.maKH.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Vui lòng đăng nhập để thao tác giỏ hàng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (item.getSoLuong() <= 1) {
+                JOptionPane.showMessageDialog(this, "Số lượng không thể nhỏ hơn 1!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            double newQty = item.getSoLuong() - 1;
+            bus.GioHangBUS ghBus = new bus.GioHangBUS();
+            String error = ghBus.updateQuantity(Session.maKH, item.getMaSP(), newQty);
+            if (error == null) {
+                item.setSoLuong(newQty);
+                lblQty.setText(String.valueOf((int)newQty));
+                lblItemTotal.setText(currencyFormat.format(item.getThanhTien()));
+                Session.upsertCartCache(item);
+                updateTotalPrice();
+                if (parentFrame != null) parentFrame.updateCartBadge();
+            } else {
+                JOptionPane.showMessageDialog(this, error, "Không thể giảm số lượng", JOptionPane.WARNING_MESSAGE);
             }
         });
 
         btnPlus.addActionListener(e -> {
-            double newQty = item.getSoLuong() + 1;
+            if (Session.maKH == null || Session.maKH.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Vui lòng đăng nhập để thao tác giỏ hàng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            // Kiểm tra giới hạn tồn kho trước khi tăng
             bus.GioHangBUS ghBus = new bus.GioHangBUS();
+            double slKhaDung = ghBus.getSlKhaDung(item.getMaSP());
+            double newQty = item.getSoLuong() + 1;
+            if (slKhaDung >= 0 && newQty > slKhaDung) {
+                JOptionPane.showMessageDialog(this,
+                    String.format("Kho chỉ còn %.0f đơn vị khả dụng!", slKhaDung),
+                    "Không thể tăng số lượng", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             String error = ghBus.updateQuantity(Session.maKH, item.getMaSP(), newQty);
             if (error == null) {
                 item.setSoLuong(newQty);

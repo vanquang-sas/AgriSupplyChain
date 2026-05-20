@@ -51,18 +51,22 @@ public class GioHangDAO {
     // 2. Cập nhật số lượng
     // ─────────────────────────────────────────────────────────────────
     public boolean updateQuantity(String maKH, String maSP, double soLuongMoi) {
-        String sql = "UPDATE GIOHANG SET SoLuong = ? WHERE MaKH = ? AND MaSP = ?";
+        String sql = "UPDATE GIOHANG SET SoLuong = ?, TGCapNhat = SYSDATE WHERE MaKH = ? AND MaSP = ?";
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setDouble(1, soLuongMoi);
-            ps.setString(2, maKH);
-            ps.setString(3, maSP);
-            int affected = ps.executeUpdate();
-            con.commit();
-            return affected > 0;
-
+        try (Connection con = DBConnection.getConnection()) {
+            if (con == null) return false;
+            con.setAutoCommit(false);
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+                ps.setDouble(1, soLuongMoi);
+                ps.setString(2, maKH);
+                ps.setString(3, maSP);
+                int affected = ps.executeUpdate();
+                con.commit();
+                return affected > 0;
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            }
         } catch (SQLException e) {
             System.err.println("GioHangDAO.updateQuantity() lỗi: " + e.getMessage());
             return false;
@@ -75,15 +79,19 @@ public class GioHangDAO {
     public boolean deleteItem(String maKH, String maSP) {
         String sql = "DELETE FROM GIOHANG WHERE MaKH = ? AND MaSP = ?";
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, maKH);
-            ps.setString(2, maSP);
-            int affected = ps.executeUpdate();
-            con.commit();
-            return affected > 0;
-
+        try (Connection con = DBConnection.getConnection()) {
+            if (con == null) return false;
+            con.setAutoCommit(false);
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+                ps.setString(1, maKH);
+                ps.setString(2, maSP);
+                int affected = ps.executeUpdate();
+                con.commit();
+                return affected > 0;
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            }
         } catch (SQLException e) {
             System.err.println("GioHangDAO.deleteItem() lỗi: " + e.getMessage());
             return false;
@@ -96,14 +104,18 @@ public class GioHangDAO {
     public boolean clearCart(String maKH) {
         String sql = "DELETE FROM GIOHANG WHERE MaKH = ?";
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, maKH);
-            ps.executeUpdate();
-            con.commit();
-            return true;
-
+        try (Connection con = DBConnection.getConnection()) {
+            if (con == null) return false;
+            con.setAutoCommit(false);
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+                ps.setString(1, maKH);
+                ps.executeUpdate();
+                con.commit();
+                return true;
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            }
         } catch (SQLException e) {
             System.err.println("GioHangDAO.clearCart() lỗi: " + e.getMessage());
             return false;

@@ -48,7 +48,7 @@ public class ThanhToanForm extends JDialog {
         this.tongTienHang = tongTienHang;
         this.tongThanhToan = tongTienHang; 
 
-        setSize(600, 650);
+        setSize(600, 800);
         setLocationRelativeTo(parentFrame);
         setLayout(new BorderLayout());
         setBackground(new Color(248, 250, 252));

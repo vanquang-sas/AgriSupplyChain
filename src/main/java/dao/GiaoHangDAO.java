@@ -58,15 +58,15 @@ public class GiaoHangDAO {
     
     // Thực thi Giao hàng thành công
     public boolean giaoHangThanhCong(String MaDH, String MaNV) {
-        String sql = "{call SP_GIAOHANG_THANHCONG(?,?)}";
+        String sql = "UPDATE DONHANG SET TRANGTHAIDH = N'Hoàn thành', TGGIAOTT = SYSDATE, TRANGTHAITT = 1 WHERE MADH = ? AND TRIM(MANV) = ? AND TRANGTHAIDH = N'Đang giao'";
         try (
             Connection con = DBConnection.getConnection();
-            CallableStatement cs = con.prepareCall(sql);
+            PreparedStatement ps = con.prepareStatement(sql);
         ) {
-            cs.setString(1, MaDH);
-            cs.setString(2, MaNV);
-            cs.execute();
-            return true;
+            ps.setString(1, MaDH);
+            ps.setString(2, MaNV.trim());
+            int rows = ps.executeUpdate();
+            return rows > 0;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -75,16 +75,16 @@ public class GiaoHangDAO {
     
     // Thực thi Giao hàng thất bại
     public boolean giaoHangThatBai(String maDH, String maNV, String lyDoHuy) {
-        String sql = "{call SP_GIAOHANG_THATBAI(?,?,?)}";
+        String sql = "UPDATE DONHANG SET TRANGTHAIDH = N'Đã huỷ', TGGIAOTT = SYSDATE, LYDOHUY = ? WHERE MADH = ? AND TRIM(MANV) = ? AND TRANGTHAIDH = N'Đang giao'";
         try (
             Connection con = DBConnection.getConnection();
-            PreparedStatement ps = con.prepareCall(sql);
+            PreparedStatement ps = con.prepareStatement(sql);
         ) {
-            ps.setString(1, maDH);
-            ps.setString(2, maNV);
-            ps.setString(3, lyDoHuy);
-            ps.execute();
-            return true;
+            ps.setString(1, lyDoHuy);
+            ps.setString(2, maDH);
+            ps.setString(3, maNV.trim());
+            int rows = ps.executeUpdate();
+            return rows > 0;
         } catch (Exception e) {
             e.printStackTrace();
             return false;

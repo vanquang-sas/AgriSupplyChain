@@ -24,13 +24,11 @@ public class MainFrame extends JFrame {
 
     // --- Thành phần giao diện chính ---
     private JPanel sidebarPanel;
-    private JPanel topHeader;     // Thêm panel Header
+    private JPanel topHeader;     
     private JPanel contentPanel;
     private CardLayout cardLayout;
     private GioHangPanel pnlGioHang;
     private JButton btnGioHangMenu;
-    // --- Thành phần Giỏ hàng ---
-    private JLabel lblCartBadge;  // Hiển thị số lượng màu đỏ
 
     // --- Danh sách nút menu để quản lý trạng thái Active ---
     private final List<JButton> menuButtons = new ArrayList<>();
@@ -104,6 +102,14 @@ public class MainFrame extends JFrame {
         // Tự động làm mới dữ liệu cho các Panel chức năng khi chuyển trang
         if (cardName.equals("DonHang") && pnlDonHang != null) {
             pnlDonHang.loadData(null);
+        }
+        // Làm mới danh sách sản phẩm khi quay lại cửa hàng (đồng bộ tồn kho sau khi thay đổi giỏ)
+        if (cardName.equals("CuaHang") && pnlCuaHang != null) {
+            pnlCuaHang.refreshProducts();
+        }
+        // Làm mới giỏ hàng khi điều hướng tới
+        if (cardName.equals("GioHang") && pnlGioHang != null) {
+            pnlGioHang.loadCartItems();
         }
     }
 

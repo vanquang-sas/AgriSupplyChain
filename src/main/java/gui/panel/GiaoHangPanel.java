@@ -208,17 +208,17 @@ public class GiaoHangPanel extends JPanel {
         // Tab 1
         modelChoGiao.setRowCount(0);
         for (DonHangDTO dh : bus.layDonChoGiao()) { // Lưu ý: Hàm này đã không cần truyền MaNV
-            modelChoGiao.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgDat(), dh.getTongTien(), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
+            modelChoGiao.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgDat(), String.format("%,.0f", dh.getTongTien()), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
         }
         // Tab 2
         modelDaNhan.setRowCount(0);
         for (DonHangDTO dh : bus.layDonDaNhan(maNV)) {
-            modelDaNhan.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgDat(), dh.getTongTien(), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
+            modelDaNhan.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgDat(), String.format("%,.0f", dh.getTongTien()), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
         }
         // Tab 3
         modelLichSu.setRowCount(0);
         for (DonHangDTO dh : bus.lichSuGiaoHang(maNV)) {
-            modelLichSu.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgDat(), dh.getTongTien(), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
+            modelLichSu.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgDat(), String.format("%,.0f", dh.getTongTien()), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
         }
     }
 

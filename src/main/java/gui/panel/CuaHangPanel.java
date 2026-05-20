@@ -302,6 +302,14 @@ public class CuaHangPanel extends JPanel {
         pnlProducts.repaint();
     }
 
+    /**
+     * Gọi khi quay lại cửa hàng từ giỏ hàng — tải lại danh sách sản phẩm
+     * để số lượng khả dụng được cập nhật chính xác.
+     */
+    public void refreshProducts() {
+        filterSanPham();
+    }
+
     // =========================================
     // FILTER
     // =========================================
