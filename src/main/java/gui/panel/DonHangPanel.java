@@ -39,6 +39,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -58,6 +59,7 @@ public class DonHangPanel extends JPanel {
     private final DonHangBUS bus = new DonHangBUS();
     private List<DonHangDTO> currentDataList = new ArrayList<>();
     private String currentMaKH = Session.maKH != null ? Session.maKH : "KH000017"; // Giả lập mã KH đang đăng nhập
+    private SwingWorker<List<DonHangDTO>, Void> activeLoadWorker;
 
     // ── UI ────────────────────────────────────────────────────────────────────
     private JTable table;
@@ -319,26 +321,48 @@ public class DonHangPanel extends JPanel {
         if (Session.maKH != null) {
             this.currentMaKH = Session.maKH;
         }
-        try {
-            currentDataList = bus.getDanhSachDonHang(currentMaKH);
-            
-            int cTong = 0, cDang = 0, cGiao = 0, cHuy = 0;
-            for (DonHangDTO dh : currentDataList) {
-                cTong++;
-                String st = dh.getTrangThaiDH();
-                if (st.equalsIgnoreCase("Chờ xử lý") || st.equalsIgnoreCase("Đã đặt") || st.equalsIgnoreCase("Chờ giao hàng")) cDang++;
-                else if (st.equalsIgnoreCase("Hoàn thành") || st.equalsIgnoreCase("Đã giao")) cGiao++;
-                else if (st.equalsIgnoreCase("Đã huỷ")) cHuy++;
-            }
-            lblTongDH.setText(String.valueOf(cTong));
-            lblDangXuLy.setText(String.valueOf(cDang));
-            lblDaGiao.setText(String.valueOf(cGiao));
-            lblDaHuy.setText(String.valueOf(cHuy));
 
-            loadTableData(currentDataList);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        tableModel.setRowCount(0);
+        tableModel.addRow(new Object[]{"Đang tải dữ liệu...", "", "", "", "", ""});
+
+        if (activeLoadWorker != null && !activeLoadWorker.isDone()) {
+            activeLoadWorker.cancel(true);
         }
+
+        activeLoadWorker = new SwingWorker<>() {
+            @Override
+            protected List<DonHangDTO> doInBackground() throws Exception {
+                return bus.getDanhSachDonHang(currentMaKH);
+            }
+
+            @Override
+            protected void done() {
+                if (isCancelled()) return;
+                try {
+                    currentDataList = get();
+                    
+                    int cTong = 0, cDang = 0, cGiao = 0, cHuy = 0;
+                    for (DonHangDTO dh : currentDataList) {
+                        cTong++;
+                        String st = dh.getTrangThaiDH();
+                        if (st.equalsIgnoreCase("Chờ xử lý") || st.equalsIgnoreCase("Đã đặt") || st.equalsIgnoreCase("Chờ giao hàng")) cDang++;
+                        else if (st.equalsIgnoreCase("Hoàn thành") || st.equalsIgnoreCase("Đã giao")) cGiao++;
+                        else if (st.equalsIgnoreCase("Đã huỷ")) cHuy++;
+                    }
+                    lblTongDH.setText(String.valueOf(cTong));
+                    lblDangXuLy.setText(String.valueOf(cDang));
+                    lblDaGiao.setText(String.valueOf(cGiao));
+                    lblDaHuy.setText(String.valueOf(cHuy));
+
+                    loadTableData(currentDataList);
+                } catch (Exception e) {
+                    tableModel.setRowCount(0);
+                    tableModel.addRow(new Object[]{"Lỗi tải dữ liệu", "", "", "", "", ""});
+                    JOptionPane.showMessageDialog(DonHangPanel.this, "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+        activeLoadWorker.execute();
     }
 
     private void filterTableLocally(String kw) {

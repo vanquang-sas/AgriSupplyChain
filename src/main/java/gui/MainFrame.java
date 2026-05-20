@@ -89,7 +89,123 @@ public class MainFrame extends JFrame {
     // ================================================================
     // HÀM ĐIỀU HƯỚNG TRUNG TÂM (ĐÓNG MỞ HEADER TỰ ĐỘNG)
     // ================================================================
+    private void ensurePanelCreated(String cardName) {
+        switch (cardName) {
+            case "TrangChu":
+                break;
+            case "SanPham":
+                if (pnlSanPham == null) {
+                    pnlSanPham = new SanPhamPanel();
+                    contentPanel.add(pnlSanPham, "SanPham");
+                }
+                break;
+            case "KhachHang":
+                if (pnlKhachHang == null) {
+                    pnlKhachHang = new KhachHangPanel();
+                    contentPanel.add(pnlKhachHang, "KhachHang");
+                }
+                break;
+            case "NhanVien":
+                if (pnlNhanVien == null) {
+                    pnlNhanVien = new NhanVienPanel();
+                    contentPanel.add(pnlNhanVien, "NhanVien");
+                }
+                break;
+            case "NhaCungCap":
+                if (pnlNhaCungCap == null) {
+                    pnlNhaCungCap = new NhaCungCapPanel();
+                    contentPanel.add(pnlNhaCungCap, "NhaCungCap");
+                }
+                break;
+            case "Kho":
+                if (pnlKho == null) {
+                    pnlKho = new KhoPanel();
+                    contentPanel.add(pnlKho, "Kho");
+                }
+                break;
+            case "ThamSo":
+                if (pnlThamSo == null) {
+                    pnlThamSo = new ThamSoPanel();
+                    contentPanel.add(pnlThamSo, "ThamSo");
+                }
+                break;
+            case "ThongKe":
+                if (pnlThongKe == null) {
+                    pnlThongKe = new ThongKePanel();
+                    contentPanel.add(pnlThongKe, "ThongKe");
+                }
+                break;
+            case "DonHang":
+                if (pnlDonHang == null) {
+                    pnlDonHang = new DonHangPanel();
+                    contentPanel.add(pnlDonHang, "DonHang");
+                }
+                break;
+            case "GiaoHang":
+                if (pnlGiaoHang == null) {
+                    pnlGiaoHang = new GiaoHangPanel(Session.maNV);
+                    contentPanel.add(pnlGiaoHang, "GiaoHang");
+                }
+                break;
+            case "CuaHang":
+                if (pnlCuaHang == null) {
+                    pnlCuaHang = new CuaHangPanel(this);
+                    contentPanel.add(pnlCuaHang, "CuaHang");
+                }
+                break;
+            case "LoaiSanPham":
+                if (pnlLoaiSanPham == null) {
+                    pnlLoaiSanPham = new LoaiSanPhamPanel();
+                    contentPanel.add(pnlLoaiSanPham, "LoaiSanPham");
+                }
+                break;
+            case "Profile":
+                if (pnlUserProfile == null) {
+                    pnlUserProfile = new UserProfilePanel();
+                    contentPanel.add(pnlUserProfile, "Profile");
+                }
+                break;
+            case "NhapKho":
+                if (pnlNhapKho == null) {
+                    pnlNhapKho = new NhapKhoPanel();
+                    contentPanel.add(pnlNhapKho, "NhapKho");
+                }
+                break;
+            case "XuatKho":
+                if (pnlXuatKho == null) {
+                    pnlXuatKho = new XuatKhoPanel();
+                    contentPanel.add(pnlXuatKho, "XuatKho");
+                }
+                break;
+            case "TonKho":
+                if (pnlTonKho == null) {
+                    pnlTonKho = new TonKhoPanel();
+                    contentPanel.add(pnlTonKho, "TonKho");
+                }
+                break;
+            case "LoHang":
+                if (pnlLoHang == null) {
+                    pnlLoHang = new LoHangPanel();
+                    contentPanel.add(pnlLoHang, "LoHang");
+                }
+                break;
+            case "LichSuLoHang":
+                if (pnlLichSuLoHang == null) {
+                    pnlLichSuLoHang = new LichSuLoHangPanel();
+                    contentPanel.add(pnlLichSuLoHang, "LichSuLoHang");
+                }
+                break;
+            case "GioHang":
+                if (pnlGioHang == null) {
+                    pnlGioHang = new GioHangPanel(this);
+                    contentPanel.add(pnlGioHang, "GioHang");
+                }
+                break;
+        }
+    }
+
     private void navigateToCard(String cardName) {
+        ensurePanelCreated(cardName);
         cardLayout.show(contentPanel, cardName);
         
         // ĐÃ SỬA: Bỏ "GioHang" đi, nút này giờ CHỈ hiện khi đang ở trang "CuaHang"
@@ -109,7 +225,7 @@ public class MainFrame extends JFrame {
         }
         // Làm mới giỏ hàng khi điều hướng tới
         if (cardName.equals("GioHang") && pnlGioHang != null) {
-            pnlGioHang.loadCartItems();
+            pnlGioHang.loadCartItemsFromDBAsync();
         }
     }
 
@@ -486,6 +602,7 @@ public class MainFrame extends JFrame {
     }
 
     private void showUserProfile() {
+        ensurePanelCreated("Profile");
         if (pnlUserProfile != null) {
             pnlUserProfile.loadProfile();
             navigateToCard("Profile");
@@ -522,47 +639,7 @@ public class MainFrame extends JFrame {
         contentPanel = new JPanel(cardLayout);
         contentPanel.setBackground(AppColor.BACKGROUND);
 
-        pnlKhachHang = new KhachHangPanel();
-        pnlNhanVien = new NhanVienPanel();
-        pnlNhaCungCap = new NhaCungCapPanel();
-        pnlKho = new KhoPanel();
-        pnlThamSo = new ThamSoPanel();
-        pnlDonHang = new DonHangPanel();
-        pnlGiaoHang = new GiaoHangPanel(Session.maNV);
-        
-        // ĐÃ SỬA LỖI Ở ĐÂY: Thêm 'this' vào trong constructor
-        pnlCuaHang = new CuaHangPanel(this);
-        
-        pnlLoaiSanPham = new LoaiSanPhamPanel();
-        pnlSanPham = new SanPhamPanel();
-        pnlNhapKho = new NhapKhoPanel();
-        pnlXuatKho = new XuatKhoPanel();
-        pnlTonKho = new TonKhoPanel();
-        pnlThongKe = new ThongKePanel();
-        pnlLoHang = new LoHangPanel();
-        pnlUserProfile = new UserProfilePanel();
-        pnlLichSuLoHang = new LichSuLoHangPanel();
-        pnlGioHang = new GioHangPanel(this);
-
         contentPanel.add(createPlaceholder("🏠", "Trang chủ", "Dashboard tổng quan"), "TrangChu");
-        contentPanel.add(pnlSanPham, "SanPham");
-        contentPanel.add(pnlKhachHang, "KhachHang");
-        contentPanel.add(pnlNhanVien, "NhanVien");
-        contentPanel.add(pnlNhaCungCap, "NhaCungCap");
-        contentPanel.add(pnlKho, "Kho");
-        contentPanel.add(pnlThamSo, "ThamSo");
-        contentPanel.add(pnlThongKe, "ThongKe");
-        contentPanel.add(pnlDonHang, "DonHang");
-        contentPanel.add(pnlGiaoHang, "GiaoHang");
-        contentPanel.add(pnlCuaHang, "CuaHang");
-        contentPanel.add(pnlLoaiSanPham, "LoaiSanPham");
-        contentPanel.add(pnlUserProfile, "Profile");
-        contentPanel.add(pnlNhapKho, "NhapKho");
-        contentPanel.add(pnlXuatKho, "XuatKho");
-        contentPanel.add(pnlTonKho, "TonKho");
-        contentPanel.add(pnlLoHang, "LoHang");
-        contentPanel.add(pnlLichSuLoHang, "LichSuLoHang");
-        contentPanel.add(pnlGioHang, "GioHang");
     }
 
     private JButton createMenuButton(String emojiStr, String label, String cardName) {
@@ -716,7 +793,7 @@ public class MainFrame extends JFrame {
             setActiveMenu(btnGioHangMenu);
         }
         if (pnlGioHang != null) {
-            pnlGioHang.loadCartItems(); 
+            pnlGioHang.loadCartItemsFromDBAsync(); 
         }
     }
 }

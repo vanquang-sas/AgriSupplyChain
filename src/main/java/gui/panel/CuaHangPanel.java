@@ -40,6 +40,8 @@ public class CuaHangPanel extends JPanel {
 
     private JScrollPane scrollPane;
 
+    private SwingWorker<List<SanPhamDTO>, Void> activeFilterWorker;
+
     public CuaHangPanel(MainFrame parentFrame) {
 
         this.parentFrame = parentFrame;
@@ -50,7 +52,7 @@ public class CuaHangPanel extends JPanel {
 
         initEvents();
 
-        loadData(bus.getAllSanPham());
+        loadDataAsync();
     }
 
     // =========================================
@@ -152,18 +154,7 @@ public class CuaHangPanel extends JPanel {
         cboLoai.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         cboLoai.addItem("Tất cả");
 
-        // Tải danh mục loại sản phẩm từ database
-        try {
-            bus.LoaiSanPhamBUS lspBus = new bus.LoaiSanPhamBUS();
-            List<dto.LoaiSanPhamDTO> categories = lspBus.getAll();
-            if (categories != null) {
-                for (dto.LoaiSanPhamDTO cat : categories) {
-                    cboLoai.addItem(new CategoryItem(cat.getMaLSP(), cat.getTenLSP()));
-                }
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        // Tải danh mục loại sản phẩm từ database sẽ được thực hiện bất đồng bộ trong loadDataAsync()
 
         // =========================================
         // RELOAD BUTTON
@@ -278,7 +269,7 @@ public class CuaHangPanel extends JPanel {
 
             cboLoai.setSelectedIndex(0);
 
-            loadData(bus.getAllSanPham());
+            loadDataAsync();
         });
     }
 
@@ -302,6 +293,58 @@ public class CuaHangPanel extends JPanel {
         pnlProducts.repaint();
     }
 
+    private void loadDataAsync() {
+        pnlProducts.removeAll();
+        JLabel lblLoading = new JLabel("Đang tải danh sách sản phẩm...");
+        lblLoading.setFont(new Font("Segoe UI", Font.ITALIC, 16));
+        lblLoading.setForeground(new Color(156, 163, 175));
+        pnlProducts.add(lblLoading);
+        pnlProducts.revalidate();
+        pnlProducts.repaint();
+
+        if (activeFilterWorker != null && !activeFilterWorker.isDone()) {
+            activeFilterWorker.cancel(true);
+        }
+
+        activeFilterWorker = new SwingWorker<>() {
+            private List<dto.LoaiSanPhamDTO> categories;
+
+            @Override
+            protected List<SanPhamDTO> doInBackground() throws Exception {
+                // Tải danh mục loại sản phẩm từ database nếu chưa tải
+                if (cboLoai.getItemCount() <= 1) { // Chỉ có "Tất cả"
+                    bus.LoaiSanPhamBUS lspBus = new bus.LoaiSanPhamBUS();
+                    categories = lspBus.getAll();
+                }
+                return bus.getAllSanPham();
+            }
+
+            @Override
+            protected void done() {
+                if (isCancelled()) return;
+                try {
+                    List<SanPhamDTO> result = get();
+                    if (categories != null) {
+                        for (dto.LoaiSanPhamDTO cat : categories) {
+                            cboLoai.addItem(new CategoryItem(cat.getMaLSP(), cat.getTenLSP()));
+                        }
+                    }
+                    loadData(result);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    pnlProducts.removeAll();
+                    JLabel lblError = new JLabel("Lỗi tải danh sách sản phẩm: " + e.getMessage());
+                    lblError.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                    lblError.setForeground(new Color(239, 68, 68));
+                    pnlProducts.add(lblError);
+                    pnlProducts.revalidate();
+                    pnlProducts.repaint();
+                }
+            }
+        };
+        activeFilterWorker.execute();
+    }
+
     /**
      * Gọi khi quay lại cửa hàng từ giỏ hàng — tải lại danh sách sản phẩm
      * để số lượng khả dụng được cập nhật chính xác.
@@ -314,9 +357,7 @@ public class CuaHangPanel extends JPanel {
     // FILTER
     // =========================================
     private void filterSanPham() {
-
         String keyword = txtTimKiem.getText().trim();
-
         Object selected = cboLoai.getSelectedItem();
         String loaiTemp = "Tất cả";
         if (selected instanceof CategoryItem) {
@@ -326,43 +367,38 @@ public class CuaHangPanel extends JPanel {
         }
         final String loai = loaiTemp;
 
-        // =====================================
-        // SEARCH + FILTER
-        // =====================================
-        if (!keyword.isEmpty()) {
+        if (activeFilterWorker != null && !activeFilterWorker.isDone()) {
+            activeFilterWorker.cancel(true);
+        }
 
-            List<SanPhamDTO> list =
-                    bus.timKiem(keyword);
-
-            if (!loai.equals("Tất cả")) {
-
-                list.removeIf(sp ->
-                        !sp.getMaLSP().equals(loai)
-                );
+        activeFilterWorker = new SwingWorker<>() {
+            @Override
+            protected List<SanPhamDTO> doInBackground() throws Exception {
+                if (!keyword.isEmpty()) {
+                    List<SanPhamDTO> list = bus.timKiem(keyword);
+                    if (!loai.equals("Tất cả")) {
+                        list.removeIf(sp -> !sp.getMaLSP().equals(loai));
+                    }
+                    return list;
+                } else if (!loai.equals("Tất cả")) {
+                    return bus.locTheoLoai(loai);
+                } else {
+                    return bus.getAllSanPham();
+                }
             }
 
-            loadData(list);
-        }
-
-        // =====================================
-        // FILTER CATEGORY
-        // =====================================
-        else if (!loai.equals("Tất cả")) {
-
-            loadData(
-                    bus.locTheoLoai(loai)
-            );
-        }
-
-        // =====================================
-        // LOAD ALL
-        // =====================================
-        else {
-
-            loadData(
-                    bus.getAllSanPham()
-            );
-        }
+            @Override
+            protected void done() {
+                if (isCancelled()) return;
+                try {
+                    List<SanPhamDTO> result = get();
+                    loadData(result);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        activeFilterWorker.execute();
     }
 
     public static class CategoryItem {

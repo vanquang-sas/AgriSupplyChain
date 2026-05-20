@@ -32,16 +32,14 @@ public class GioHangPanel extends JPanel {
     private ModernSearchField txtSearch;
     private JScrollPane scrollPane;
     private JComboBox<String> cbxSort;
+    private SwingWorker<List<GioHangDTO>, Void> activeCartWorker;
 
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
 
     public GioHangPanel(MainFrame parent) {
         this.parentFrame = parent;
-        if (Session.isLogged() && Session.currentUser != null && Session.currentUser.getLoaiTK() == 2 && Session.maKH != null) {
-            Session.cartCache = new bus.GioHangBUS().getCart(Session.maKH);
-        }
         initComponents();
-        loadCartItems();
+        loadCartItemsFromDBAsync();
     }
 
     private void initComponents() {
@@ -134,7 +132,7 @@ public class GioHangPanel extends JPanel {
         
         JButton btnRefresh = createIconButton("icons/refresh.svg", new Dimension(36, 36));
         btnRefresh.setToolTipText("Làm mới giỏ hàng");
-        btnRefresh.addActionListener(e -> loadCartItems());
+        btnRefresh.addActionListener(e -> loadCartItemsFromDBAsync());
         
         pnlToolLeft.add(btnClearAll);
         pnlToolLeft.add(btnRefresh);
@@ -293,6 +291,56 @@ public class GioHangPanel extends JPanel {
         }
         pnlItems.revalidate();
         pnlItems.repaint();
+    }
+
+    public void loadCartItemsFromDBAsync() {
+        if (Session.isLogged() && Session.currentUser != null && Session.currentUser.getLoaiTK() == 2 && Session.maKH != null) {
+            pnlItems.removeAll();
+            JPanel pnlLoading = new JPanel(new GridBagLayout());
+            pnlLoading.setOpaque(false);
+            JLabel lblLoading = new JLabel("Đang tải giỏ hàng...");
+            lblLoading.setFont(new Font("Segoe UI", Font.ITALIC, 15));
+            lblLoading.setForeground(new Color(156, 163, 175));
+            pnlLoading.add(lblLoading);
+            pnlItems.add(pnlLoading);
+            pnlItems.revalidate();
+            pnlItems.repaint();
+
+            if (activeCartWorker != null && !activeCartWorker.isDone()) {
+                activeCartWorker.cancel(true);
+            }
+
+            activeCartWorker = new SwingWorker<>() {
+                @Override
+                protected List<GioHangDTO> doInBackground() throws Exception {
+                    return new bus.GioHangBUS().getCart(Session.maKH);
+                }
+
+                @Override
+                protected void done() {
+                    if (isCancelled()) return;
+                    try {
+                        Session.cartCache = get();
+                        loadCartItems();
+                        if (parentFrame != null) {
+                            parentFrame.updateCartBadge();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        pnlItems.removeAll();
+                        JLabel lblError = new JLabel("Lỗi tải giỏ hàng: " + e.getMessage());
+                        lblError.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                        lblError.setForeground(new Color(239, 68, 68));
+                        pnlItems.add(lblError);
+                        pnlItems.revalidate();
+                        pnlItems.repaint();
+                    }
+                }
+            };
+            activeCartWorker.execute();
+        } else {
+            loadCartItems();
+        }
     }
 
     public void loadCartItems() {
