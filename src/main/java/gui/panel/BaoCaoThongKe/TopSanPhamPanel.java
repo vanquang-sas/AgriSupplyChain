@@ -3,6 +3,7 @@ package gui.panel.BaoCaoThongKe;
 import bus.ThongKeBUS;
 import dto.ThongKeDTO;
 import util.AppColor;
+import gui.component.WrapLayout;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -62,7 +63,7 @@ public class TopSanPhamPanel extends JPanel {
 
     private void initComponents() {
         // --- 1. FILTER PANEL ---
-        JPanel pnlFilter = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
+        JPanel pnlFilter = new JPanel(new WrapLayout(FlowLayout.LEFT, 15, 10));
         pnlFilter.setBackground(Color.WHITE);
         pnlFilter.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1, true));
 
@@ -85,7 +86,12 @@ public class TopSanPhamPanel extends JPanel {
         pnlFilter.add(new JLabel("Hiển thị:")); pnlFilter.add(cbLimit);
         pnlFilter.add(new JLabel("Thứ tự:")); pnlFilter.add(cbSortOrder);
         pnlFilter.add(new JLabel("Sắp xếp:")); pnlFilter.add(cbSortTableBy);
-        pnlFilter.add(btnFilter); pnlFilter.add(btnExport);
+        
+        JPanel pnlButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        pnlButtons.setBackground(Color.WHITE);
+        pnlButtons.add(btnFilter); 
+        pnlButtons.add(btnExport);
+        pnlFilter.add(pnlButtons);
 
         // --- 2. MAIN CONTENT (CHỨA CẢ CHART & TABLE) ---
         JPanel contentPanel = new JPanel(new BorderLayout(0, 20));

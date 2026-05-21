@@ -360,7 +360,7 @@ public class LichSuGiaPanel extends JPanel {
                 PdfPTable pdfTable = new PdfPTable(tableModel.getColumnCount());
                 pdfTable.setWidthPercentage(100);
                 pdfTable.setSpacingBefore(16f);
-                pdfTable.setWidths(new float[]{2.2f, 3.5f, 2f, 2f, 2f, 2f, 1.7f});
+                pdfTable.setWidths(new float[]{2.5f, 3.5f, 2.5f, 2.5f, 2.5f});
 
                 for (int i = 0; i < tableModel.getColumnCount(); i++) {
                     PdfPCell cell = new PdfPCell(new Phrase(tableModel.getColumnName(i), fBold));

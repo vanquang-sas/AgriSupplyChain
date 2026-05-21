@@ -57,7 +57,6 @@ DECLARE
     v_Delta NUMBER := 0;
     v_MaDH VARCHAR2(10);
     v_LoaiKH NVARCHAR2(50);
-    
     v_TyLeGiamGia NUMBER := 0;
     v_TongTienHangMoi NUMBER := 0;
     v_PhiVanChuyen NUMBER := 0;
@@ -74,19 +73,14 @@ BEGIN
         v_Delta := -:OLD.ThanhTien;
         v_MaDH := :OLD.MaDH;
     END IF;
-
     -- 2. Lấy Tổng tiền hàng hiện tại, Phí vận chuyển và Loại khách hàng
     SELECT DH.TongTienHang, DH.PhiVanChuyen, KH.LoaiKH 
     INTO v_TongTienHangMoi, v_PhiVanChuyen, v_LoaiKH
     FROM DONHANG DH
     JOIN KHACHHANG KH ON DH.MaKH = KH.MaKH
     WHERE DH.MaDH = v_MaDH;
-
-    -- Cộng dồn Delta để ra Tổng tiền hàng mới
     v_TongTienHangMoi := NVL(v_TongTienHangMoi, 0) + v_Delta;
-
     -- 3. Xác định tỷ lệ giảm giá từ bảng THAMSO dựa trên LoaiKH
-    -- Giả sử giá trị lưu trong THAMSO là số thập phân (Ví dụ: 0.05 tương đương 5%)
     BEGIN
         IF v_LoaiKH = 'Thường' THEN
             SELECT GiaTri INTO v_TyLeGiamGia FROM THAMSO WHERE TenTS = 'GG_THUONG';
@@ -101,10 +95,8 @@ BEGIN
         WHEN NO_DATA_FOUND THEN 
             v_TyLeGiamGia := 0; 
     END;
-
     -- 4. Tính toán số tiền Giảm giá mới
     v_GiamGiaMoi := v_TongTienHangMoi * v_TyLeGiamGia;
-
     -- 5. Cập nhật TongTien = TongTienHang + PhiVanChuyen - GiamGia
     UPDATE DONHANG 
     SET TongTienHang = v_TongTienHangMoi,

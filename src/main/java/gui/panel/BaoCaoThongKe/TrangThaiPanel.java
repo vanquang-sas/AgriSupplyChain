@@ -102,7 +102,7 @@ public class TrangThaiPanel extends JPanel {
         styleModernTable(tableDH);
         JScrollPane scrollDH = new JScrollPane(tableDH);
         scrollDH.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(new Color(230,230,230)), "Bảng số liệu: Đơn Hàng", 0, 0, new Font("Segoe UI", Font.BOLD, 13), AppColor.PRIMARY
+            BorderFactory.createLineBorder(new Color(230,230,230)), "Bảng số liệu: Đơn hàng bán", 0, 0, new Font("Segoe UI", Font.BOLD, 13), AppColor.PRIMARY
         ));
         scrollDH.getViewport().setBackground(Color.WHITE);
 
@@ -112,7 +112,7 @@ public class TrangThaiPanel extends JPanel {
         styleModernTable(tableLH);
         JScrollPane scrollLH = new JScrollPane(tableLH);
         scrollLH.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(new Color(230,230,230)), "Bảng số liệu: Lô Hàng", 0, 0, new Font("Segoe UI", Font.BOLD, 13), AppColor.PRIMARY
+            BorderFactory.createLineBorder(new Color(230,230,230)), "Bảng số liệu: Lô hàng nhập", 0, 0, new Font("Segoe UI", Font.BOLD, 13), AppColor.PRIMARY
         ));
         scrollLH.getViewport().setBackground(Color.WHITE);
 
@@ -147,7 +147,7 @@ public class TrangThaiPanel extends JPanel {
             modelDH.addRow(new Object[]{d.trangThai, d.soLuong, dfPercent.format(d.tyLe) + "%"});
             dsDH.setValue(d.trangThai + " (" + d.soLuong + ")", d.soLuong);
         }
-        drawPieChart(chartPanelDH, dsDH, "Tỷ lệ trạng thái Đơn hàng", pieChartDH, true);
+        drawPieChart(chartPanelDH, dsDH, "Tỷ lệ trạng thái đơn hàng", pieChartDH, true);
 
         // 2. Tải dữ liệu Lô hàng
         dataLH = thongKeBUS.getThongKeTrangThaiLoHang(tuNgay, denNgay); // Yêu cầu DAO/BUS đã thêm hàm này
@@ -157,7 +157,7 @@ public class TrangThaiPanel extends JPanel {
             modelLH.addRow(new Object[]{d.trangThai, d.soLuong, dfPercent.format(d.tyLe) + "%"});
             dsLH.setValue(d.trangThai + " (" + d.soLuong + ")", d.soLuong);
         }
-        drawPieChart(chartPanelLH, dsLH, "Tỷ lệ trạng thái Lô hàng", pieChartLH, false);
+        drawPieChart(chartPanelLH, dsLH, "Tỷ lệ trạng thái lô hàng", pieChartLH, false);
     }
 
     private void drawPieChart(JPanel container, DefaultPieDataset<String> dataset, String title, JFreeChart refChart, boolean isDonHang) {

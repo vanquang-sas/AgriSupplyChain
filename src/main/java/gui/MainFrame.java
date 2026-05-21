@@ -104,8 +104,7 @@ public class MainFrame extends JFrame {
     // ================================================================
     private void ensurePanelCreated(String cardName) {
         switch (cardName) {
-            case "TrangChu":
-                break;
+
             case "SanPham":
                 if (pnlSanPham == null) {
                     pnlSanPham = new SanPhamPanel();
@@ -367,31 +366,6 @@ public class MainFrame extends JFrame {
         }.execute();
     }
 
-    private String getFriendlyPageTitle(String cardName) {
-        switch (cardName) {
-            case "TrangChu": return "Trang chủ";
-            case "SanPham": return "Quản lý Sản phẩm";
-            case "KhachHang": return "Quản lý Khách hàng";
-            case "NhanVien": return "Quản lý Nhân viên";
-            case "NhaCungCap": return "Quản lý Nhà cung cấp";
-            case "Kho": return "Quản lý Kho";
-            case "ThamSo": return "Cấu hình Tham số";
-            case "ThongKe": return "Báo cáo Thống kê";
-            case "DonHang": return "Danh sách Đơn hàng";
-            case "GiaoHang": return "Vận chuyển & Giao hàng";
-            case "CuaHang": return "Cửa hàng Nông sản";
-            case "LoaiSanPham": return "Danh mục Loại sản phẩm";
-            case "Profile": return "Thông tin cá nhân";
-            case "NhapKho": return "Quản lý Nhập kho";
-            case "XuatKho": return "Quản lý Xuất kho";
-            case "TonKho": return "Báo cáo Tồn kho";
-            case "LoHang": return "Quản lý Lô hàng nhập";
-            case "LichSuLoHang": return "Lịch sử nhập hàng";
-            case "GioHang": return "Giỏ hàng của tôi";
-            default: return "Hệ thống Quản lý";
-        }
-    }
-
     // ================================================================
     // SIDEBAR & PHÂN QUYỀN
     // ================================================================
@@ -444,7 +418,6 @@ public class MainFrame extends JFrame {
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
         menuPanel.setBorder(new EmptyBorder(16, 0, 12, 0));
 
-        JButton btnTrangChu = createMenuButton("🏠", "Trang chủ", "TrangChu");
         JButton btnKhachHang = createMenuButton("👥", "Quản lý Khách hàng", "KhachHang");
         JButton btnNhanVien = createMenuButton("👤", "Quản lý Nhân viên", "NhanVien");
         JButton btnNhaCungCap = createMenuButton("🏢", "Quản lý Nhà cung cấp", "NhaCungCap");
@@ -480,10 +453,6 @@ public class MainFrame extends JFrame {
         menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
 
         if (roleId == 0) { // ADMIN
-            menuPanel.add(buildSectionLabel("TỔNG QUAN"));
-            menuPanel.add(btnTrangChu);
-            menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
-
             menuPanel.add(buildSectionLabel("NHÂN SỰ & ĐỐI TÁC"));
             menuPanel.add(btnKhachHang);
             menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
@@ -506,7 +475,7 @@ public class MainFrame extends JFrame {
             menuPanel.add(btnThongKe);
             menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
 
-            defaultActiveBtn = btnTrangChu;
+            defaultActiveBtn = btnKhachHang;
 
         } else if (roleId == 1) { // NHÂN VIÊN
             String cv = util.Session.chucVu != null ? util.Session.chucVu.toLowerCase() : "";
@@ -717,8 +686,6 @@ public class MainFrame extends JFrame {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         contentPanel.setBackground(AppColor.BACKGROUND);
-
-        contentPanel.add(createPlaceholder("🏠", "Trang chủ", "Dashboard tổng quan"), "TrangChu");
     }
 
     private JButton createMenuButton(String emojiStr, String label, String cardName) {
@@ -882,41 +849,6 @@ public class MainFrame extends JFrame {
             @Override public int getIconWidth() { return size + 4; }
             @Override public int getIconHeight() { return size + 4; }
         };
-    }
-
-    private JPanel createPlaceholder(String emojiIcon, String title, String subtitle) {
-        JPanel p = new JPanel(new GridBagLayout());
-        p.setBackground(AppColor.BACKGROUND);
-
-        JPanel card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(AppColor.SURFACE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(AppColor.BORDER, 1, true),
-                BorderFactory.createEmptyBorder(40, 60, 40, 60)));
-
-        JLabel lblIcon = new JLabel(emojiIcon);
-        lblIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 64));
-        lblIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel lblTitle = new JLabel(title);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        lblTitle.setForeground(AppColor.TEXT_PRIMARY);
-        lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel lblSub = new JLabel(subtitle);
-        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        lblSub.setForeground(AppColor.TEXT_SECONDARY);
-        lblSub.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        card.add(lblIcon);
-        card.add(Box.createRigidArea(new Dimension(0, 14)));
-        card.add(lblTitle);
-        card.add(Box.createRigidArea(new Dimension(0, 8)));
-        card.add(lblSub);
-
-        p.add(card);
-        return p;
     }
 
     private ImageIcon getImageIcon(String path, int width, int height) {
