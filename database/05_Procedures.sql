@@ -258,7 +258,7 @@ BEGIN
             v_Count NUMBER;
         BEGIN
             SELECT COUNT(*) INTO v_Count FROM THONGBAO WHERE NoiDung = v_Msg;
-            IF v_Count = 0 THEN INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao) VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Hết hạn', v_Msg, 0, SYSDATE); END IF;
+            IF v_Count = 0 THEN INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan) VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Hết hạn', v_Msg, 0, SYSDATE, N'Nhân viên kho/thu mua'); END IF;
         END;
     END LOOP;
 
@@ -271,7 +271,7 @@ BEGIN
             v_Count NUMBER;
         BEGIN
             SELECT COUNT(*) INTO v_Count FROM THONGBAO WHERE NoiDung = v_Msg;
-            IF v_Count = 0 THEN INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao) VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Sắp hết hạn', v_Msg, 0, SYSDATE); END IF;
+            IF v_Count = 0 THEN INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan) VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Sắp hết hạn', v_Msg, 0, SYSDATE, N'Nhân viên kho/thu mua'); END IF;
         END;
     END LOOP;
 
@@ -308,8 +308,8 @@ BEGIN
               AND TRUNC(TGTao) = TRUNC(SYSDATE);
             
             IF v_Count = 0 THEN
-                INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao) 
-                VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), v_Type, v_Msg, 0, SYSDATE);
+                INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan) 
+                VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), v_Type, v_Msg, 0, SYSDATE, N'Nhân viên kho/thu mua');
             END IF;
         END;
     END LOOP;

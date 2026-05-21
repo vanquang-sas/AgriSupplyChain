@@ -3,6 +3,8 @@ package gui;
 import gui.panel.*;
 import util.AppColor;
 import util.Session;
+import bus.ThongBaoBUS;
+import gui.dialog.ThongBaoForm;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -29,6 +31,11 @@ public class MainFrame extends JFrame {
     private CardLayout cardLayout;
     private GioHangPanel pnlGioHang;
     private JButton btnGioHangMenu;
+    private JButton btnBell;
+    private JLabel lblPageTitle;
+    private int unreadNotificationCount = 0;
+    private final ThongBaoBUS thongBaoBUS = new ThongBaoBUS();
+    private Timer notificationTimer;
 
     // --- Danh sách nút menu để quản lý trạng thái Active ---
     private final List<JButton> menuButtons = new ArrayList<>();
@@ -70,8 +77,8 @@ public class MainFrame extends JFrame {
         buildTopHeader(); // Gọi hàm tạo Header giỏ hàng
         buildSidebar();
 
-        // Mặc định ẩn Header, chỉ hiện khi gọi hàm điều hướng
-        topHeader.setVisible(false);
+        // Header luôn hiển thị trên tất cả các trang
+        topHeader.setVisible(true);
 
         // Tạo Wrapper chứa Header ở trên, Content ở dưới
         JPanel mainContentWrapper = new JPanel(new BorderLayout());
@@ -84,6 +91,13 @@ public class MainFrame extends JFrame {
         
         // Cập nhật số lượng giỏ hàng lần đầu
         updateCartBadge();
+
+        // Cập nhật số lượng thông báo chưa đọc lần đầu
+        updateUnreadNotificationCount();
+
+        // Khởi động Timer định kỳ cập nhật thông báo (mỗi 10 giây)
+        notificationTimer = new Timer(10000, e -> updateUnreadNotificationCount());
+        notificationTimer.start();
     }
 
     // ================================================================
@@ -208,11 +222,9 @@ public class MainFrame extends JFrame {
         ensurePanelCreated(cardName);
         cardLayout.show(contentPanel, cardName);
         
-        // ĐÃ SỬA: Bỏ "GioHang" đi, nút này giờ CHỈ hiện khi đang ở trang "CuaHang"
-        if (cardName.equals("CuaHang")) {
-            topHeader.setVisible(true);
-        } else {
-            topHeader.setVisible(false);
+        // Cập nhật tiêu đề trang động
+        if (lblPageTitle != null) {
+            lblPageTitle.setText(getFriendlyPageTitle(cardName));
         }
 
         // Tự động làm mới dữ liệu cho các Panel chức năng khi chuyển trang
@@ -239,9 +251,16 @@ public class MainFrame extends JFrame {
         topHeader.setBorder(new EmptyBorder(0, 20, 0, 20));
         topHeader.setPreferredSize(new Dimension(0, 60)); 
 
+        // Tiêu đề trang động ở góc trái
+        lblPageTitle = new JLabel("Trang chủ");
+        lblPageTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblPageTitle.setForeground(AppColor.TEXT_PRIMARY);
+        topHeader.add(lblPageTitle, BorderLayout.WEST);
+
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 5));
         rightPanel.setBackground(AppColor.BACKGROUND);
 
+        // --- Nút Giỏ Hàng ---
         JButton btnCart = new JButton() {
             private boolean isHovered = false;
 
@@ -315,19 +334,147 @@ public class MainFrame extends JFrame {
             }
         });
 
-        rightPanel.add(btnCart);
+        // --- Nút Chuông Thông Báo ---
+        btnBell = new JButton() {
+            private boolean isHovered = false;
+
+            {
+                addMouseListener(new MouseAdapter() {
+                    @Override public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                    @Override public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
+                });
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+                int size = 42; 
+                int x = 2;     
+                int y = 4;     
+
+                if (isHovered) g2.setColor(new Color(226, 232, 240));
+                else g2.setColor(Color.WHITE);
+                g2.fillOval(x, y, size, size);
+
+                g2.setColor(new Color(203, 213, 225));
+                g2.drawOval(x, y, size, size);
+
+                g2.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
+                g2.setColor(Color.BLACK);
+                String emoji = "🔔";
+                FontMetrics fm = g2.getFontMetrics();
+                int textX = x + (size - fm.stringWidth(emoji)) / 2;
+                int textY = y + ((size - fm.getHeight()) / 2) + fm.getAscent();
+                g2.drawString(emoji, textX, textY);
+
+                if (unreadNotificationCount > 0) {
+                    String countStr = String.valueOf(unreadNotificationCount);
+                    g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                    FontMetrics badgeFm = g2.getFontMetrics();
+                    
+                    int badgeW = Math.max(18, badgeFm.stringWidth(countStr) + 8);
+                    int badgeH = 18;
+                    int badgeX = x + size - badgeW / 2 - 2;
+                    int badgeY = y - 2;
+
+                    g2.setColor(new Color(239, 68, 68)); 
+                    g2.fillRoundRect(badgeX, badgeY, badgeW, badgeH, badgeH, badgeH);
+                    
+                    g2.setColor(Color.WHITE); 
+                    int countX = badgeX + (badgeW - badgeFm.stringWidth(countStr)) / 2;
+                    int countY = badgeY + ((badgeH - badgeFm.getHeight()) / 2) + badgeFm.getAscent();
+                    g2.drawString(countStr, countX, countY);
+                }
+                g2.dispose();
+            }
+        };
+
+        btnBell.setPreferredSize(new Dimension(50, 50));
+        btnBell.setContentAreaFilled(false);
+        btnBell.setBorderPainted(false);
+        btnBell.setFocusPainted(false);
+        btnBell.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        btnBell.addActionListener(e -> {
+            try {
+                ThongBaoForm form = new ThongBaoForm(this);
+                form.setVisible(true);
+                updateUnreadNotificationCount();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Lỗi hiển thị Thông báo: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        });
 
         int roleId = Session.isLogged() ? Session.currentUser.getLoaiTK() : 2;
         if (roleId == 2) {
-            topHeader.add(rightPanel, BorderLayout.EAST);
-        } else {
-            topHeader.setPreferredSize(new Dimension(0, 0));
+            rightPanel.add(btnCart);
         }
+        rightPanel.add(btnBell);
+        topHeader.add(rightPanel, BorderLayout.EAST);
     }
 
     public void updateCartBadge() {
         if (topHeader != null) {
             topHeader.repaint(); 
+        }
+    }
+
+    public void updateUnreadNotificationCount() {
+        if (!Session.isLogged() || Session.currentUser == null) {
+            unreadNotificationCount = 0;
+            if (btnBell != null) btnBell.repaint();
+            return;
+        }
+        
+        String role = Session.chucVu;
+        String userId = Session.currentUser.getLoaiTK() == 2 ? Session.maKH : Session.maNV;
+        
+        new SwingWorker<Integer, Void>() {
+            @Override
+            protected Integer doInBackground() throws Exception {
+                return thongBaoBUS.getUnreadCount(role, userId);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    unreadNotificationCount = get();
+                    if (btnBell != null) {
+                        btnBell.repaint();
+                    }
+                } catch (Exception e) {
+                    System.err.println("Lỗi khi tải số lượng thông báo chưa đọc: " + e.getMessage());
+                }
+            }
+        }.execute();
+    }
+
+    private String getFriendlyPageTitle(String cardName) {
+        switch (cardName) {
+            case "TrangChu": return "Trang chủ";
+            case "SanPham": return "Quản lý Sản phẩm";
+            case "KhachHang": return "Quản lý Khách hàng";
+            case "NhanVien": return "Quản lý Nhân viên";
+            case "NhaCungCap": return "Quản lý Nhà cung cấp";
+            case "Kho": return "Quản lý Kho";
+            case "ThamSo": return "Cấu hình Tham số";
+            case "ThongKe": return "Báo cáo Thống kê";
+            case "DonHang": return "Danh sách Đơn hàng";
+            case "GiaoHang": return "Vận chuyển & Giao hàng";
+            case "CuaHang": return "Cửa hàng Nông sản";
+            case "LoaiSanPham": return "Danh mục Loại sản phẩm";
+            case "Profile": return "Thông tin cá nhân";
+            case "NhapKho": return "Quản lý Nhập kho";
+            case "XuatKho": return "Quản lý Xuất kho";
+            case "TonKho": return "Báo cáo Tồn kho";
+            case "LoHang": return "Quản lý Lô hàng nhập";
+            case "LichSuLoHang": return "Lịch sử nhập hàng";
+            case "GioHang": return "Giỏ hàng của tôi";
+            default: return "Hệ thống Quản lý";
         }
     }
 
@@ -589,6 +736,9 @@ public class MainFrame extends JFrame {
         btnLogout.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn đăng xuất?", "Đăng xuất", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
+                if (notificationTimer != null) {
+                    notificationTimer.stop();
+                }
                 Session.clear(); 
                 dispose();
                 new AuthFrame().setVisible(true);

@@ -370,8 +370,8 @@ BEGIN
         SELECT COUNT(*) INTO v_CheckExists FROM THONGBAO WHERE NoiDung = v_NoiDung;
         
         IF v_CheckExists = 0 THEN
-            INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao)
-            VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Hết hạn', v_NoiDung, 0, SYSDATE);
+            INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+            VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Hết hạn', v_NoiDung, 0, SYSDATE, N'Nhân viên kho/thu mua');
         END IF;
     END IF;
 
@@ -389,8 +389,8 @@ BEGIN
         SELECT COUNT(*) INTO v_CheckExists FROM THONGBAO WHERE NoiDung = v_NoiDung;
 
         IF v_CheckExists = 0 THEN
-            INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao)
-            VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Sắp hết hạn', v_NoiDung, 0, SYSDATE);
+            INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+            VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Sắp hết hạn', v_NoiDung, 0, SYSDATE, N'Nhân viên kho/thu mua');
         END IF;
     END IF;
 
@@ -464,8 +464,8 @@ BEGIN
       AND TrangThaiTB = 0;
 
     IF v_CheckExists = 0 THEN
-        INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao)
-        VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), v_LoaiTB, v_NoiDung, 0, SYSDATE);
+        INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+        VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), v_LoaiTB, v_NoiDung, 0, SYSDATE, N'Nhân viên kho/thu mua');
     END IF;
 
     COMMIT;
@@ -500,3 +500,27 @@ BEGIN
     SELECT GiaBan INTO v_GiaBan FROM SANPHAM WHERE MaSP = :NEW.MaSP;
     :NEW.ThanhTien := :NEW.SoLuong * v_GiaBan;
 END;
+/
+
+-- TRIGGER 5: Thông báo Đơn hàng & Giao hàng
+CREATE OR REPLACE TRIGGER TRG_DONHANG_THONGBAO
+AFTER INSERT OR UPDATE OF TrangThaiDH ON DONHANG
+FOR EACH ROW
+BEGIN
+    IF INSERTING THEN
+        INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+        VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Đơn hàng', N'Đơn hàng ' || :NEW.MaDH || N' đã được đặt thành công.', 0, SYSDATE, :NEW.MaKH);
+    ELSIF UPDATING THEN
+        IF :NEW.TrangThaiDH = N'Chờ giao hàng' AND (:OLD.TrangThaiDH IS NULL OR :OLD.TrangThaiDH <> N'Chờ giao hàng') THEN
+            INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+            VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Giao hàng', N'Đơn hàng ' || :NEW.MaDH || N' đã được xuất kho, sẵn sàng để giao hàng.', 0, SYSDATE, N'Nhân viên giao hàng');
+        ELSIF :NEW.TrangThaiDH = N'Hoàn thành' AND (:OLD.TrangThaiDH IS NULL OR :OLD.TrangThaiDH <> N'Hoàn thành') THEN
+            INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+            VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Đơn hàng', N'Đơn hàng ' || :NEW.MaDH || N' đã được giao thành công.', 0, SYSDATE, :NEW.MaKH);
+        ELSIF :NEW.TrangThaiDH = N'Đã huỷ' AND (:OLD.TrangThaiDH IS NULL OR :OLD.TrangThaiDH <> N'Đã huỷ') THEN
+            INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+            VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Đơn hàng', N'Đơn hàng ' || :NEW.MaDH || N' giao thất bại. Lý do: ' || NVL(:NEW.LyDoHuy, N'Chưa rõ'), 0, SYSDATE, :NEW.MaKH);
+        END IF;
+    END IF;
+END;
+/

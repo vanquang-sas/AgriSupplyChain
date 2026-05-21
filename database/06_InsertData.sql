@@ -23,8 +23,8 @@ SELECT * FROM dual;
 
 -- 5. NHANVIEN 
 INSERT ALL
-    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) 
-        VALUES ('NV000001', 'quanly01', N'Nguyễn ABC', N'Quản lý', '0901234567', 25000000)
-    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, SDT, Luong) 
-        VALUES ('NV000002', 'quanly02', N'Nguyễn DEF', N'Quản lý', '0901234568', 25000000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) 
+        VALUES ('NV000001', 'quanly01', N'Nguyễn ABC', N'Quản lý', 25000000)
+    INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) 
+        VALUES ('NV000002', 'quanly02', N'Nguyễn DEF', N'Quản lý', 25000000)
 SELECT * FROM dual;

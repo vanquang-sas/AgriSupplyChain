@@ -31,7 +31,8 @@ CREATE TABLE THONGBAO (
     LoaiTB NVARCHAR2(20),
     NoiDung NVARCHAR2(500),
     TrangThaiTB NUMBER(1) DEFAULT 0,      -- 0: Chưa đọc, 1: Đã đọc
-    TGTao DATE DEFAULT SYSDATE
+    TGTao DATE DEFAULT SYSDATE,
+    NguoiNhan NVARCHAR2(50)
 );
 
 -- 3. Bảng TAIKHOAN
