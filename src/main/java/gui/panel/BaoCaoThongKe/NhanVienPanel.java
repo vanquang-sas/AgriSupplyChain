@@ -167,9 +167,6 @@ public class NhanVienPanel extends JPanel {
         int months = cbThoiGian.getSelectedIndex() == 0 ? 3 : (cbThoiGian.getSelectedIndex() == 1 ? 6 : 12);
 
         String dbChucVu = boPhanRaw;
-        if (boPhanRaw.equals("NV thu mua")) dbChucVu = "Nhân viên thu mua";
-        else if (boPhanRaw.equals("NV kho")) dbChucVu = "Nhân viên kho";
-        else if (boPhanRaw.equals("NV giao hàng")) dbChucVu = "Nhân viên giao hàng";
 
         lastData = thongKeBUS.getDanhSachNhanVienThongKe(dbChucVu, months);
         

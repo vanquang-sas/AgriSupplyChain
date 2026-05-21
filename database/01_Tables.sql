@@ -30,7 +30,7 @@ CREATE TABLE THONGBAO (
     MaTB VARCHAR2(10) PRIMARY KEY,
     LoaiTB NVARCHAR2(20),
     NoiDung NVARCHAR2(500),
-    TrangThaiTB NUMBER(1) DEFAULT 0,      -- 0: Chưa đọc, 1: Đã đọc
+    TrangThaiTB NUMBER(1) DEFAULT 0 CHECK (TrangThaiTB IN (0, 1)),      -- 0: Chưa đọc, 1: Đã đọc
     TGTao DATE DEFAULT SYSDATE,
     NguoiNhan NVARCHAR2(50)
 );
@@ -145,7 +145,7 @@ CREATE TABLE CHITIETLOHANG (
 CREATE TABLE TONKHO (
     MaTonKho VARCHAR2(10) PRIMARY KEY,
     MaKho VARCHAR2(10),
-    MaCTLH VARCHAR2(10),
+    MaCTLH VARCHAR2(10) UNIQUE,
     SLConLai NUMBER(10,2) CHECK (SLConLai >= 0),
     SLKhaDung NUMBER(10,2) CHECK (SLKhaDung >= 0),
     TGNhapKho DATE DEFAULT SYSDATE,
@@ -178,7 +178,8 @@ CREATE TABLE DONHANG (
     CONSTRAINT FK_DH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
     CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV),
     CONSTRAINT CK_TGGiaoYC CHECK (TGGiaoYC >= TGDat),
-    CONSTRAINT CK_TGGiaoTT CHECK (TGGiaoTT >= TGGiaoYC)
+    CONSTRAINT CK_TGGiaoTT CHECK (TGGiaoTT >= TGGiaoYC),
+    CONSTRAINT CK_DH_NVGiaoHang CHECK (TrangThaiDH NOT IN ('Đang giao', 'Hoàn thành') OR MaNV IS NOT NULL)
 );
 -- =======================================================================================================
 

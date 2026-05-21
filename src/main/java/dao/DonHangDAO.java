@@ -27,21 +27,21 @@ public class DonHangDAO {
                 throw new Exception("Không thể kết nối tới Database!");
             }
 
-            // 2. Chuẩn bị lệnh gọi Procedure
-            String sql = "{ call SP_LAY_DS_DONHANG_BY_KH(?, ?) }";
+            // 2. Chuẩn bị lệnh gọi Function
+            String sql = "{ ? = call FN_LAY_DS_DONHANG_BY_KH(?) }";
             cstmt = conn.prepareCall(sql);
 
-            // 3. Đặt giá trị tham số đầu vào
-            cstmt.setString(1, maKH);
+            // 3. Đăng ký tham số trả về (SYS_REFCURSOR)
+            cstmt.registerOutParameter(1, oracle.jdbc.OracleTypes.CURSOR);
 
-            // 4. Đăng ký tham số đầu ra (SYS_REFCURSOR)
-            cstmt.registerOutParameter(2, oracle.jdbc.OracleTypes.CURSOR);
+            // 4. Đặt giá trị tham số đầu vào
+            cstmt.setString(2, maKH);
 
-            // 5. Thực thi Procedure
+            // 5. Thực thi Function
             cstmt.execute();
 
-            // 6. Lấy ResultSet từ tham số đầu ra
-            rs = (ResultSet) cstmt.getObject(2);
+            // 6. Lấy ResultSet từ tham số trả về
+            rs = (ResultSet) cstmt.getObject(1);
 
             // 7. Duyệt qua từng dòng dữ liệu và map vào DTO
             while (rs != null && rs.next()) {
@@ -65,7 +65,7 @@ public class DonHangDAO {
             return danhSachDH;
 
         } catch (SQLException e) {
-            System.err.println("✗ Lỗi SQL khi gọi SP_LAY_DS_DONHANG_BY_KH:");
+            System.err.println("✗ Lỗi SQL khi gọi FN_LAY_DS_DONHANG_BY_KH:");
             e.printStackTrace();
             throw new Exception("Lỗi cơ sở dữ liệu: " + e.getMessage(), e);
 

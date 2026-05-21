@@ -3,8 +3,6 @@
 -- ====================================================================================
 
 -- Tính phí vận chuyển của 1 đơn hàng
--- Ý tưởng: Khi người dùng nhập DiaChiGiaoHang, gọi API tới bên thứ 3
--- để tính khoảng cách giao hàng rồi truyền vào hàm để tính phí
 CREATE OR REPLACE FUNCTION FN_TINH_PHIVANCHUYEN (
     p_MaKH IN VARCHAR2
 ) RETURN NUMBER
@@ -170,6 +168,206 @@ BEGIN
         JOIN TONKHO TK ON XK.MaTonKho = TK.MaTonKho
         WHERE CTDH.MaDH = p_MaDH AND XK.TrangThaiXK = N'Tạm giữ'
         ORDER BY SP.TenSP ASC, TK.TGHetHan ASC;
+    RETURN v_cursor;
+END;
+/
+
+
+-- 1. Function lấy danh sách Sản phẩm (Có tên loại)
+CREATE OR REPLACE FUNCTION FN_LAY_DS_SANPHAM
+RETURN SYS_REFCURSOR
+AS
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    -- Trả về danh sách sản phẩm kèm tên loại (nếu có)
+    OPEN v_cursor FOR
+        SELECT SP.MaSP,
+               SP.TenSP,
+               SP.MaLSP,
+               LSP.TenLSP,
+               SP.ChatLuong,
+               SP.GiaMua,
+               SP.GiaBan,
+               SP.DonViTinh,
+               SP.BaoQuan,
+               SP.HinhAnh
+        FROM SANPHAM SP
+        LEFT JOIN LOAISANPHAM LSP ON SP.MaLSP = LSP.MaLSP
+        ORDER BY SP.MaSP;
+    RETURN v_cursor;
+END;
+/
+
+-- 2. Lấy danh sách đơn hàng của một khách hàng kèm chi tiết sản phẩm gom bằng LISTAGG
+CREATE OR REPLACE FUNCTION FN_LAY_DS_DONHANG_BY_KH (
+    p_MaKH IN VARCHAR2
+) RETURN SYS_REFCURSOR
+IS
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    OPEN v_cursor FOR
+    SELECT 
+        DH.MaDH,
+        DH.MaKH,
+        DH.TGDat,
+        DH.TongTien,
+        DH.TrangThaiDH,
+        DH.TrangThaiTT,
+        -- Gom tất cả tên sản phẩm cùng số lượng thành một chuỗi (có chống overflow)
+        LISTAGG(CTDH.SoLuong || ' ' || SP.TenSP, ', ' ON OVERFLOW TRUNCATE) 
+            WITHIN GROUP (ORDER BY SP.TenSP) AS DanhSachSP
+    FROM DONHANG DH
+    LEFT JOIN CHITIETDONHANG CTDH ON DH.MaDH = CTDH.MaDH
+    LEFT JOIN SANPHAM SP ON CTDH.MaSP = SP.MaSP
+    WHERE DH.MaKH = p_MaKH
+    GROUP BY DH.MaDH, DH.MaKH, DH.TGDat, DH.TongTien, DH.TrangThaiDH, DH.TrangThaiTT
+    ORDER BY DH.TGDat DESC;
+    
+    RETURN v_cursor;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20040, 'Lỗi khi lấy danh sách đơn hàng: ' || SQLERRM);
+END FN_LAY_DS_DONHANG_BY_KH;
+/
+
+-- 3. Thống kê Top N Sản phẩm bán chạy nhất
+CREATE OR REPLACE FUNCTION FN_THONGKE_SANPHAM (
+    p_Limit IN NUMBER,
+    p_Type IN VARCHAR2,
+    p_FromDate IN DATE,
+    p_ToDate IN DATE
+) RETURN SYS_REFCURSOR
+AS
+    v_cursor SYS_REFCURSOR;
+    v_Limit NUMBER := p_Limit;
+BEGIN
+    IF v_Limit = 0 THEN 
+        v_Limit := 999999; 
+    END IF;
+
+    IF p_Type = 'BEST' THEN
+        OPEN v_cursor FOR
+        SELECT TenSP, TongSoLuong FROM (
+            SELECT sp.TenSP, NVL(SUM(ct.SoLuong), 0) AS TongSoLuong
+            FROM SANPHAM sp
+            -- Lọc ngày và trạng thái trước, sau đó mới LEFT JOIN để đếm số lượng
+            LEFT JOIN (
+                SELECT ctdh.MaSP, ctdh.SoLuong
+                FROM CHITIETDONHANG ctdh
+                JOIN DONHANG dh ON ctdh.MaDH = dh.MaDH
+                WHERE dh.TrangThaiDH = 'Hoàn thành'
+                  AND TRUNC(dh.TGDat) BETWEEN p_FromDate AND p_ToDate
+            ) ct ON sp.MaSP = ct.MaSP
+            GROUP BY sp.TenSP
+            ORDER BY TongSoLuong DESC 
+        ) WHERE ROWNUM <= v_Limit ORDER BY TongSoLuong DESC; 
+    ELSE
+        OPEN v_cursor FOR
+        SELECT TenSP, TongSoLuong FROM (
+            SELECT sp.TenSP, NVL(SUM(ct.SoLuong), 0) AS TongSoLuong
+            FROM SANPHAM sp
+            LEFT JOIN (
+                SELECT ctdh.MaSP, ctdh.SoLuong
+                FROM CHITIETDONHANG ctdh
+                JOIN DONHANG dh ON ctdh.MaDH = dh.MaDH
+                WHERE dh.TrangThaiDH = 'Hoàn thành'
+                  AND TRUNC(dh.TGDat) BETWEEN p_FromDate AND p_ToDate
+            ) ct ON sp.MaSP = ct.MaSP
+            GROUP BY sp.TenSP
+            ORDER BY TongSoLuong ASC 
+        ) WHERE ROWNUM <= v_Limit ORDER BY TongSoLuong DESC; 
+    END IF;
+    RETURN v_cursor;
+END;
+/
+
+-- 4. Thống kê trạng thái đơn hàng
+CREATE OR REPLACE FUNCTION FN_THONGKE_TRANGTHAI (
+    p_FromDate IN DATE,
+    p_ToDate IN DATE
+) RETURN SYS_REFCURSOR
+AS
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    OPEN v_cursor FOR
+    SELECT TrangThaiDH, COUNT(MaDH) as SoLuong 
+    FROM DONHANG 
+    WHERE TRUNC(TGDat) BETWEEN p_FromDate AND p_ToDate
+    GROUP BY TrangThaiDH
+    ORDER BY SoLuong DESC;
+    RETURN v_cursor;
+END;
+/
+
+-- 5. Thống kê tài chính
+CREATE OR REPLACE FUNCTION FN_THONGKE_TAICHINH (
+    p_LoaiThongKe IN VARCHAR2, -- 'MONTH' hoặc 'DAY'
+    p_Period IN NUMBER
+) RETURN SYS_REFCURSOR
+AS
+    v_cursor SYS_REFCURSOR;
+    v_AnchorDate DATE := SYSDATE;
+BEGIN
+    IF p_LoaiThongKe = 'MONTH' THEN
+        OPEN v_cursor FOR
+        WITH MonthRange AS (
+            SELECT ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -LEVEL + 1) AS ThoiGian
+            FROM DUAL
+            CONNECT BY LEVEL <= p_Period
+        ),
+        RevenueData AS (
+            SELECT TRUNC(TGDat, 'MM') AS ThoiGian, SUM(TongTien) AS DoanhThu
+            FROM DONHANG
+            WHERE (TrangThaiDH = 'HoanThanh' OR TrangThaiDH = 'Hoàn thành')
+              AND TGDat >= ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -p_Period + 1)
+            GROUP BY TRUNC(TGDat, 'MM')
+        ),
+        CostData AS (
+            SELECT TRUNC(TGNhap, 'MM') AS ThoiGian, SUM(TongTien) AS ChiPhi
+            FROM LOHANG
+            WHERE TrangThaiLH = 'Đã nhập kho' 
+              AND TGNhap >= ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -p_Period + 1)
+            GROUP BY TRUNC(TGNhap, 'MM')
+        )
+        SELECT 
+            TO_CHAR(mr.ThoiGian, 'MM/YYYY') AS ThangNam, 
+            NVL(rd.DoanhThu, 0) AS DoanhThu,
+            NVL(cd.ChiPhi, 0) AS ChiPhi
+        FROM MonthRange mr
+        LEFT JOIN RevenueData rd ON mr.ThoiGian = rd.ThoiGian
+        LEFT JOIN CostData cd ON mr.ThoiGian = cd.ThoiGian
+        ORDER BY mr.ThoiGian ASC;
+        
+    ELSE -- Xử lý cho chế độ theo NGÀY
+        OPEN v_cursor FOR
+        WITH DayRange AS (
+            SELECT TRUNC(v_AnchorDate) - LEVEL + 1 AS ThoiGian
+            FROM DUAL
+            CONNECT BY LEVEL <= p_Period
+        ),
+        RevenueData AS (
+            SELECT TRUNC(TGDat) AS ThoiGian, SUM(TongTien) AS DoanhThu
+            FROM DONHANG
+            WHERE (TrangThaiDH = 'HoanThanh' OR TrangThaiDH = 'Hoàn thành')
+              AND TGDat >= TRUNC(v_AnchorDate) - p_Period + 1
+            GROUP BY TRUNC(TGDat)
+        ),
+        CostData AS (
+            SELECT TRUNC(TGNhap) AS ThoiGian, SUM(TongTien) AS ChiPhi
+            FROM LOHANG
+            WHERE TrangThaiLH = 'Đã nhập kho' 
+              AND TGNhap >= TRUNC(v_AnchorDate) - p_Period + 1
+            GROUP BY TRUNC(TGNhap)
+        )
+        SELECT 
+            TO_CHAR(dr.ThoiGian, 'DD/MM/YYYY') AS ThangNam,
+            NVL(rd.DoanhThu, 0) AS DoanhThu,
+            NVL(cd.ChiPhi, 0) AS ChiPhi
+        FROM DayRange dr
+        LEFT JOIN RevenueData rd ON dr.ThoiGian = rd.ThoiGian
+        LEFT JOIN CostData cd ON dr.ThoiGian = cd.ThoiGian
+        ORDER BY dr.ThoiGian ASC;
+    END IF;
     RETURN v_cursor;
 END;
 /

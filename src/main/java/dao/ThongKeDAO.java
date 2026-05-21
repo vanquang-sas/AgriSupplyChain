@@ -116,21 +116,21 @@ public class ThongKeDAO {
 
         List<ThongKeDTO.TrangThai> list = new ArrayList<>();
 
-        String sql = "{call SP_THONGKE_TRANGTHAI(?, ?, ?)}";
+        String sql = "{? = call FN_THONGKE_TRANGTHAI(?, ?)}";
 
         try (Connection conn = DBConnection.getConnection();
             CallableStatement cs = conn.prepareCall(sql)) {
 
-            cs.setDate(1, new java.sql.Date(from.getTime()));
-            cs.setDate(2, new java.sql.Date(to.getTime()));
-            cs.registerOutParameter(3, OracleTypes.CURSOR);
+            cs.registerOutParameter(1, OracleTypes.CURSOR);
+            cs.setDate(2, new java.sql.Date(from.getTime()));
+            cs.setDate(3, new java.sql.Date(to.getTime()));
 
             cs.execute();
 
             List<ThongKeDTO.TrangThai> temp = new ArrayList<>();
             int total = 0;
 
-            try (ResultSet rs = (ResultSet) cs.getObject(3)) {
+            try (ResultSet rs = (ResultSet) cs.getObject(1)) {
 
                 while (rs.next()) {
 
@@ -202,14 +202,14 @@ public class ThongKeDAO {
     // ============================================= THỐNG KÊ TÀI CHÍNH =============================================
     public List<ThongKeDTO.TaiChinh> getThongKeTaiChinh(String type, int period) {
         List<ThongKeDTO.TaiChinh> list = new ArrayList<>();
-        String sql = "{call SP_THONGKE_TAICHINH(?, ?, ?)}"; // Chỉnh lại thành 3 tham số
+        String sql = "{? = call FN_THONGKE_TAICHINH(?, ?)}";
         try (Connection conn = util.DBConnection.getConnection();
             CallableStatement cs = conn.prepareCall(sql)) {
-            cs.setString(1, type);
-            cs.setInt(2, period);
-            cs.registerOutParameter(3, oracle.jdbc.OracleTypes.CURSOR);
+            cs.registerOutParameter(1, oracle.jdbc.OracleTypes.CURSOR);
+            cs.setString(2, type);
+            cs.setInt(3, period);
             cs.execute();
-            try (ResultSet rs = (ResultSet) cs.getObject(3)) {
+            try (ResultSet rs = (ResultSet) cs.getObject(1)) {
                 while (rs.next()) {
                     list.add(new ThongKeDTO.TaiChinh(rs.getString("ThangNam"), rs.getDouble("DoanhThu"), rs.getDouble("ChiPhi")));
                 }

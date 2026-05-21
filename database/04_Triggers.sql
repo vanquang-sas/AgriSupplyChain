@@ -309,24 +309,21 @@ CREATE OR REPLACE TRIGGER TRG_CAPNHAT_TRANGTHAI_TONKHO
 BEFORE INSERT OR UPDATE OF TGHetHan, SLConLai, TrangThai ON TONKHO
 FOR EACH ROW
 DECLARE
-    v_SoNgayHSD NUMBER;
+    v_SoNgayCB NUMBER;
     v_NgayHienTai DATE := TRUNC(SYSDATE);
     v_TenSP NVARCHAR2(100);
 BEGIN
     -- 1. Lấy quy định từ tham số
     BEGIN
-        SELECT GiaTri INTO v_SoNgayHSD FROM THAMSO WHERE TenTS = 'CANHBAO_HETHAN';
-    EXCEPTION WHEN NO_DATA_FOUND THEN v_SoNgayHSD := 7;
+        SELECT GiaTri INTO v_SoNgayCB FROM THAMSO WHERE TenTS = 'CANHBAO_HETHAN';
+    EXCEPTION WHEN NO_DATA_FOUND THEN v_SoNgayCB := 7;
     END;
 
     -- 2. Phân loại trạng thái dựa trên TGHetHan
-    IF :NEW.TGHetHan IS NULL THEN
-        :NEW.TrangThai := N'Còn hạn';
-        :NEW.SLKhaDung := :NEW.SLConLai;
-    ELSIF TRUNC(:NEW.TGHetHan) < v_NgayHienTai THEN
+    IF TRUNC(:NEW.TGHetHan) < v_NgayHienTai THEN
         :NEW.TrangThai := N'Hết hạn';
         :NEW.SLKhaDung := 0;
-    ELSIF (TRUNC(:NEW.TGHetHan) - v_NgayHienTai) <= v_SoNgayHSD THEN
+    ELSIF (TRUNC(:NEW.TGHetHan) - v_NgayHienTai) <= v_SoNgayCB THEN
         :NEW.TrangThai := N'Sắp hết hạn';
         :NEW.SLKhaDung := :NEW.SLConLai;
     ELSE

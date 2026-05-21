@@ -12,7 +12,7 @@ public class SanPhamDAO {
 
     public List<SanPhamDTO> getAll() {
         List<SanPhamDTO> list = new ArrayList<>();
-        String sql = "{call SP_LAY_DS_SANPHAM(?)}";
+        String sql = "{? = call FN_LAY_DS_SANPHAM()}";
         
         try (Connection conn = DBConnection.getConnection();
              CallableStatement cs = conn.prepareCall(sql)) {
