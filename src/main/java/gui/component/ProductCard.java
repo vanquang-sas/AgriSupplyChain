@@ -246,7 +246,7 @@ public class ProductCard extends JPanel {
                 if (max <= 0) val = 0;
                 quantity = val;
             } catch (NumberFormatException ex) {
-                // không hợp lệ → khôi phục giá trị cũ
+                // không hợp lệ -> khôi phục giá trị cũ
             }
             txtQty.setText(String.valueOf(quantity));
             lblWarning.setVisible(false);
@@ -327,7 +327,8 @@ public class ProductCard extends JPanel {
             }
         };
         btnAdd.setPreferredSize(new Dimension(36, 36));
-        btnAdd.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        btnAdd.setFont(new Font("Arial", Font.BOLD, 22));
+        btnAdd.setMargin(new Insets(0, 0, 0, 0));
         btnAdd.setForeground(Color.WHITE);
         btnAdd.setFocusPainted(false);
         btnAdd.setBorderPainted(false);

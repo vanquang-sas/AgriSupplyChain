@@ -39,14 +39,14 @@ public class DonHangBUS {
     public void huyDonHang(DonHangDTO donHang) throws Exception {
         // 1. VALIDATION: Kiểm tra object có null không
         if (donHang == null) {
-            throw new IllegalArgumentException("Đối tượng đơn hàng không được null!");
+            throw new IllegalArgumentException("Đơn hàng phải tồn tại!");
         }
 
         if (donHang.getMaDH() == null || donHang.getMaDH().trim().isEmpty()) {
             throw new IllegalArgumentException("Mã đơn hàng không được để trống!");
         }
 
-        // 2. VALIDATION LOGIC NGHIỆP VỤ (Critical business rule):
+        // 2. VALIDATION LOGIC NGHIỆP VỤ:
         // Chỉ cho phép hủy nếu: TrangThaiDH = "Đã đặt" HOẶC TrangThaiDH = "Chờ xử lý"
         String trangThaiDH = donHang.getTrangThaiDH();
         boolean coTheHuy = "Đã đặt".equalsIgnoreCase(trangThaiDH) || 
@@ -56,7 +56,7 @@ public class DonHangBUS {
             // Giải thích chi tiết lý do không thể hủy
             String lyDoKhongTheHuy = "Không thể hủy đơn hàng này!\n\n" +
                     "Lý do:\n" +
-                    "• Trạng thái đơn hàng hiện tại: " + trangThaiDH + "\n\n" +
+                    " Trạng thái đơn hàng hiện tại: " + trangThaiDH + "\n\n" +
                     "Chỉ có thể hủy đơn khi trạng thái là:\n" +
                     "✓ \"Đã đặt\" (vừa tạo đơn)\n" +
                     "✓ \"Chờ xử lý\" (đang xử lý)";

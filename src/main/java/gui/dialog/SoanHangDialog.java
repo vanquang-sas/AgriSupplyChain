@@ -176,14 +176,7 @@ public class SoanHangDialog extends JDialog {
 
         try {
             XuatKhoBUS bus = new XuatKhoBUS();
-            String yeuCau = bus.yeuCauXuatKho(maDH);
-            if (!"SUCCESS".equals(yeuCau)) {
-                JOptionPane.showMessageDialog(this, yeuCau,
-                        "Không thể phân bổ hàng", JOptionPane.WARNING_MESSAGE);
-                resetButton();
-                return;
-            }
-
+            // Việc yêu cầu xuất kho đã được thực hiện lúc đặt hàng để trừ Tồn Kho khả dụng
             XuatKhoDTO dto = new XuatKhoDTO();
             dto.setMaXK(maDH);
             dto.setMaNV(maNV);

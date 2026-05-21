@@ -18,7 +18,7 @@ public class ThongBaoForm extends JDialog {
 
     public ThongBaoForm(JFrame parent) {
         super(parent, "Thông báo hệ thống", true);
-        setSize(480, 600);
+        setSize(560, 600);
         setLocationRelativeTo(parent); // Hiện ở giữa MainFrame
         setLayout(new BorderLayout());
         
@@ -112,22 +112,17 @@ public class ThongBaoForm extends JDialog {
         
         for (ThongBaoDTO tb : notifications) {
             // Xác định màu sắc chỉ thị bên hông dựa vào loại thông báo
-            Color indicatorColor = new Color(59, 130, 246); // Mặc định xanh dương (info)
-            String emojiPrefix = "ℹ️  ";
+            Color indicatorColor = new Color(59, 130, 246);
             
             String loai = tb.getLoaiTB() != null ? tb.getLoaiTB() : "";
             if (loai.contains("Hết hạn") || loai.contains("Hết hàng") || tb.getNoiDung().contains("giao thất bại") || tb.getNoiDung().contains("HẾT")) {
-                indicatorColor = new Color(239, 68, 68); // Đỏ (danger)
-                emojiPrefix = "⚠️  ";
+                indicatorColor = new Color(239, 68, 68);
             } else if (loai.contains("Sắp hết hạn") || loai.contains("Sắp hết hàng")) {
-                indicatorColor = new Color(245, 158, 11); // Cam (warning)
-                emojiPrefix = "⚡  ";
+                indicatorColor = new Color(245, 158, 11);
             } else if (tb.getNoiDung().contains("giao thành công") || tb.getNoiDung().contains("đặt thành công")) {
-                indicatorColor = new Color(16, 185, 129); // Xanh lá (success)
-                emojiPrefix = "✅  ";
+                indicatorColor = new Color(16, 185, 129);
             } else if (loai.contains("Giao hàng") || loai.contains("Yêu cầu")) {
-                indicatorColor = new Color(79, 70, 229); // Tím (shipping/dispatch)
-                emojiPrefix = "📦  ";
+                indicatorColor = new Color(79, 70, 229);
             }
 
             final Color finalColor = indicatorColor;
@@ -149,28 +144,31 @@ public class ThongBaoForm extends JDialog {
                     
                     g2.dispose();
                 }
+
+                @Override
+                public Dimension getMaximumSize() {
+                    Dimension pref = getPreferredSize();
+                    return new Dimension(Integer.MAX_VALUE, pref.height);
+                }
             };
             card.setOpaque(false);
             card.setBorder(new EmptyBorder(12, 18, 12, 14));
-            card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 110));
 
             // Tiêu đề thẻ (Loại + thời gian)
-            JLabel lblHeader = new JLabel(emojiPrefix + loai + "  •  " + sdf.format(tb.getTgTao()));
+            JLabel lblHeader = new JLabel(loai + "  -  " + sdf.format(tb.getTgTao()));
             lblHeader.setFont(new Font("Segoe UI", Font.BOLD, 12));
             lblHeader.setForeground(new Color(71, 85, 105)); // Slate 600
 
             // Nội dung thông báo
-            JTextArea txtContent = new JTextArea(tb.getNoiDung());
-            txtContent.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-            txtContent.setForeground(new Color(15, 23, 42)); // Slate 900
-            txtContent.setLineWrap(true);
-            txtContent.setWrapStyleWord(true);
-            txtContent.setOpaque(false);
-            txtContent.setEditable(false);
-            txtContent.setFocusable(false);
+            String rawContent = tb.getNoiDung() != null ? tb.getNoiDung() : "";
+            String htmlContent = "<html><div style='width: 350px; font-family: \"Segoe UI\"; font-size: 13px; color: #0f172a;'>"
+                + rawContent.replace("\n", "<br>")
+                + "</div></html>";
+            JLabel lblContent = new JLabel(htmlContent);
+            lblContent.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
             card.add(lblHeader, BorderLayout.NORTH);
-            card.add(txtContent, BorderLayout.CENTER);
+            card.add(lblContent, BorderLayout.CENTER);
 
             contentPanel.add(card);
             contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Khoảng cách giữa các thẻ

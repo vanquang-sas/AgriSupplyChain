@@ -40,7 +40,7 @@ EXCEPTION
 END;
 /
 
--- Lấy danh sách đơn hàng chờ tạo yêu cầu xuất kho, chưa có phiếu tạm giữ
+-- Lấy danh sách đơn hàng chờ tạo yêu cầu xuất kho, hoặc đã có yêu cầu xuất kho tạm giữ
 CREATE OR REPLACE FUNCTION FN_GET_DS_DONHANG_CHO_XUAT
 RETURN SYS_REFCURSOR
 IS
@@ -56,13 +56,6 @@ BEGIN
         JOIN CHITIETDONHANG CTDH ON DH.MaDH = CTDH.MaDH
         LEFT JOIN KHACHHANG KH ON DH.MaKH = KH.MaKH
         WHERE DH.TrangThaiDH IN (N'Đã đặt', N'Chờ xử lý')
-          AND NOT EXISTS (
-              SELECT 1
-              FROM XUATKHO XK
-              JOIN CHITIETDONHANG CT ON XK.MaCTDH = CT.MaCTDH
-              WHERE CT.MaDH = DH.MaDH
-                AND XK.TrangThaiXK = N'Tạm giữ'
-          )
         GROUP BY DH.MaDH, KH.TenKH, DH.TrangThaiDH
         ORDER BY DH.MaDH ASC;
     RETURN v_cursor;
@@ -150,12 +143,12 @@ BEGIN
         FROM CHITIETLOHANG CTLH
         JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
         JOIN LOHANG LH ON CTLH.MaLH = LH.MaLH
-        WHERE LH.TrangThaiLH = N'Chờ nhập kho';
+        WHERE LH.TrangThaiLH IN (N'Chờ nhập kho', N'Chờ kiểm duyệt');
     RETURN v_cursor;
 END;
 /
 
--- Lấy chi tiết đơn hàng kèm preview phân bổ thực tế theo FEFO
+-- Lấy chi tiết đơn hàng đọc trực tiếp từ bảng XUATKHO
 CREATE OR REPLACE FUNCTION FN_GET_CHITIET_DONHANG (
     p_MaDH IN VARCHAR2
 )
@@ -164,40 +157,19 @@ IS
     v_cursor SYS_REFCURSOR;
 BEGIN
     OPEN v_cursor FOR
-        WITH Allocation AS (
-            SELECT
-                CTDH.MaSP,
-                SP.TenSP,
-                CTDH.SoLuong AS SoLuongYeuCau,
-                TK.SLKhaDung,
-                TK.ViTri,
-                TK.TGHetHan,
-                SUM(TK.SLKhaDung) OVER (
-                    PARTITION BY CTDH.MaSP
-                    ORDER BY TK.TGHetHan ASC, TK.TGNhapKho ASC, TK.MaTonKho ASC
-                ) AS LuyKe
-            FROM CHITIETDONHANG CTDH
-            JOIN SANPHAM SP ON CTDH.MaSP = SP.MaSP
-            JOIN CHITIETLOHANG CTLH ON SP.MaSP = CTLH.MaSP
-            JOIN TONKHO TK ON CTLH.MaCTLH = TK.MaCTLH
-            WHERE CTDH.MaDH = p_MaDH
-              AND TK.SLKhaDung > 0
-              AND TK.TGHetHan >= TRUNC(SYSDATE)
-        )
         SELECT
-            MaSP,
-            TenSP,
-            SoLuongYeuCau,
-            CASE
-                WHEN LuyKe <= SoLuongYeuCau THEN SLKhaDung
-                ELSE SoLuongYeuCau - (LuyKe - SLKhaDung)
-            END AS SoLuongXuat,
-            ViTri,
-            TO_CHAR(TGHetHan, 'DD/MM/YYYY') AS NgayHetHan
-        FROM Allocation
-        WHERE LuyKe - SLKhaDung < SoLuongYeuCau
-        ORDER BY TenSP ASC, TGHetHan ASC;
-
+            SP.MaSP,
+            SP.TenSP,
+            CTDH.SoLuong AS SoLuongYeuCau,
+            XK.SLXuat AS SoLuongXuat,
+            TK.ViTri,
+            TO_CHAR(TK.TGHetHan, 'DD/MM/YYYY') AS NgayHetHan
+        FROM XUATKHO XK
+        JOIN CHITIETDONHANG CTDH ON XK.MaCTDH = CTDH.MaCTDH
+        JOIN SANPHAM SP ON CTDH.MaSP = SP.MaSP
+        JOIN TONKHO TK ON XK.MaTonKho = TK.MaTonKho
+        WHERE CTDH.MaDH = p_MaDH AND XK.TrangThaiXK = N'Tạm giữ'
+        ORDER BY SP.TenSP ASC, TK.TGHetHan ASC;
     RETURN v_cursor;
 END;
 /

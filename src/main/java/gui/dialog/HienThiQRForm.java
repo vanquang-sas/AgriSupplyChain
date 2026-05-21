@@ -10,7 +10,6 @@ import dao.DonHangDAO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.List;
@@ -38,7 +37,6 @@ public class HienThiQRForm extends JDialog {
     }
 
     private void initComponents() {
-        String maDH = donHang.getMaDH();
         double tongThanhToan = donHang.getTongTien();
         String phuongThuc = donHang.getPhuongThucTT();
 
@@ -51,11 +49,6 @@ public class HienThiQRForm extends JDialog {
         JLabel lblTitle = new JLabel("Xác nhận thanh toán");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
         pnlHeader.add(lblTitle, BorderLayout.WEST);
-
-        JLabel lblMaDH = new JLabel("Mã Đơn: " + maDH);
-        lblMaDH.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        lblMaDH.setForeground(new Color(100, 116, 139));
-        pnlHeader.add(lblMaDH, BorderLayout.EAST);
         
         add(pnlHeader, BorderLayout.NORTH);
 
@@ -138,13 +131,12 @@ public class HienThiQRForm extends JDialog {
                     "Xác nhận hủy", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             
             if (confirm == JOptionPane.YES_OPTION) {
-                JOptionPane.showMessageDialog(this, "Đã hủy giao dịch. Giỏ hàng được giữ nguyên!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 dispose();
             }
         });
 
         // NÚT ĐÃ THANH TOÁN (Chỉ tạo đơn hàng & xóa giỏ hàng khi thực sự thành công)
-        JButton btnDone = new JButton("Đã thanh toán");
+        JButton btnDone = new JButton("Thanh toán [DEMO]");
         btnDone.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btnDone.setPreferredSize(new Dimension(150, 45));
         btnDone.putClientProperty(FlatClientProperties.STYLE, 

@@ -32,7 +32,6 @@ public class MainFrame extends JFrame {
     private GioHangPanel pnlGioHang;
     private JButton btnGioHangMenu;
     private JButton btnBell;
-    private JLabel lblPageTitle;
     private int unreadNotificationCount = 0;
     private final ThongBaoBUS thongBaoBUS = new ThongBaoBUS();
     private Timer notificationTimer;
@@ -222,11 +221,6 @@ public class MainFrame extends JFrame {
         ensurePanelCreated(cardName);
         cardLayout.show(contentPanel, cardName);
         
-        // Cập nhật tiêu đề trang động
-        if (lblPageTitle != null) {
-            lblPageTitle.setText(getFriendlyPageTitle(cardName));
-        }
-
         // Tự động làm mới dữ liệu cho các Panel chức năng khi chuyển trang
         if (cardName.equals("DonHang") && pnlDonHang != null) {
             pnlDonHang.loadData(null);
@@ -249,15 +243,9 @@ public class MainFrame extends JFrame {
         topHeader.setBackground(AppColor.BACKGROUND);
         
         topHeader.setBorder(new EmptyBorder(0, 20, 0, 20));
-        topHeader.setPreferredSize(new Dimension(0, 60)); 
+        topHeader.setPreferredSize(new Dimension(0, 45)); 
 
-        // Tiêu đề trang động ở góc trái
-        lblPageTitle = new JLabel("Trang chủ");
-        lblPageTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        lblPageTitle.setForeground(AppColor.TEXT_PRIMARY);
-        topHeader.add(lblPageTitle, BorderLayout.WEST);
-
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 5));
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 3));
         rightPanel.setBackground(AppColor.BACKGROUND);
 
         // --- Nút Giỏ Hàng ---
@@ -277,9 +265,11 @@ public class MainFrame extends JFrame {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-                int size = 42; 
-                int x = 2;     
-                int y = 4;     
+                int btnW = getWidth();
+                int btnH = getHeight();
+                int size = 32; 
+                int x = (btnW - size) / 2;     
+                int y = (btnH - size) / 2;     
 
                 if (isHovered) g2.setColor(new Color(226, 232, 240));
                 else g2.setColor(Color.WHITE);
@@ -288,24 +278,24 @@ public class MainFrame extends JFrame {
                 g2.setColor(new Color(203, 213, 225));
                 g2.drawOval(x, y, size, size);
 
-                g2.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
+                g2.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 15));
                 g2.setColor(Color.BLACK);
                 String emoji = "🛒";
                 FontMetrics fm = g2.getFontMetrics();
                 int textX = x + (size - fm.stringWidth(emoji)) / 2;
-                int textY = y + ((size - fm.getHeight()) / 2) + fm.getAscent();
+                int textY = y + ((size - fm.getHeight()) / 2) + fm.getAscent() - 1;
                 g2.drawString(emoji, textX, textY);
 
                 int count = Session.getCartItemCount();
                 if (count > 0) {
                     String countStr = String.valueOf(count);
-                    g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                    g2.setFont(new Font("Segoe UI", Font.BOLD, 9));
                     FontMetrics badgeFm = g2.getFontMetrics();
                     
-                    int badgeW = Math.max(18, badgeFm.stringWidth(countStr) + 8);
-                    int badgeH = 18;
-                    int badgeX = x + size - badgeW / 2 - 2;
-                    int badgeY = y - 2;
+                    int badgeW = Math.max(14, badgeFm.stringWidth(countStr) + 6);
+                    int badgeH = 14;
+                    int badgeX = x + size - badgeW / 2 - 1;
+                    int badgeY = y - 1;
 
                     g2.setColor(new Color(239, 68, 68)); 
                     g2.fillRoundRect(badgeX, badgeY, badgeW, badgeH, badgeH, badgeH);
@@ -319,7 +309,7 @@ public class MainFrame extends JFrame {
             }
         };
 
-        btnCart.setPreferredSize(new Dimension(50, 50));
+        btnCart.setPreferredSize(new Dimension(38, 38));
         btnCart.setContentAreaFilled(false);
         btnCart.setBorderPainted(false);
         btnCart.setFocusPainted(false);
@@ -334,86 +324,10 @@ public class MainFrame extends JFrame {
             }
         });
 
-        // --- Nút Chuông Thông Báo ---
-        btnBell = new JButton() {
-            private boolean isHovered = false;
-
-            {
-                addMouseListener(new MouseAdapter() {
-                    @Override public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
-                    @Override public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
-                });
-            }
-
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-                int size = 42; 
-                int x = 2;     
-                int y = 4;     
-
-                if (isHovered) g2.setColor(new Color(226, 232, 240));
-                else g2.setColor(Color.WHITE);
-                g2.fillOval(x, y, size, size);
-
-                g2.setColor(new Color(203, 213, 225));
-                g2.drawOval(x, y, size, size);
-
-                g2.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
-                g2.setColor(Color.BLACK);
-                String emoji = "🔔";
-                FontMetrics fm = g2.getFontMetrics();
-                int textX = x + (size - fm.stringWidth(emoji)) / 2;
-                int textY = y + ((size - fm.getHeight()) / 2) + fm.getAscent();
-                g2.drawString(emoji, textX, textY);
-
-                if (unreadNotificationCount > 0) {
-                    String countStr = String.valueOf(unreadNotificationCount);
-                    g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
-                    FontMetrics badgeFm = g2.getFontMetrics();
-                    
-                    int badgeW = Math.max(18, badgeFm.stringWidth(countStr) + 8);
-                    int badgeH = 18;
-                    int badgeX = x + size - badgeW / 2 - 2;
-                    int badgeY = y - 2;
-
-                    g2.setColor(new Color(239, 68, 68)); 
-                    g2.fillRoundRect(badgeX, badgeY, badgeW, badgeH, badgeH, badgeH);
-                    
-                    g2.setColor(Color.WHITE); 
-                    int countX = badgeX + (badgeW - badgeFm.stringWidth(countStr)) / 2;
-                    int countY = badgeY + ((badgeH - badgeFm.getHeight()) / 2) + badgeFm.getAscent();
-                    g2.drawString(countStr, countX, countY);
-                }
-                g2.dispose();
-            }
-        };
-
-        btnBell.setPreferredSize(new Dimension(50, 50));
-        btnBell.setContentAreaFilled(false);
-        btnBell.setBorderPainted(false);
-        btnBell.setFocusPainted(false);
-        btnBell.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        btnBell.addActionListener(e -> {
-            try {
-                ThongBaoForm form = new ThongBaoForm(this);
-                form.setVisible(true);
-                updateUnreadNotificationCount();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Lỗi hiển thị Thông báo: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
         int roleId = Session.isLogged() ? Session.currentUser.getLoaiTK() : 2;
         if (roleId == 2) {
             rightPanel.add(btnCart);
         }
-        rightPanel.add(btnBell);
         topHeader.add(rightPanel, BorderLayout.EAST);
     }
 
@@ -549,6 +463,21 @@ public class MainFrame extends JFrame {
         JButton btnCuaHang = createMenuButton("🛒", "Cửa hàng Nông sản", "CuaHang");
 
         JButton defaultActiveBtn = null;
+
+        btnBell = createSidebarActionButton("🔔", "Hộp thư thông báo", e -> {
+            try {
+                gui.dialog.ThongBaoForm form = new gui.dialog.ThongBaoForm(this);
+                form.setVisible(true);
+                updateUnreadNotificationCount();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Lỗi hiển thị Thông báo: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        menuPanel.add(buildSectionLabel("CÁ NHÂN"));
+        menuPanel.add(btnBell);
+        menuPanel.add(Box.createRigidArea(new Dimension(0, 4)));
 
         if (roleId == 0) { // ADMIN
             menuPanel.add(buildSectionLabel("TỔNG QUAN"));
@@ -849,6 +778,78 @@ public class MainFrame extends JFrame {
         });
 
         menuButtons.add(btn);
+        return btn;
+    }
+
+    private JButton createSidebarActionButton(String emojiStr, String label, ActionListener action) {
+        JButton btn = new JButton(label) {
+            private boolean isHovered = false;
+            {
+                addMouseListener(new MouseAdapter() {
+                    @Override public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                    @Override public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
+                });
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                int marginX = 12;
+                int marginY = 2;
+                int w = getWidth() - marginX * 2;
+                int h = getHeight() - marginY * 2;
+                int arc = 12;
+
+                if (isHovered) {
+                    g2.setColor(new Color(255, 255, 255, 20));
+                    g2.fillRoundRect(marginX, marginY, w, h, arc, arc);
+                }
+
+                g2.dispose();
+                super.paintComponent(g);
+
+                if (unreadNotificationCount > 0) {
+                    Graphics2D gBadge = (Graphics2D) g.create();
+                    gBadge.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    String countStr = String.valueOf(unreadNotificationCount);
+                    gBadge.setFont(new Font("Segoe UI", Font.BOLD, 10));
+                    FontMetrics badgeFm = gBadge.getFontMetrics();
+                    
+                    int badgeW = Math.max(16, badgeFm.stringWidth(countStr) + 6);
+                    int badgeH = 16;
+                    int badgeX = getWidth() - marginX - badgeW - 10;
+                    int badgeY = (getHeight() - badgeH) / 2;
+
+                    gBadge.setColor(new Color(239, 68, 68)); 
+                    gBadge.fillRoundRect(badgeX, badgeY, badgeW, badgeH, badgeH, badgeH);
+                    
+                    gBadge.setColor(Color.WHITE); 
+                    int countX = badgeX + (badgeW - badgeFm.stringWidth(countStr)) / 2;
+                    int countY = badgeY + ((badgeH - badgeFm.getHeight()) / 2) + badgeFm.getAscent();
+                    gBadge.drawString(countStr, countX, countY);
+                    gBadge.dispose();
+                }
+            }
+        };
+
+        btn.setIcon(createEmojiIcon(emojiStr, 16));
+        btn.setIconTextGap(16);
+
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+        btn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btn.setBackground(AppColor.SIDEBAR_BG);
+        btn.setForeground(Color.WHITE);
+        btn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        btn.setContentAreaFilled(false);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setHorizontalAlignment(SwingConstants.LEFT);
+        btn.setBorder(new EmptyBorder(10, 28, 10, 10));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        btn.addActionListener(action);
         return btn;
     }
 

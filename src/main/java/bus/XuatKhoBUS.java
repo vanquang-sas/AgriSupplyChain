@@ -50,6 +50,9 @@ public class XuatKhoBUS {
         }
 
         try {
+            if (dao.checkDonHangDaXuat(dto.getMaXK())) {
+                return "Đơn hàng này đã được xuất kho!";
+            }
             dao.xacNhanXuatKho(dto);
             return "SUCCESS";
         } catch (Exception e) {

@@ -99,7 +99,7 @@ public class DonHangDAO {
 
             // 3. Đặt giá trị tham số đầu vào
             cstmt.setString(1, maDH);
-            cstmt.setString(2, "Khách hàng huỷ đơn từ Lịch sử"); // Truyền lý do huỷ mặc định
+            cstmt.setString(2, "Khách hàng huỷ đơn");
 
             // 4. Thực thi Procedure
             cstmt.execute();
@@ -107,7 +107,6 @@ public class DonHangDAO {
             System.out.println("Hủy đơn hàng [" + maDH + "] thành công");
 
         } catch (SQLException e) {
-            System.err.println("Lỗi SQL khi gọi SP_HUY_DH:");
             e.printStackTrace();
             
             // Nếu là lỗi từ Application_Error của Procedure, ném exception với message rõ ràng
@@ -175,7 +174,14 @@ public class DonHangDAO {
             }
             pstmtCT.executeBatch(); 
 
-            // 3. Nếu mọi thứ thành công thì Commit
+            // 3. Gọi SP_YEUCAU_XUATKHO để trừ số lượng khả dụng (tạo các dòng XUATKHO trạng thái Tạm giữ)
+            String sqlYeuCau = "{call SP_YEUCAU_XUATKHO(?)}";
+            try (java.sql.CallableStatement cs = conn.prepareCall(sqlYeuCau)) {
+                cs.setString(1, generatedMaDH);
+                cs.execute();
+            }
+
+            // 4. Nếu mọi thứ thành công thì Commit
             conn.commit(); 
             result = true;
 

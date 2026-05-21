@@ -135,7 +135,7 @@ public class ThongBaoDAO {
             rs.getInt("TrangThaiTB"),
             rs.getTimestamp("TGTao"),
             rs.getString("NguoiNhan"),
-            rs.getString("VaiTro")
+            null
         );
     }
 }

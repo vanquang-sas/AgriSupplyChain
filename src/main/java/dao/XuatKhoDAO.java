@@ -103,6 +103,23 @@ public class XuatKhoDAO {
         }
     }
 
+    public boolean checkDonHangDaXuat(String maDH) throws SQLException {
+        String sql = "SELECT TrangThaiDH FROM DONHANG WHERE MaDH = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+             ps.setString(1, maDH);
+             try (ResultSet rs = ps.executeQuery()) {
+                 if (rs.next()) {
+                     String status = rs.getString("TrangThaiDH");
+                     if ("Chờ giao hàng".equals(status) || "Đang giao".equals(status) || "Hoàn thành".equals(status)) {
+                         return true;
+                     }
+                 }
+             }
+        }
+        return false;
+    }
+
     // Lấy danh sách cần soạn hàng (FEFO)
     public ArrayList<Object[]> getDanhSachSoanHang() {
         ArrayList<Object[]> list = new ArrayList<>();
