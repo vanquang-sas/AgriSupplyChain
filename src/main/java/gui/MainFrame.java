@@ -76,12 +76,11 @@ public class MainFrame extends JFrame {
         buildTopHeader(); // Gọi hàm tạo Header giỏ hàng
         buildSidebar();
 
-        // Header luôn hiển thị trên tất cả các trang
-        topHeader.setVisible(true);
+        // Ẩn topHeader để loại bỏ khoảng trống thừa ở đầu content
+        topHeader.setVisible(false);
 
-        // Tạo Wrapper chứa Header ở trên, Content ở dưới
+        // Tạo Wrapper chứa Content
         JPanel mainContentWrapper = new JPanel(new BorderLayout());
-        mainContentWrapper.add(topHeader, BorderLayout.NORTH);
         mainContentWrapper.add(contentPanel, BorderLayout.CENTER);
 
         // Thêm vào Frame chính
