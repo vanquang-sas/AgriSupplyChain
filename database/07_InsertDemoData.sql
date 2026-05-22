@@ -194,6 +194,8 @@ INSERT ALL
     INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000020', 'kh20', N'Tạ Văn Thông', N'Thường')
 SELECT * FROM dual;
 
+COMMIT;
+
 -- ====================================================================================
 --        PHẦN 8: DATA ENRICHMENT - Sinh dữ liệu 12 tháng (05/2025 - 05/2026) -     
 -- ====================================================================================
@@ -217,8 +219,6 @@ DECLARE
     v_MaKho VARCHAR2(10);
     v_MaLH VARCHAR2(10);
     v_MaDH VARCHAR2(10);
-    v_MaCTLH VARCHAR2(10);
-    v_MaCTDH VARCHAR2(10);
     
     -- ===== Variables for pricing & quantities =====
     v_GiaMua NUMBER(12,2);
@@ -272,20 +272,41 @@ BEGIN
                 VALUES (v_MaLH, v_MaNCC, v_MaNV_ThuMua, v_month_start + v_day_offset, 'Chờ kiểm duyệt');
                 
                 v_num_lohang_items := TRUNC(1 + DBMS_RANDOM.VALUE(0, 3)); 
-                FOR j IN 1..v_num_lohang_items LOOP
-                    v_MaSP := v_focused_products(TRUNC(DBMS_RANDOM.VALUE(1, v_focused_products.COUNT + 1)));
-                    v_SoLuong_import := TRUNC(200 + DBMS_RANDOM.VALUE(0, 801));
-                    v_MaCTLH := 'CTLH' || LPAD(SEQ_CHITIETLOHANG.NEXTVAL, 6, '0');
-                    
-                    INSERT INTO CHITIETLOHANG (MaCTLH, MaLH, MaSP, SoLuong)
-                    VALUES (v_MaCTLH, v_MaLH, v_MaSP, v_SoLuong_import);
-                    
-                    v_total_import_month := v_total_import_month + v_SoLuong_import;
-                    SP_XACNHAN_VITRI_CTLH(v_MaCTLH, v_MaKho, TO_DATE('2028-12-31', 'YYYY-MM-DD'), 'Kệ A' || TRUNC(DBMS_RANDOM.VALUE(1, 11)));
-                    UPDATE LICHSUGIA SET TGApDung = (v_month_start + v_day_offset)
-                    WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = v_MaSP ORDER BY MaGia DESC) WHERE ROWNUM = 1)
-                    AND TRUNC(TGApDung) = TRUNC(SYSDATE);
-                END LOOP;
+                DECLARE
+                    TYPE t_sp_temp IS TABLE OF VARCHAR2(10);
+                    v_used_sps t_sp_temp := t_sp_temp();
+                    v_is_dup BOOLEAN;
+                BEGIN
+                    FOR j IN 1..v_num_lohang_items LOOP
+                        -- Đảm bảo không trùng MaSP trong cùng 1 lô hàng
+                        LOOP
+                            v_MaSP := v_focused_products(TRUNC(DBMS_RANDOM.VALUE(1, v_focused_products.COUNT + 1)));
+                            v_is_dup := FALSE;
+                            IF v_used_sps.COUNT > 0 THEN
+                                FOR k IN 1..v_used_sps.COUNT LOOP
+                                    IF v_used_sps(k) = v_MaSP THEN
+                                        v_is_dup := TRUE;
+                                        EXIT;
+                                    END IF;
+                                END LOOP;
+                            END IF;
+                            EXIT WHEN NOT v_is_dup;
+                        END LOOP;
+                        v_used_sps.EXTEND;
+                        v_used_sps(v_used_sps.COUNT) := v_MaSP;
+
+                        v_SoLuong_import := TRUNC(200 + DBMS_RANDOM.VALUE(0, 801));
+                        
+                        INSERT INTO CHITIETLOHANG (MaLH, MaSP, SoLuong)
+                        VALUES (v_MaLH, v_MaSP, v_SoLuong_import);
+                        
+                        v_total_import_month := v_total_import_month + v_SoLuong_import;
+                        SP_XACNHAN_VITRI_CTLH(v_MaLH || '_' || v_MaSP, v_MaKho, TO_DATE('2028-12-31', 'YYYY-MM-DD'), 'Kệ A' || TRUNC(DBMS_RANDOM.VALUE(1, 11)));
+                        UPDATE LICHSUGIA SET TGApDung = (v_month_start + v_day_offset)
+                        WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = v_MaSP ORDER BY MaGia DESC) WHERE ROWNUM = 1)
+                        AND TRUNC(TGApDung) = TRUNC(SYSDATE);
+                    END LOOP;
+                END;
             EXCEPTION WHEN OTHERS THEN NULL; END;
         END LOOP;
         
@@ -359,21 +380,42 @@ BEGIN
                 VALUES (v_MaDH, v_MaKH, v_MaNV_GiaoHang, v_simulated_date, v_simulated_date + TRUNC(DBMS_RANDOM.VALUE(1, 3)),
                         N'TP.HCM - Quận ' || TRUNC(DBMS_RANDOM.VALUE(1, 13)), 'Đã đặt', 0, 'COD');
                 
-                v_num_items_per_order := TRUNC(2 + DBMS_RANDOM.VALUE(0, 5)); 
-                
-                FOR k IN 1..v_num_items_per_order LOOP
-                    BEGIN
+                -- Số lượng sản phẩm khác nhau trong 1 đơn (Tối đa bằng số lượng SP focused đang dùng = 6)
+                v_num_items_per_order := LEAST(TRUNC(2 + DBMS_RANDOM.VALUE(0, 5)), 6); 
+                DECLARE
+                    TYPE t_sp_temp IS TABLE OF VARCHAR2(10);
+                    v_used_sps t_sp_temp := t_sp_temp();
+                    v_is_dup BOOLEAN;
+                BEGIN
+                    FOR k IN 1..v_num_items_per_order LOOP
                         IF v_current_export_qty >= v_target_export_qty THEN EXIT; END IF;
                         
-                        v_MaSP := v_focused_products(TRUNC(DBMS_RANDOM.VALUE(1, v_focused_products.COUNT + 1)));
+                        -- Đảm bảo không trùng MaSP trong cùng 1 đơn hàng
+                        LOOP
+                            v_MaSP := v_focused_products(TRUNC(DBMS_RANDOM.VALUE(1, v_focused_products.COUNT + 1)));
+                            v_is_dup := FALSE;
+                            IF v_used_sps.COUNT > 0 THEN
+                                FOR idx IN 1..v_used_sps.COUNT LOOP
+                                    IF v_used_sps(idx) = v_MaSP THEN
+                                        v_is_dup := TRUE;
+                                        EXIT;
+                                    END IF;
+                                END LOOP;
+                            END IF;
+                            EXIT WHEN NOT v_is_dup;
+                        END LOOP;
+                        v_used_sps.EXTEND;
+                        v_used_sps(v_used_sps.COUNT) := v_MaSP;
+
                         v_SoLuong_export := TRUNC(5 + DBMS_RANDOM.VALUE(0, 46));
-                        IF (v_current_export_qty + v_SoLuong_export) > v_target_export_qty THEN v_SoLuong_export := v_target_export_qty - v_current_export_qty; END IF;
+                        IF (v_current_export_qty + v_SoLuong_export) > v_target_export_qty THEN 
+                            v_SoLuong_export := v_target_export_qty - v_current_export_qty; 
+                        END IF;
                         
-                        v_MaCTDH := 'CTDH' || LPAD(SEQ_CHITIETDONHANG.NEXTVAL, 6, '0');
-                        INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, SoLuong) VALUES (v_MaCTDH, v_MaDH, v_MaSP, v_SoLuong_export);
+                        INSERT INTO CHITIETDONHANG (MaDH, MaSP, SoLuong) VALUES (v_MaDH, v_MaSP, v_SoLuong_export);
                         v_current_export_qty := v_current_export_qty + v_SoLuong_export;
-                    EXCEPTION WHEN OTHERS THEN NULL; END;
-                END LOOP;
+                    END LOOP;
+                END;
                 
                 BEGIN SP_YEUCAU_XUATKHO(v_MaDH); EXCEPTION WHEN OTHERS THEN NULL; END;
                 
