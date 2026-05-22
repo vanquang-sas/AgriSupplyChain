@@ -15,7 +15,7 @@ public class NhapKhoDAO {
         try (Connection conn = DBConnection.getConnection();
                 CallableStatement cs = conn.prepareCall(sql)) {
 
-            cs.setString(1, dto.getMaCTLH());
+            cs.setString(1, dto.getMaLH() + "_" + dto.getMaSP());
             cs.setString(2, dto.getMaKho());
             cs.setDate(3, new java.sql.Date(dto.getTgHetHan().getTime()));
             cs.setString(4, dto.getViTri());
@@ -31,15 +31,24 @@ public class NhapKhoDAO {
         String sql = "{ ? = call FN_GET_DS_NHAPKHO() }";
 
         try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+              CallableStatement cs = conn.prepareCall(sql)) {
 
             cs.registerOutParameter(1, Types.REF_CURSOR);
             cs.execute();
             
             try (ResultSet rs = (ResultSet) cs.getObject(1)) {
                 while (rs.next()) {
+                    String rawMaCTLH = rs.getString("MaCTLH");
+                    String maLH = "";
+                    String maSP = "";
+                    if (rawMaCTLH != null && rawMaCTLH.contains("_")) {
+                        String[] parts = rawMaCTLH.split("_");
+                        maLH = parts[0];
+                        maSP = parts[1];
+                    }
                     Object[] row = {
-                        rs.getString("MaCTLH"),
+                        maLH,
+                        maSP,
                         rs.getString("TenSP"),
                         rs.getInt("SoLuong"),
                         rs.getString("MaKho"),

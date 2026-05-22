@@ -414,7 +414,7 @@ public class LoHangForm extends JDialog {
             }
         }
         if (!updated) {
-            orderItems.add(new ChiTietLoHangDTO(null, null, selectedProduct.getMaSP(), selectedProduct.getGiaMua(), quantity, quantity * selectedProduct.getGiaMua()));
+            orderItems.add(new ChiTietLoHangDTO(null, selectedProduct.getMaSP(), selectedProduct.getGiaMua(), quantity, quantity * selectedProduct.getGiaMua()));
         }
         refreshOrderTable();
     }

@@ -290,7 +290,7 @@ public class LichSuLoHangPanel extends JPanel {
         header.add(createLabel("Mã nhân viên:")); header.add(createValueLabel(current.getMaNV()));
         dialog.add(header, BorderLayout.NORTH);
 
-        String[] detailCols = {"Mã CT", "Mã SP", "Giá mua", "Số lượng", "Thành tiền"};
+        String[] detailCols = {"Mã SP", "Giá mua", "Số lượng", "Thành tiền"};
         DefaultTableModel detailModel = new DefaultTableModel(detailCols, 0) {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
@@ -308,7 +308,7 @@ public class LichSuLoHangPanel extends JPanel {
         DecimalFormat currency = new DecimalFormat("#,##0.##");
         for (ChiTietLoHangDTO item : details) {
             detailModel.addRow(new Object[]{
-                    item.getMaCTLH(), item.getMaSP(), currency.format(item.getGiaMua()), currency.format(item.getSoLuong()), currency.format(item.getThanhTien())
+                    item.getMaSP(), currency.format(item.getGiaMua()), currency.format(item.getSoLuong()), currency.format(item.getThanhTien())
             });
         }
 

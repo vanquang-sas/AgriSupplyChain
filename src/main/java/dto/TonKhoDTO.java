@@ -5,7 +5,8 @@ import java.util.Date;
 public class TonKhoDTO {
     private String maTonKho;
     private String maKho;
-    private String maCTLH;
+    private String maLH;
+    private String maSP;
     private double slConLai;
     private double slKhaDung;
     private Date tgNhapKho;
@@ -16,11 +17,12 @@ public class TonKhoDTO {
     public TonKhoDTO() {
     }
 
-    public TonKhoDTO(String maTonKho, String maKho, String maCTLH, double slConLai, double slKhaDung,
+    public TonKhoDTO(String maTonKho, String maKho, String maLH, String maSP, double slConLai, double slKhaDung,
             Date tgNhapKho, Date tgHetHan, String viTri, String trangThai) {
         this.maTonKho = maTonKho;
         this.maKho = maKho;
-        this.maCTLH = maCTLH;
+        this.maLH = maLH;
+        this.maSP = maSP;
         this.slConLai = slConLai;
         this.slKhaDung = slKhaDung;
         this.tgNhapKho = tgNhapKho;
@@ -53,12 +55,20 @@ public class TonKhoDTO {
         this.maKho = maKho;
     }
 
-    public String getMaCTLH() {
-        return maCTLH;
+    public String getMaLH() {
+        return maLH;
     }
 
-    public void setMaCTLH(String maCTLH) {
-        this.maCTLH = maCTLH;
+    public void setMaLH(String maLH) {
+        this.maLH = maLH;
+    }
+
+    public String getMaSP() {
+        return maSP;
+    }
+
+    public void setMaSP(String maSP) {
+        this.maSP = maSP;
     }
 
     public double getSlConLai() {

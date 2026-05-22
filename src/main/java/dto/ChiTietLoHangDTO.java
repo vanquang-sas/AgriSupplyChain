@@ -1,7 +1,6 @@
 package dto;
 
 public class ChiTietLoHangDTO {
-    private String maCTLH;
     private String maLH;
     private String maSP;
     private double giaMua;
@@ -10,13 +9,11 @@ public class ChiTietLoHangDTO {
 
     public ChiTietLoHangDTO() {}
 
-    public ChiTietLoHangDTO(String maCTLH, String maLH, String maSP, double giaMua, double soLuong, double thanhTien) {
-        this.maCTLH = maCTLH; this.maLH = maLH; this.maSP = maSP; 
+    public ChiTietLoHangDTO(String maLH, String maSP, double giaMua, double soLuong, double thanhTien) {
+        this.maLH = maLH; this.maSP = maSP; 
         this.giaMua = giaMua; this.soLuong = soLuong; this.thanhTien = thanhTien;
     }
 
-    public String getMaCTLH() { return maCTLH; }
-    public void setMaCTLH(String maCTLH) { this.maCTLH = maCTLH; }
     public String getMaLH() { return maLH; }
     public void setMaLH(String maLH) { this.maLH = maLH; }
     public String getMaSP() { return maSP; }
@@ -27,4 +24,18 @@ public class ChiTietLoHangDTO {
     public void setSoLuong(double soLuong) { this.soLuong = soLuong; }
     public double getThanhTien() { return thanhTien; }
     public void setThanhTien(double thanhTien) { this.thanhTien = thanhTien; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChiTietLoHangDTO that = (ChiTietLoHangDTO) o;
+        return java.util.Objects.equals(maLH, that.maLH) &&
+               java.util.Objects.equals(maSP, that.maSP);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(maLH, maSP);
+    }
 }

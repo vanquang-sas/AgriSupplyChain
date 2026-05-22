@@ -8,7 +8,7 @@ public class XuatKhoChiTietDTO {
     private String maTonKho;
     private String tenSP;
     private String maSP;
-    private String maCTLH;
+    private String maLH;
     private Date tgHetHan;
     private double slXuat;
     private String viTri;
@@ -19,14 +19,14 @@ public class XuatKhoChiTietDTO {
     public XuatKhoChiTietDTO() {}
 
     public XuatKhoChiTietDTO(String maXK, String maDH, String maTonKho,
-            String tenSP, String maSP, String maCTLH, Date tgHetHan,
+            String tenSP, String maSP, String maLH, Date tgHetHan,
             double slXuat, String viTri, String maNV, String tenNV, String trangThaiXK) {
         this.maXK = maXK;
         this.maDH = maDH;
         this.maTonKho = maTonKho;
         this.tenSP = tenSP;
         this.maSP = maSP;
-        this.maCTLH = maCTLH;
+        this.maLH = maLH;
         this.tgHetHan = tgHetHan;
         this.slXuat = slXuat;
         this.viTri = viTri;
@@ -40,7 +40,8 @@ public class XuatKhoChiTietDTO {
     public String getMaTonKho() { return maTonKho; }
     public String getTenSP() { return tenSP; }
     public String getMaSP() { return maSP; }
-    public String getMaCTLH() { return maCTLH; }
+    public String getMaLH() { return maLH; }
+    public void setMaLH(String maLH) { this.maLH = maLH; }
     public Date getTGHetHan() { return tgHetHan; }
     public double getSLXuat() { return slXuat; }
     public String getViTri() { return viTri; }

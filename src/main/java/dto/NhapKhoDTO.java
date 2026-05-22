@@ -3,17 +3,26 @@ package dto;
 import java.util.Date;
 
 public class NhapKhoDTO {
-    private String maCTLH;
+    private String maLH;
+    private String maSP;
     private String loaiKho;
     private String viTri;
     private Date tgHetHan;
 
-    public String getMaCTLH() {
-        return maCTLH;
+    public String getMaLH() {
+        return maLH;
     }
 
-    public void setMaCTLH(String maCTLH) {
-        this.maCTLH = maCTLH;
+    public void setMaLH(String maLH) {
+        this.maLH = maLH;
+    }
+
+    public String getMaSP() {
+        return maSP;
+    }
+
+    public void setMaSP(String maSP) {
+        this.maSP = maSP;
     }
 
     public String getLoaiKho() {
