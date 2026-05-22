@@ -88,7 +88,7 @@ BEGIN
     UPDATE XUATKHO 
     SET TrangThaiXK = 'Đã huỷ', 
         TGCapNhat = SYSDATE
-    WHERE MaCTDH IN (SELECT MaCTDH FROM CHITIETDONHANG WHERE MaDH = p_MaDH);
+    WHERE MaDH = p_MaDH;
 
     COMMIT;
 EXCEPTION
@@ -129,26 +129,30 @@ CREATE OR REPLACE PROCEDURE SP_XACNHAN_VITRI_CTLH (
     v_TonTai NUMBER;
     v_ChuaXepXong NUMBER;
 BEGIN
-    SELECT CTLH.MaLH, CTLH.MaSP, CTLH.SoLuong, SP.BaoQuan 
-    INTO v_MaLH, v_MaSP, v_SoLuong, v_BaoQuan
+    -- Extract MaLH and MaSP from composite key parameter p_MaCTLH (format: MaLH_MaSP)
+    v_MaLH := SUBSTR(p_MaCTLH, 1, INSTR(p_MaCTLH, '_') - 1);
+    v_MaSP := SUBSTR(p_MaCTLH, INSTR(p_MaCTLH, '_') + 1);
+
+    SELECT CTLH.SoLuong, SP.BaoQuan 
+    INTO v_SoLuong, v_BaoQuan
     FROM CHITIETLOHANG CTLH JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
-    WHERE CTLH.MaCTLH = p_MaCTLH;
+    WHERE CTLH.MaLH = v_MaLH AND CTLH.MaSP = v_MaSP;
 
     SELECT LoaiKho INTO v_LoaiKho FROM KHO WHERE MaKho = p_MaKho;
     IF v_LoaiKho != v_BaoQuan THEN
         RAISE_APPLICATION_ERROR(-20028, 'Bảo quản sai quy cách! Yêu cầu [' || v_BaoQuan || '] nhưng chọn kho [' || v_LoaiKho || '].');
     END IF;
 
-    SELECT COUNT(*) INTO v_TonTai FROM TONKHO WHERE MaCTLH = p_MaCTLH;
+    SELECT COUNT(*) INTO v_TonTai FROM TONKHO WHERE MaLH = v_MaLH AND MaSP = v_MaSP;
     IF v_TonTai > 0 THEN
         RAISE_APPLICATION_ERROR(-20027, 'Chi tiết lô hàng này đã được nhập kho rồi!');
     END IF;
 
-    INSERT INTO TONKHO (MaKho, MaCTLH, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri)
-    VALUES (p_MaKho, p_MaCTLH, v_SoLuong, v_SoLuong, SYSDATE, p_TGHetHan, p_ViTri);
+    INSERT INTO TONKHO (MaKho, MaLH, MaSP, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri)
+    VALUES (p_MaKho, v_MaLH, v_MaSP, v_SoLuong, v_SoLuong, SYSDATE, p_TGHetHan, p_ViTri);
 
     SELECT COUNT(*) INTO v_ChuaXepXong FROM CHITIETLOHANG C
-    WHERE C.MaLH = v_MaLH AND C.MaCTLH NOT IN (SELECT MaCTLH FROM TONKHO);
+    WHERE C.MaLH = v_MaLH AND (C.MaLH, C.MaSP) NOT IN (SELECT MaLH, MaSP FROM TONKHO);
 
     IF v_ChuaXepXong = 0 THEN
         UPDATE LOHANG SET TrangThaiLH = 'Đã nhập kho' WHERE MaLH = v_MaLH;
@@ -170,12 +174,11 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20023, 'Trạng thái đơn hàng không hợp lệ!');
     END IF;
 
-    FOR rec_CTDH IN (SELECT MaCTDH, MaSP, SoLuong FROM CHITIETDONHANG WHERE MaDH = p_MaDH) LOOP
+    FOR rec_CTDH IN (SELECT MaSP, SoLuong FROM CHITIETDONHANG WHERE MaDH = p_MaDH) LOOP
         v_SoLuongCan := rec_CTDH.SoLuong;
         FOR rec_TK IN (
             SELECT TK.MaTonKho, TK.SLKhaDung FROM TONKHO TK
-            JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH
-            WHERE CTLH.MaSP = rec_CTDH.MaSP AND TK.SLKhaDung > 0 AND TK.TGHetHan >= TRUNC(SYSDATE)
+            WHERE TK.MaSP = rec_CTDH.MaSP AND TK.SLKhaDung > 0 AND TK.TGHetHan >= TRUNC(SYSDATE)
             ORDER BY TK.TGHetHan ASC, TK.TGNhapKho ASC FOR UPDATE
         ) LOOP
             EXIT WHEN v_SoLuongCan = 0;
@@ -184,8 +187,8 @@ BEGIN
             ELSE
                 v_SoLuongXuat := rec_TK.SLKhaDung; v_SoLuongCan := v_SoLuongCan - rec_TK.SLKhaDung;
             END IF;
-            INSERT INTO XUATKHO (MaCTDH, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) 
-            VALUES (rec_CTDH.MaCTDH, rec_TK.MaTonKho, NULL, v_SoLuongXuat, SYSDATE, 'Tạm giữ');
+            INSERT INTO XUATKHO (MaDH, MaSP, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) 
+            VALUES (p_MaDH, rec_CTDH.MaSP, rec_TK.MaTonKho, NULL, v_SoLuongXuat, SYSDATE, 'Tạm giữ');
         END LOOP;
         IF v_SoLuongCan > 0 THEN RAISE_APPLICATION_ERROR(-20024, 'Kho không đủ hàng cho: ' || rec_CTDH.MaSP); END IF;
     END LOOP;
@@ -198,7 +201,7 @@ END;
 CREATE OR REPLACE PROCEDURE SP_XACNHAN_XUATKHO (p_MaDH IN VARCHAR2, p_MaNV IN VARCHAR2) IS
 BEGIN
     UPDATE XUATKHO SET TrangThaiXK = 'Đã xuất', MaNV = p_MaNV, TGCapNhat = SYSDATE
-    WHERE MaCTDH IN (SELECT MaCTDH FROM CHITIETDONHANG WHERE MaDH = p_MaDH) AND TrangThaiXK = 'Tạm giữ';
+    WHERE MaDH = p_MaDH AND TrangThaiXK = 'Tạm giữ';
     UPDATE DONHANG SET TrangThaiDH = 'Chờ giao hàng' WHERE MaDH = p_MaDH;
     COMMIT;
 EXCEPTION
@@ -230,7 +233,7 @@ BEGIN
 
     -- 4. Thông báo Hết hạn (Lô)
     FOR tk IN (
-        SELECT TK.MaTonKho, SP.TenSP, TK.TGHetHan FROM TONKHO TK JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP WHERE TK.TrangThai = N'Hết hạn'
+        SELECT TK.MaTonKho, SP.TenSP, TK.TGHetHan FROM TONKHO TK JOIN SANPHAM SP ON TK.MaSP = SP.MaSP WHERE TK.TrangThai = N'Hết hạn'
     ) LOOP
         DECLARE 
             v_Msg NVARCHAR2(500) := N'Lô ' || tk.MaTonKho || N' của SP ' || tk.TenSP || N' đã HẾT HẠN vào ngày ' || TO_CHAR(tk.TGHetHan, 'DD/MM/YYYY');
@@ -243,7 +246,7 @@ BEGIN
 
     -- 5. Thông báo Sắp hết hạn (Lô)
     FOR tk IN (
-        SELECT TK.MaTonKho, SP.TenSP, TK.TGHetHan FROM TONKHO TK JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP WHERE TK.TrangThai = N'Sắp hết hạn'
+        SELECT TK.MaTonKho, SP.TenSP, TK.TGHetHan FROM TONKHO TK JOIN SANPHAM SP ON TK.MaSP = SP.MaSP WHERE TK.TrangThai = N'Sắp hết hạn'
     ) LOOP
         DECLARE 
             v_Msg NVARCHAR2(500) := N'Lô ' || tk.MaTonKho || N' của SP ' || tk.TenSP || N' sẽ hết hạn vào ' || TO_CHAR(tk.TGHetHan, 'DD/MM/YYYY');
@@ -260,8 +263,7 @@ BEGIN
         SELECT SP.MaSP, SP.TenSP, 
                NVL(SUM(TK.SLConLai), 0) AS TongTon
         FROM SANPHAM SP
-        LEFT JOIN CHITIETLOHANG CTLH ON SP.MaSP = CTLH.MaSP
-        LEFT JOIN TONKHO TK ON CTLH.MaCTLH = TK.MaCTLH
+        LEFT JOIN TONKHO TK ON SP.MaSP = TK.MaSP
         GROUP BY SP.MaSP, SP.TenSP
     ) LOOP
         DECLARE

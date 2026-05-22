@@ -18,7 +18,7 @@ public class TonKhoDAO {
         String sql = "SELECT tk.MaTonKho, tk.MaKho, sp.TenSP, sp.MaSP, lsp.TenLSP, ncc.TenNCC, " +
                 "tk.SLConLai, sp.DonViTinh, tk.ViTri, tk.TGNhapKho, tk.TGHetHan " +
                 "FROM TONKHO tk " +
-                "LEFT JOIN CHITIETLOHANG ctlh ON tk.MaCTLH = ctlh.MaCTLH " +
+                "LEFT JOIN CHITIETLOHANG ctlh ON tk.MaLH = ctlh.MaLH AND tk.MaSP = ctlh.MaSP " +
                 "LEFT JOIN LOHANG lh ON ctlh.MaLH = lh.MaLH " +
                 "LEFT JOIN SANPHAM sp ON ctlh.MaSP = sp.MaSP " +
                 "LEFT JOIN LOAISANPHAM lsp ON sp.MaLSP = lsp.MaLSP " +
@@ -76,7 +76,7 @@ public class TonKhoDAO {
                 "   ELSE N'Còn hạn' " +
                 "END as TrangThaiTongHop " +
                 "FROM TONKHO tk " +
-                "JOIN CHITIETLOHANG ctlh ON tk.MaCTLH = ctlh.MaCTLH " +
+                "JOIN CHITIETLOHANG ctlh ON tk.MaLH = ctlh.MaLH AND tk.MaSP = ctlh.MaSP " +
                 "JOIN SANPHAM sp ON ctlh.MaSP = sp.MaSP " +
                 "GROUP BY sp.HinhAnh, sp.TenSP, sp.MaSP, sp.DonViTinh";
 
@@ -107,7 +107,7 @@ public class TonKhoDAO {
         String sql = "SELECT tk.MaTonKho, k.TenKho, tk.ViTri, tk.MaKho, tk.SLConLai, tk.TGNhapKho, tk.TGHetHan, tk.TrangThai "
                 +
                 "FROM TONKHO tk " +
-                "JOIN CHITIETLOHANG ctlh ON tk.MaCTLH = ctlh.MaCTLH " +
+                "JOIN CHITIETLOHANG ctlh ON tk.MaLH = ctlh.MaLH AND tk.MaSP = ctlh.MaSP " +
                 "JOIN KHO k ON tk.MaKho = k.MaKho " +
                 "WHERE ctlh.MaSP = ? AND tk.SLConLai > 0 " +
                 "ORDER BY tk.TGNhapKho DESC";

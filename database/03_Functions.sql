@@ -73,7 +73,7 @@ BEGIN
       AND NOT EXISTS (
           SELECT 1
           FROM XUATKHO XK
-          JOIN CHITIETDONHANG CT ON XK.MaCTDH = CT.MaCTDH
+          JOIN CHITIETDONHANG CT ON XK.MaDH = CT.MaDH AND XK.MaSP = CT.MaSP
           WHERE CT.MaDH = DH.MaDH
             AND XK.TrangThaiXK = N'Tạm giữ'
       )
@@ -85,7 +85,7 @@ BEGIN
           HAVING SUM(CTDH.SoLuong) > (
               SELECT NVL(SUM(TK.SLKhaDung), 0)
               FROM TONKHO TK
-              JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH
+              JOIN CHITIETLOHANG CTLH ON TK.MaLH = CTLH.MaLH AND TK.MaSP = CTLH.MaSP
               WHERE CTLH.MaSP = CTDH.MaSP
                 AND TK.SLKhaDung > 0
                 AND TK.TGHetHan >= TRUNC(SYSDATE)
@@ -112,7 +112,7 @@ BEGIN
             ' ' AS NhanVien,
             XK.TrangThaiXK
         FROM XUATKHO XK
-        LEFT JOIN CHITIETDONHANG CTDH ON XK.MaCTDH = CTDH.MaCTDH
+        LEFT JOIN CHITIETDONHANG CTDH ON XK.MaDH = CTDH.MaDH AND XK.MaSP = CTDH.MaSP
         LEFT JOIN DONHANG DH ON CTDH.MaDH = DH.MaDH
         LEFT JOIN SANPHAM SP ON CTDH.MaSP = SP.MaSP
         LEFT JOIN TONKHO TK ON XK.MaTonKho = TK.MaTonKho
@@ -130,7 +130,7 @@ IS
 BEGIN
     OPEN v_cursor FOR
         SELECT
-            CTLH.MaCTLH,
+            (CTLH.MaLH || '_' || CTLH.MaSP) AS MaCTLH,
             SP.TenSP,
             CTLH.SoLuong,
             ' ' AS MaKho,
@@ -163,7 +163,7 @@ BEGIN
             TK.ViTri,
             TO_CHAR(TK.TGHetHan, 'DD/MM/YYYY') AS NgayHetHan
         FROM XUATKHO XK
-        JOIN CHITIETDONHANG CTDH ON XK.MaCTDH = CTDH.MaCTDH
+        JOIN CHITIETDONHANG CTDH ON XK.MaDH = CTDH.MaDH AND XK.MaSP = CTDH.MaSP
         JOIN SANPHAM SP ON CTDH.MaSP = SP.MaSP
         JOIN TONKHO TK ON XK.MaTonKho = TK.MaTonKho
         WHERE CTDH.MaDH = p_MaDH AND XK.TrangThaiXK = N'Tạm giữ'

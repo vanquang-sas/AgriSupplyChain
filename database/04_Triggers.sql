@@ -347,9 +347,8 @@ BEGIN
     IF :NEW.TrangThai = N'Hết hạn' THEN
         -- Lấy tên SP
         BEGIN
-            SELECT SP.TenSP INTO v_TenSP FROM CHITIETLOHANG CTLH 
-            JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP 
-            WHERE CTLH.MaCTLH = :NEW.MaCTLH;
+            SELECT SP.TenSP INTO v_TenSP FROM SANPHAM SP 
+            WHERE SP.MaSP = :NEW.MaSP;
         EXCEPTION WHEN OTHERS THEN v_TenSP := N'Chưa rõ';
         END;
 
@@ -367,9 +366,8 @@ BEGIN
     -- Xử lý khi TrangThai = 'Sắp hết hạn'
     IF :NEW.TrangThai = N'Sắp hết hạn' THEN
         BEGIN
-            SELECT SP.TenSP INTO v_TenSP FROM CHITIETLOHANG CTLH 
-            JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP 
-            WHERE CTLH.MaCTLH = :NEW.MaCTLH;
+            SELECT SP.TenSP INTO v_TenSP FROM SANPHAM SP 
+            WHERE SP.MaSP = :NEW.MaSP;
         EXCEPTION WHEN OTHERS THEN v_TenSP := N'Chưa rõ';
         END;
 
@@ -413,7 +411,7 @@ BEGIN
 
     -- 2. Tìm thông tin sản phẩm
     BEGIN
-        SELECT MaSP INTO v_MaSP FROM CHITIETLOHANG WHERE MaCTLH = :NEW.MaCTLH;
+        v_MaSP := :NEW.MaSP;
         SELECT TenSP INTO v_TenSP FROM SANPHAM WHERE MaSP = v_MaSP;
     EXCEPTION WHEN NO_DATA_FOUND THEN
         COMMIT;
@@ -423,8 +421,7 @@ BEGIN
     -- 3. Tính tổng tồn hiện tại (TÍNH TỪ COMMITTED DATA, bỏ qua lô hết hạn/hủy bỏ)
     SELECT NVL(SUM(SLConLai), 0) INTO v_TongTon 
     FROM TONKHO TK
-    JOIN CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH
-    WHERE CTLH.MaSP = v_MaSP 
+    WHERE TK.MaSP = v_MaSP 
       AND TK.TrangThai NOT IN (N'Hết hạn', N'Hủy bỏ');
 
     -- 4. Điều chỉnh v_TongTon với thay đổi hiện tại
@@ -472,7 +469,7 @@ FOR EACH ROW
 BEGIN
     UPDATE CHITIETLOHANG 
     SET SoLuong = SoLuong - :OLD.SLConLai
-    WHERE MaCTLH = :OLD.MaCTLH;
+    WHERE MaLH = :OLD.MaLH AND MaSP = :OLD.MaSP;
     
     -- Xóa luôn các thông báo liên quan đến lô hàng vừa xóa
     DELETE FROM THONGBAO 

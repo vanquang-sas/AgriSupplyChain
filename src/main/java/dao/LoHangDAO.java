@@ -181,8 +181,8 @@ public class LoHangDAO {
 
     public List<ChiTietLoHangDTO> getChiTietLoHang(String maLH) {
         List<ChiTietLoHangDTO> list = new ArrayList<>();
-        String sql = "SELECT MaCTLH, MaLH, MaSP, GiaMua, SoLuong, ThanhTien " +
-                     "FROM CHITIETLOHANG WHERE MaLH = ? ORDER BY MaCTLH";
+        String sql = "SELECT (MaLH || '_' || MaSP) AS MaCTLH, MaLH, MaSP, GiaMua, SoLuong, ThanhTien " +
+                     "FROM CHITIETLOHANG WHERE MaLH = ? ORDER BY MaSP";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maLH);

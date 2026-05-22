@@ -162,7 +162,7 @@ public class DonHangDAO {
             donHang.setMaDH(generatedMaDH);
 
             // 2. Insert Chi tiết đơn hàng vào bảng CHITIETDONHANG
-            String sqlCT = "INSERT INTO CHITIETDONHANG (MaCTDH, MaDH, MaSP, GiaBan, SoLuong) VALUES ('CTDH' || LPAD(SEQ_CHITIETDONHANG.NEXTVAL, 4, '0'), ?, ?, ?, ?)";
+            String sqlCT = "INSERT INTO CHITIETDONHANG (MaDH, MaSP, GiaBan, SoLuong) VALUES (?, ?, ?, ?)";
             pstmtCT = conn.prepareStatement(sqlCT);
 
             for (ChiTietDonHangDTO ct : chiTietList) {

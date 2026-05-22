@@ -114,7 +114,7 @@ public class GioHangBUS {
         String sql = """
             SELECT NVL(SUM(TK.SLKhaDung), 0)
             FROM   TONKHO TK
-            JOIN   CHITIETLOHANG CTLH ON TK.MaCTLH = CTLH.MaCTLH
+            JOIN   CHITIETLOHANG CTLH ON TK.MaLH = CTLH.MaLH AND TK.MaSP = CTLH.MaSP
             WHERE  CTLH.MaSP = ?
               AND  (TK.TGHetHan IS NULL OR TK.TGHetHan >= TRUNC(SYSDATE))
             """;
