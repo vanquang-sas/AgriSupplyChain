@@ -7,7 +7,6 @@ import util.AppColor;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.sql.SQLException;
 
 public class ThamSoForm extends JPanel {
 

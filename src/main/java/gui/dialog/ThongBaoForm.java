@@ -2,7 +2,6 @@ package gui.dialog;
 
 import bus.ThongBaoBUS;
 import dto.ThongBaoDTO;
-import util.AppColor;
 import util.Session;
 
 import javax.swing.*;

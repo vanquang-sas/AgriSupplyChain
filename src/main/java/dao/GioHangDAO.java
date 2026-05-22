@@ -3,7 +3,6 @@ package dao;
 import dto.GioHangDTO;
 import util.DBConnection;
 
-import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

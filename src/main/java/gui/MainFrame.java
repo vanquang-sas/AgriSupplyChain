@@ -4,7 +4,6 @@ import gui.panel.*;
 import util.AppColor;
 import util.Session;
 import bus.ThongBaoBUS;
-import gui.dialog.ThongBaoForm;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

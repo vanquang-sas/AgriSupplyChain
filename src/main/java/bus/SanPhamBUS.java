@@ -5,7 +5,6 @@ import dto.SanPhamDTO;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Random;
 
 public class SanPhamBUS {
     private final SanPhamDAO dao = new SanPhamDAO();

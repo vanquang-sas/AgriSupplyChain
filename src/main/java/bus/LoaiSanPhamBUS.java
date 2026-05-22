@@ -5,7 +5,6 @@ import dto.LoaiSanPhamDTO;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Random;
 
 public class LoaiSanPhamBUS {
     private final LoaiSanPhamDAO dao = new LoaiSanPhamDAO();

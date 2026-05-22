@@ -295,13 +295,6 @@ public class ThanhToanForm extends JDialog {
     private void onQuanPhuongChanged() {
     }
 
-    // Hàm phụ: Xóa trắng phí ship khi địa chỉ chưa hoàn chỉnh
-    private void resetPhiShip() {
-        phiVanChuyen = BigDecimal.ZERO;
-        lblPhiVC.setText("--- (Vui lòng nhập đầy đủ địa chỉ)");
-        lblDiscountInfo.setText("");
-        capNhatTongTien();
-    }
  
     // HÀM MỚI: Chỉ tính tiền khi gọi (phí ship cố định theo thẻ khách hàng)
     private void tinhToanPhiShip() {
