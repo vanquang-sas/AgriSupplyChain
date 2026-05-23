@@ -346,18 +346,49 @@ public class DatHangForm extends JDialog {
     }                           
 
     private void capNhatTongTien() {
-        String loaiKH = getLoaiKhachHang();
-        String ggName = "GG_THUONG";
-        double defaultGG = 0.0;
-        if ("VIP".equalsIgnoreCase(loaiKH)) {
-            ggName = "GG_VIP";
-            defaultGG = 0.05;
-        } else if ("Thân thiết".equalsIgnoreCase(loaiKH)) {
-            ggName = "GG_THANTHIET";
-            defaultGG = 0.02;
+        String maKH = Session.maKH;
+        if (maKH == null || maKH.isEmpty()) {
+            if (Session.isLogged() && Session.currentUser != null) {
+                try {
+                    String username = Session.currentUser.getUsername();
+                    dao.KhachHangDAO khDao = new dao.KhachHangDAO();
+                    dto.KhachHangDTO kh = khDao.getByUsername(username);
+                    if (kh != null) {
+                        maKH = kh.getMaKH();
+                    } else {
+                        maKH = username.length() > 10 ? username.substring(0, 10) : username;
+                    }
+                } catch (Exception e) {
+                    maKH = "KH000001";
+                }
+            } else {
+                maKH = "KH000001";
+            }
         }
+
+        String loaiKH = getLoaiKhachHang();
+        double tyLeGiamGia = 0.0;
         
-        double tyLeGiamGia = new dao.ThamSoDAO().getValueByName(ggName, defaultGG);
+        // Truy vấn tỷ lệ giảm giá trực tiếp từ database
+        String sql = "SELECT GiaTri FROM THAMSO WHERE TenTS = (SELECT CASE NVL(LoaiKH, 'Thường') WHEN 'VIP' THEN 'GG_VIP' WHEN 'Thân thiết' THEN 'GG_THANTHIET' ELSE 'GG_THUONG' END FROM KHACHHANG WHERE MaKH = ?)";
+        try (java.sql.Connection con = util.DBConnection.getConnection();
+             java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, maKH);
+            try (java.sql.ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    tyLeGiamGia = rs.getDouble("GiaTri");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Phương án dự phòng dựa theo session nếu gặp lỗi kết nối
+            if ("VIP".equalsIgnoreCase(loaiKH)) {
+                tyLeGiamGia = 0.05;
+            } else if ("Thân thiết".equalsIgnoreCase(loaiKH)) {
+                tyLeGiamGia = 0.02;
+            }
+        }
+
         giamGia = tongTienHang.multiply(BigDecimal.valueOf(tyLeGiamGia));
         
         int phanTram = (int) Math.round(tyLeGiamGia * 100);
