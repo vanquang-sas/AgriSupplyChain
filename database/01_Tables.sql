@@ -21,7 +21,7 @@ END;
 CREATE TABLE THAMSO (
     MaTS VARCHAR2(10) PRIMARY KEY,
     TenTS NVARCHAR2(100) UNIQUE,
-    GiaTri NUMBER(12,2),
+    GiaTri NUMBER(15,2),
     MoTa NVARCHAR2(500)
 );
 
@@ -62,7 +62,7 @@ CREATE TABLE NHANVIEN (
     Username NVARCHAR2(50),
     TenNV NVARCHAR2(100),
     ChucVu NVARCHAR2(50) CHECK (ChucVu IN ('NV thu mua', 'NV kho', 'NV giao hàng','Quản lý')),
-    Luong NUMBER(12,2),
+    Luong NUMBER(15,2),
     CONSTRAINT FK_NV_TAIKHOAN FOREIGN KEY (Username) REFERENCES TAIKHOAN(Username)
 );
 
@@ -90,8 +90,8 @@ CREATE TABLE SANPHAM (
     TenSP NVARCHAR2(100),
     MaLSP VARCHAR2(10),
     ChatLuong NVARCHAR2(100) CHECK (ChatLuong IN ('Loại 1', 'Loại 2', 'Loại 3')),
-    GiaMua NUMBER(12,2),
-    GiaBan NUMBER(12,2),
+    GiaMua NUMBER(15,2),
+    GiaBan NUMBER(15,2),
     DonViTinh NVARCHAR2(20),
     BaoQuan NVARCHAR2(100) CHECK (BaoQuan IN ('Mát', 'Lạnh', 'Đông')),
     HinhAnh NVARCHAR2(200),
@@ -111,8 +111,8 @@ CREATE TABLE KHO (
 CREATE TABLE LICHSUGIA (
     MaGia VARCHAR2(10) PRIMARY KEY,
     MaSP VARCHAR2(10),
-    GiaMua NUMBER(12,2),
-    GiaBan NUMBER(12,2),
+    GiaMua NUMBER(15,2),
+    GiaBan NUMBER(15,2),
     TGApDung DATE DEFAULT SYSDATE,
     CONSTRAINT FK_LSG_SP FOREIGN KEY (MaSP) REFERENCES SANPHAM(MaSP)
 );
@@ -123,7 +123,7 @@ CREATE TABLE LOHANG (
     MaNCC VARCHAR2(10),
     MaNV VARCHAR2(10),
     TGNhap DATE DEFAULT SYSDATE,
-    TongTien NUMBER(12,2) DEFAULT 0 CHECK (TongTien >= 0),
+    TongTien NUMBER(15,2) DEFAULT 0 CHECK (TongTien >= 0),
     TrangThaiLH NVARCHAR2(50) DEFAULT 'Chờ kiểm duyệt' CHECK (TrangThaiLH IN ('Chờ kiểm duyệt', 'Chờ nhập kho', 'Đã nhập kho')),
     CONSTRAINT FK_LH_NCC FOREIGN KEY (MaNCC) REFERENCES NHACUNGCAP(MaNCC),
     CONSTRAINT FK_LH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
@@ -133,9 +133,9 @@ CREATE TABLE LOHANG (
 CREATE TABLE CHITIETLOHANG (
     MaLH VARCHAR2(10),
     MaSP VARCHAR2(10),
-    GiaMua NUMBER(12,2) CHECK (GiaMua > 0),
+    GiaMua NUMBER(15,2) CHECK (GiaMua > 0),
     SoLuong NUMBER(10,2) CHECK (SoLuong > 0),
-    ThanhTien NUMBER(12,2) CHECK (ThanhTien > 0),
+    ThanhTien NUMBER(15,2) CHECK (ThanhTien > 0),
     PRIMARY KEY (MaLH, MaSP),
     CONSTRAINT FK_CTLH_LH FOREIGN KEY (MaLH) REFERENCES LOHANG(MaLH),
     CONSTRAINT FK_CTLH_SP FOREIGN KEY (MaSP) REFERENCES SANPHAM(MaSP)
@@ -170,10 +170,10 @@ CREATE TABLE DONHANG (
     TGGiaoTT DATE, 
     DiaChiGiaoHang NVARCHAR2(255),
     LyDoHuy NVARCHAR2(500),
-    PhiVanChuyen NUMBER(12,2) CHECK (PhiVanChuyen >= 0),
-    TongTienHang NUMBER(12,2) DEFAULT 0 CHECK (TongTienHang >= 0),
-    GiamGia NUMBER(12,2) DEFAULT 0 CHECK (GiamGia >= 0),
-    TongTien NUMBER(12,2) DEFAULT 0 CHECK (TongTien >= 0),
+    PhiVanChuyen NUMBER(15,2) CHECK (PhiVanChuyen >= 0),
+    TongTienHang NUMBER(15,2) DEFAULT 0 CHECK (TongTienHang >= 0),
+    GiamGia NUMBER(15,2) DEFAULT 0 CHECK (GiamGia >= 0),
+    TongTien NUMBER(15,2) DEFAULT 0 CHECK (TongTien >= 0),
     TrangThaiDH NVARCHAR2(50) DEFAULT 'Đã đặt' CHECK (TrangThaiDH IN ('Đã đặt', 'Chờ xử lý', 'Chờ giao hàng', 'Đang giao', 'Hoàn thành', 'Đã huỷ')),
     TrangThaiTT NUMBER(1) DEFAULT 0 CHECK (TrangThaiTT IN (0, 1)),
     PhuongThucTT NVARCHAR2(50) DEFAULT 'COD' CHECK (PhuongThucTT IN ('COD', 'Chuyển khoản', 'Ví điện tử')),
@@ -191,7 +191,7 @@ CREATE TABLE CHITIETDONHANG (
     MaSP VARCHAR2(10),
     GiaBan NUMBER(12,2) CHECK (GiaBan > 0),
     SoLuong NUMBER(10,2) CHECK (SoLuong > 0),
-    ThanhTien NUMBER(12,2) CHECK (ThanhTien > 0),
+    ThanhTien NUMBER(15,2) CHECK (ThanhTien > 0),
     PRIMARY KEY (MaDH, MaSP),
     CONSTRAINT FK_CTDH_DH FOREIGN KEY (MaDH) REFERENCES DONHANG(MaDH),
     CONSTRAINT FK_CTDH_SP FOREIGN KEY (MaSP) REFERENCES SANPHAM(MaSP)
@@ -217,7 +217,7 @@ CREATE TABLE GIOHANG (
     MaKH VARCHAR2(10),
     MaSP VARCHAR2(10),
     SoLuong NUMBER(10,2) CHECK (SoLuong > 0),
-    ThanhTien NUMBER(12,2) CHECK (ThanhTien> 0),
+    ThanhTien NUMBER(15,2) CHECK (ThanhTien> 0),
     TGCapNhat DATE DEFAULT SYSDATE,
     PRIMARY KEY (MaKH, MaSP),
     CONSTRAINT FK_GH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
