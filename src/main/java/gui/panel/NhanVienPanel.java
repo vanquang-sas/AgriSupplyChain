@@ -198,7 +198,7 @@ public class NhanVienPanel extends JPanel {
 
         btnThem.addActionListener(e -> showForm(null));
         btnSua.addActionListener(e -> showFormForEdit());
-        btnXoa.addActionListener(e -> xoaNhanVien()); // Chạy hàm xử lý thông minh
+        btnXoa.addActionListener(e -> xoaNhanVien());
         btnKhoa.addActionListener(e -> toggleTrangThaiTaiKhoan());
         btnRefresh.addActionListener(e -> loadData(null));
 
@@ -526,7 +526,7 @@ public class NhanVienPanel extends JPanel {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this,
-                    "Vui lòng click chọn một nhân viên trên bảng để vô hiệu hóa/kích hoạt tài khoản.",
+                    "Vui lòng click chọn một nhân viên trên bảng để khoá/mở khóa tài khoản.",
                     "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -552,7 +552,7 @@ public class NhanVienPanel extends JPanel {
         }
 
         int currentStatus = nv.getTrangThaiTK();
-        String actionText = (currentStatus == 1) ? "vô hiệu hóa (khóa)" : "kích hoạt (mở khóa)";
+        String actionText = (currentStatus == 1) ? "khóa" : "mở khóa";
         String confirmMsg = "Bạn có chắc chắn muốn " + actionText + " tài khoản của nhân viên:\n"
                 + nv.getTenNV() + " (Mã NV: " + maNV + ", Username: " + username + ") không?";
         
@@ -566,12 +566,12 @@ public class NhanVienPanel extends JPanel {
                 if (currentStatus == 1) {
                     bus.khoaTaiKhoan(username);
                     JOptionPane.showMessageDialog(this,
-                            "Đã vô hiệu hóa tài khoản thành công!",
+                            "Đã khoá tài khoản thành công!",
                             "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     bus.moKhoaTaiKhoan(username);
                     JOptionPane.showMessageDialog(this,
-                            "Đã kích hoạt tài khoản thành công!",
+                            "Đã mở khóa tài khoản thành công!",
                             "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 }
                 loadData(null); // Tải lại bảng để cập nhật cột trạng thái

@@ -160,7 +160,7 @@ public class CuaHangPanel extends JPanel {
         // RELOAD BUTTON
         // =========================================
         btnReload = new RoundedButton(
-                "Reload",
+                "Tải lại",
                 AppColor.PRIMARY
         );
 

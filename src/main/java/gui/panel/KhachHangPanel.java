@@ -285,13 +285,13 @@ public class KhachHangPanel extends JPanel {
                     KhachHangDTO kh = currentDataList.stream().filter(k -> k.getMaKH().equals(maKH)).findFirst().orElse(null);
                     if (kh != null) {
                         if (kh.getTrangThaiTK() == 1) {
-                            btnKhoa.setText("Vô hiệu hóa");
+                            btnKhoa.setText("Khoá");
                         } else {
-                            btnKhoa.setText("Kích hoạt");
+                            btnKhoa.setText("Mở khoá");
                         }
                     }
                 } else {
-                    btnKhoa.setText("Vô hiệu hóa");
+                    btnKhoa.setText("Khoá");
                 }
             }
         });
@@ -528,12 +528,12 @@ public class KhachHangPanel extends JPanel {
         }
     }
 
-    // Tính năng VÔ HIỆU HÓA (KHÓA) / KÍCH HOẠT (MỞ KHÓA) TÀI KHOẢN KHÁCH HÀNG
+    // Tính năng KHÓA / MỞ KHÓA TÀI KHOẢN KHÁCH HÀNG
     private void toggleTrangThaiTaiKhoan() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this,
-                    "Vui lòng click chọn một khách hàng trên bảng để vô hiệu hóa/kích hoạt tài khoản.",
+                    "Vui lòng click chọn một khách hàng trên bảng để khoá/mở khóa tài khoản.",
                     "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -551,7 +551,7 @@ public class KhachHangPanel extends JPanel {
         }
 
         int currentStatus = kh.getTrangThaiTK();
-        String actionText = (currentStatus == 1) ? "vô hiệu hóa (khóa)" : "kích hoạt (mở khóa)";
+        String actionText = (currentStatus == 1) ? "khóa" : "mở khóa";
         String confirmMsg = "Bạn có chắc chắn muốn " + actionText + " tài khoản của khách hàng:\n"
                 + kh.getTenKH() + " (Mã KH: " + maKH + ", Username: " + username + ") không?";
         
@@ -565,12 +565,12 @@ public class KhachHangPanel extends JPanel {
                 if (currentStatus == 1) {
                     bus.khoaTaiKhoan(username);
                     JOptionPane.showMessageDialog(this,
-                            "Đã vô hiệu hóa tài khoản thành công!",
+                            "Đã khoá tài khoản thành công!",
                             "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     bus.moKhoaTaiKhoan(username);
                     JOptionPane.showMessageDialog(this,
-                            "Đã kích hoạt tài khoản thành công!",
+                            "Đã mở khóa tài khoản thành công!",
                             "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 }
                 loadData(null); // Tải lại bảng để cập nhật cột trạng thái
