@@ -19,6 +19,12 @@ public class LoHangBUS {
         if (maNCC == null || maNCC.trim().isEmpty()) {
             throw new IllegalArgumentException("Vui lòng chọn nhà cung cấp.");
         }
+        
+        dto.NhaCungCapDTO ncc = new dao.NhaCungCapDAO().getById(maNCC);
+        if (ncc != null && ncc.getTrangThaiHopTac() == 0) {
+            throw new IllegalArgumentException("Từ chối giao dịch: Nhà cung cấp này đang ngừng hợp tác!");
+        }
+
         if (details == null || details.isEmpty()) {
             throw new IllegalArgumentException("Vui lòng thêm ít nhất một sản phẩm vào lô hàng.");
         }

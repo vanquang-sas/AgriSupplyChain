@@ -6,6 +6,7 @@ import gui.dialog.NhanVienForm;
 import util.AppColor;
 
 import javax.swing.*;
+import java.sql.SQLException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -31,6 +32,7 @@ public class NhanVienPanel extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private ModernSearchField searchField;
+    private JButton btnKhoa;
 
     // ── Stat labels ───────────────────────────────────────────────────────────
     private JLabel lblTongNV, lblHoatDong, lblDaKhoa;
@@ -183,16 +185,27 @@ public class NhanVienPanel extends JPanel {
         JButton btnThem = createActionButton("Thêm", AppColor.SUCCESS, AppColor.SUCCESS_HOVER, AppColor.SUCCESS_ACTIVE);
         JButton btnSua  = createActionButton("Sửa",  AppColor.INFO,    AppColor.INFO_HOVER,    AppColor.INFO_ACTIVE);
         JButton btnXoa  = createActionButton("Xóa",  AppColor.ERROR,   AppColor.ERROR_HOVER,  AppColor.ERROR_ACTIVE);
+        btnKhoa = createActionButton("Khoá/Mở khoá", AppColor.WARNING, AppColor.WARNING_HOVER, AppColor.WARNING_ACTIVE);
+        btnKhoa.setPreferredSize(new Dimension(120, 36));
+
+        boolean isAdmin = util.Session.hasRole(0);
+        btnThem.setVisible(isAdmin);
+        btnSua.setVisible(isAdmin);
+        btnXoa.setVisible(isAdmin);
+        btnKhoa.setVisible(isAdmin);
+
         JButton btnRefresh = createIconButton("↻");
 
         btnThem.addActionListener(e -> showForm(null));
         btnSua.addActionListener(e -> showFormForEdit());
-        btnXoa.addActionListener(e -> xoaNhanVienNieu()); // Chạy hàm xử lý thông minh
+        btnXoa.addActionListener(e -> xoaNhanVien()); // Chạy hàm xử lý thông minh
+        btnKhoa.addActionListener(e -> toggleTrangThaiTaiKhoan());
         btnRefresh.addActionListener(e -> loadData(null));
 
         btnGroup.add(btnThem);
         btnGroup.add(btnSua);
         btnGroup.add(btnXoa);
+        btnGroup.add(btnKhoa);
         btnGroup.add(Box.createHorizontalStrut(4));
         btnGroup.add(btnRefresh);
 
@@ -262,6 +275,26 @@ public class NhanVienPanel extends JPanel {
         table.setSelectionForeground(AppColor.TEXT_PRIMARY);
         table.setFocusable(false);
         table.setIntercellSpacing(new Dimension(0, 0));
+
+        // Lắng nghe sự kiện click chọn dòng trên bảng để thay đổi nhãn nút Khóa/Mở khóa linh hoạt
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = table.getSelectedRow();
+                if (selectedRow >= 0) {
+                    String maNV = tableModel.getValueAt(selectedRow, 1).toString();
+                    NhanVienDTO nv = currentDataList.stream().filter(k -> k.getMaNV().equals(maNV)).findFirst().orElse(null);
+                    if (nv != null) {
+                        if (nv.getTrangThaiTK() == 1) {
+                            btnKhoa.setText("Khoá");
+                        } else {
+                            btnKhoa.setText("Mở khoá");
+                        }
+                    }
+                } else {
+                    btnKhoa.setText("Khoá");
+                }
+            }
+        });
 
         JTableHeader header = table.getTableHeader();
         header.setPreferredSize(new Dimension(0, 52)); 
@@ -427,7 +460,7 @@ public class NhanVienPanel extends JPanel {
     }
 
     // LOGIC XÓA NHÂN VIÊN THỰC TẾ
-    private void xoaNhanVienNieu() {
+    private void xoaNhanVien() {
         List<String> listMaNV = new ArrayList<>();
         
         for (int i = 0; i < tableModel.getRowCount(); i++) {
@@ -485,6 +518,68 @@ public class NhanVienPanel extends JPanel {
                         "Thành công", JOptionPane.INFORMATION_MESSAGE);
             }
             loadData(null); 
+        }
+    }
+
+    // Tính năng VÔ HIỆU HÓA (KHÓA) / KÍCH HOẠT (MỞ KHÓA) TÀI KHOẢN NHÂN VIÊN
+    private void toggleTrangThaiTaiKhoan() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Vui lòng click chọn một nhân viên trên bảng để vô hiệu hóa/kích hoạt tài khoản.",
+                    "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String maNV = tableModel.getValueAt(selectedRow, 1).toString();
+        NhanVienDTO nv = currentDataList.stream().filter(k -> k.getMaNV().equals(maNV)).findFirst().orElse(null);
+        if (nv == null) return;
+
+        String username = nv.getUsername();
+        if (username == null || username.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Nhân viên này chưa liên kết tài khoản hệ thống!",
+                    "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Không cho phép tự khóa tài khoản của chính mình!
+        if (util.Session.isLogged() && util.Session.currentUser != null && username.equals(util.Session.currentUser.getUsername())) {
+            JOptionPane.showMessageDialog(this,
+                    "Bạn không thể tự vô hiệu hóa tài khoản của chính mình!",
+                    "Lỗi bảo mật", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int currentStatus = nv.getTrangThaiTK();
+        String actionText = (currentStatus == 1) ? "vô hiệu hóa (khóa)" : "kích hoạt (mở khóa)";
+        String confirmMsg = "Bạn có chắc chắn muốn " + actionText + " tài khoản của nhân viên:\n"
+                + nv.getTenNV() + " (Mã NV: " + maNV + ", Username: " + username + ") không?";
+        
+        int confirm = JOptionPane.showConfirmDialog(
+                this, confirmMsg, "Xác nhận thay đổi trạng thái",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                if (currentStatus == 1) {
+                    bus.khoaTaiKhoan(username);
+                    JOptionPane.showMessageDialog(this,
+                            "Đã vô hiệu hóa tài khoản thành công!",
+                            "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    bus.moKhoaTaiKhoan(username);
+                    JOptionPane.showMessageDialog(this,
+                            "Đã kích hoạt tài khoản thành công!",
+                            "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                }
+                loadData(null); // Tải lại bảng để cập nhật cột trạng thái
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this,
+                        "Lỗi hệ thống: Không thể thay đổi trạng thái tài khoản.\nChi tiết: " + ex.getMessage(),
+                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 

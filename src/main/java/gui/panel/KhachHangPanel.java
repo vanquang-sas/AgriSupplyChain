@@ -36,7 +36,7 @@ public class KhachHangPanel extends JPanel {
 
     // Thêm cột rỗng (Checkbox) lên đầu
     private static final String[] COLUMNS = {
-            "", "MÃ KH", "TÊN KHÁCH HÀNG", "SỐ ĐIỆN THOẠI", "EMAIL", "ĐỊA CHỈ", "LOẠI KH"
+            "", "MÃ KH", "TÊN KHÁCH HÀNG", "SỐ ĐIỆN THOẠI", "EMAIL", "ĐỊA CHỈ", "LOẠI KH", "TRẠNG THÁI"
     };
 
     public KhachHangPanel() {
@@ -175,12 +175,15 @@ public class KhachHangPanel extends JPanel {
         JButton btnThem = createActionButton("Thêm", AppColor.SUCCESS, AppColor.SUCCESS_HOVER, AppColor.SUCCESS_ACTIVE);
         JButton btnSua  = createActionButton("Sửa",  AppColor.INFO,    AppColor.INFO_HOVER,    AppColor.INFO_ACTIVE);
         JButton btnXoa  = createActionButton("Xóa",  AppColor.ERROR,   AppColor.ERROR_HOVER,   AppColor.ERROR_ACTIVE);
+        JButton btnKhoa = createActionButton("Khoá/Mở khoá", AppColor.WARNING, AppColor.WARNING_HOVER, AppColor.WARNING_ACTIVE);
+        btnKhoa.setPreferredSize(new Dimension(120, 36));
 
-        // PHÂN QUYỀN: Chỉ Quản lý (Admin) mới thấy các nút Thêm/Sửa/Xóa
+        // PHÂN QUYỀN: Chỉ Quản lý (Admin) mới thấy các nút Thêm/Sửa/Xóa/Khóa
         boolean isAdmin = util.Session.hasRole(0);
         btnThem.setVisible(isAdmin);
         btnSua.setVisible(isAdmin);
         btnXoa.setVisible(isAdmin);
+        btnKhoa.setVisible(isAdmin);
 
         JButton btnRefresh = createIconButton("icons/refresh.svg");
         btnRefresh.setPreferredSize(new Dimension(36, 36));
@@ -188,11 +191,13 @@ public class KhachHangPanel extends JPanel {
         btnThem.addActionListener(e -> showForm(null));
         btnSua .addActionListener(e -> showFormForEdit());
         btnXoa .addActionListener(e -> xoaKhachHangNieu()); // Gọi logic thông minh
+        btnKhoa.addActionListener(e -> toggleTrangThaiTaiKhoan());
         btnRefresh.addActionListener(e -> loadData(null));
 
         btnGroup.add(btnThem);
         btnGroup.add(btnSua);
         btnGroup.add(btnXoa);
+        btnGroup.add(btnKhoa);
         btnGroup.add(Box.createHorizontalStrut(4));
         btnGroup.add(btnRefresh);
 
@@ -271,6 +276,26 @@ public class KhachHangPanel extends JPanel {
         table.setFocusable(false);
         table.setIntercellSpacing(new Dimension(0, 0));
 
+        // Lắng nghe sự kiện click chọn dòng trên bảng để thay đổi nhãn nút Khóa/Mở khóa linh hoạt
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = table.getSelectedRow();
+                if (selectedRow >= 0) {
+                    String maKH = tableModel.getValueAt(selectedRow, 1).toString();
+                    KhachHangDTO kh = currentDataList.stream().filter(k -> k.getMaKH().equals(maKH)).findFirst().orElse(null);
+                    if (kh != null) {
+                        if (kh.getTrangThaiTK() == 1) {
+                            btnKhoa.setText("Vô hiệu hóa");
+                        } else {
+                            btnKhoa.setText("Kích hoạt");
+                        }
+                    }
+                } else {
+                    btnKhoa.setText("Vô hiệu hóa");
+                }
+            }
+        });
+
         JTableHeader header = table.getTableHeader();
         header.setPreferredSize(new Dimension(0, 52)); 
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(209, 213, 219)));
@@ -299,18 +324,21 @@ public class KhachHangPanel extends JPanel {
             table.getColumnModel().getColumn(i).setHeaderRenderer(hdrRdr);
         }
 
-        int[] widths = {50, 100, 200, 130, 190, 200, 110};
+        int[] widths = {50, 100, 180, 120, 160, 180, 100, 110};
         for (int i = 0; i < widths.length; i++) {
             table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         }
 
         ZebraHoverRenderer zebraRdr = new ZebraHoverRenderer(table);
-        for (int i = 1; i < COLUMNS.length - 1; i++) {
-            table.getColumnModel().getColumn(i).setCellRenderer(zebraRdr);
+        for (int i = 1; i < COLUMNS.length; i++) {
+            if (i != 6 && i != 7) {
+                table.getColumnModel().getColumn(i).setCellRenderer(zebraRdr);
+            }
         }
         
         table.getColumnModel().getColumn(0).setCellRenderer(new ZebraCheckBoxRenderer(table));
         table.getColumnModel().getColumn(6).setCellRenderer(new BadgeRenderer(table));
+        table.getColumnModel().getColumn(7).setCellRenderer(new BadgeRenderer(table));
 
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createEmptyBorder()); 
@@ -478,15 +506,18 @@ public class KhachHangPanel extends JPanel {
                     if (bus.delete(ma)) {
                         countSuccess++;
                     }
+                } catch (IllegalArgumentException ex) {
+                    // Lỗi nghiệp vụ (Khách hàng đã phát sinh đơn hàng)
+                    errors.append("- Mã ").append(ma).append(": ").append(ex.getMessage()).append("\n");
                 } catch (SQLException ex) {
-                    // Nếu lỗi SQL sinh ra do ràng buộc (Khách hàng này đã từng mua hàng)
-                    errors.append("- Mã ").append(ma).append(": Lịch sử giao dịch đang tồn tại.\n");
+                    // Lỗi CSDL khác
+                    errors.append("- Mã ").append(ma).append(": Lỗi CSDL (").append(ex.getMessage()).append(").\n");
                 }
             }
 
             if (errors.length() > 0) {
                 JOptionPane.showMessageDialog(this,
-                        "Đã xóa thành công: " + countSuccess + " khách hàng.\n\nKhông thể xóa các khách hàng sau do ràng buộc dữ liệu:\n" + errors.toString(),
+                        "Đã xóa thành công: " + countSuccess + " khách hàng.\n\nKhông thể xóa các khách hàng sau:\n" + errors.toString(),
                         "Kết quả xóa", JOptionPane.WARNING_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(this,
@@ -494,6 +525,60 @@ public class KhachHangPanel extends JPanel {
                         "Thành công", JOptionPane.INFORMATION_MESSAGE);
             }
             loadData(null); // Load lại bảng
+        }
+    }
+
+    // Tính năng VÔ HIỆU HÓA (KHÓA) / KÍCH HOẠT (MỞ KHÓA) TÀI KHOẢN KHÁCH HÀNG
+    private void toggleTrangThaiTaiKhoan() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Vui lòng click chọn một khách hàng trên bảng để vô hiệu hóa/kích hoạt tài khoản.",
+                    "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String maKH = tableModel.getValueAt(selectedRow, 1).toString();
+        KhachHangDTO kh = currentDataList.stream().filter(k -> k.getMaKH().equals(maKH)).findFirst().orElse(null);
+        if (kh == null) return;
+
+        String username = kh.getUsername();
+        if (username == null || username.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Khách hàng này chưa liên kết tài khoản hệ thống!",
+                    "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int currentStatus = kh.getTrangThaiTK();
+        String actionText = (currentStatus == 1) ? "vô hiệu hóa (khóa)" : "kích hoạt (mở khóa)";
+        String confirmMsg = "Bạn có chắc chắn muốn " + actionText + " tài khoản của khách hàng:\n"
+                + kh.getTenKH() + " (Mã KH: " + maKH + ", Username: " + username + ") không?";
+        
+        int confirm = JOptionPane.showConfirmDialog(
+                this, confirmMsg, "Xác nhận thay đổi trạng thái",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                if (currentStatus == 1) {
+                    bus.khoaTaiKhoan(username);
+                    JOptionPane.showMessageDialog(this,
+                            "Đã vô hiệu hóa tài khoản thành công!",
+                            "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    bus.moKhoaTaiKhoan(username);
+                    JOptionPane.showMessageDialog(this,
+                            "Đã kích hoạt tài khoản thành công!",
+                            "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                }
+                loadData(null); // Tải lại bảng để cập nhật cột trạng thái
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this,
+                        "Lỗi hệ thống: Không thể thay đổi trạng thái tài khoản.\nChi tiết: " + ex.getMessage(),
+                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -527,7 +612,8 @@ public class KhachHangPanel extends JPanel {
                     kh.getSdt(),
                     kh.getEmail()  != null ? kh.getEmail()  : "",
                     kh.getDiaChi() != null ? kh.getDiaChi() : "",
-                    kh.getLoaiKH() != null ? kh.getLoaiKH() : "Thường"
+                    kh.getLoaiKH() != null ? kh.getLoaiKH() : "Thường",
+                    kh.getTrangThaiTK() == 1 ? "Hoạt động" : "Bị khóa"
             });
         }
     }
@@ -862,6 +948,8 @@ public class KhachHangPanel extends JPanel {
                 case "Thân thiết":
                 case "Hoạt động":
                     badgeBg = new Color(0xD1FAE5); badgeFg = new Color(0x065F46); break;
+                case "Bị khóa":
+                    badgeBg = new Color(0xFEE2E2); badgeFg = new Color(0x991B1B); break;
                 default:
                     badgeBg = new Color(0xF3F4F6); badgeFg = new Color(0x374151); break;
             }

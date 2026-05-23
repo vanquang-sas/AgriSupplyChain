@@ -145,7 +145,7 @@ public class SanPhamPanel extends JPanel {
 
         btnThem.addActionListener(e -> showForm(null));
         btnSua.addActionListener(e -> showFormForEdit());
-        btnXoa.addActionListener(e -> xoaSanPhamNieu());
+        btnXoa.addActionListener(e -> xoaSanPham());
         btnRefresh.addActionListener(e -> loadData(null));
 
         btnGroup.add(btnThem); btnGroup.add(btnSua); btnGroup.add(btnXoa); 
@@ -242,7 +242,7 @@ public class SanPhamPanel extends JPanel {
         showForm(tableModel.getValueAt(row, 1).toString());
     }
 
-    private void xoaSanPhamNieu() {
+    private void xoaSanPham() {
         List<String> listMa = new ArrayList<>();
         for (int i = 0; i < tableModel.getRowCount(); i++) {
             if (Boolean.TRUE.equals(tableModel.getValueAt(i, 0))) {

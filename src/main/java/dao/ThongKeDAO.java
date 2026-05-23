@@ -16,13 +16,13 @@ public class ThongKeDAO {
     // ============================= THỐNG KÊ SẢN PHẨM =============================
     public List<ThongKeDTO.DoanhThu> getDoanhThuTheoNam(int nam) {
         List<ThongKeDTO.DoanhThu> list = new ArrayList<>();
-        String sql = "{call SP_THONGKE_DOANHTHU_NAM(?, ?)}";
+        String sql = "{? = call FN_THONGKE_DOANHTHU_NAM(?)}";
         try (Connection conn = DBConnection.getConnection();
              CallableStatement cs = conn.prepareCall(sql)) {
-            cs.setInt(1, nam);
-            cs.registerOutParameter(2, OracleTypes.CURSOR);
+            cs.registerOutParameter(1, OracleTypes.CURSOR);
+            cs.setInt(2, nam);
             cs.execute();
-            try (ResultSet rs = (ResultSet) cs.getObject(2)) {
+            try (ResultSet rs = (ResultSet) cs.getObject(1)) {
                 while (rs.next()) {
                     list.add(new ThongKeDTO.DoanhThu(rs.getInt("Thang"), rs.getDouble("DoanhThu")));
                 }
@@ -39,7 +39,7 @@ public class ThongKeDAO {
                      "NVL(SUM(v.ChiPhi), 0) AS TongChiPhi " +
                      "FROM SANPHAM sp " +
                      "LEFT JOIN V_THONGKE_SP v ON sp.MaSP = v.MaSP " +
-                     "     AND v.NgayGD >= ? AND v.NgayGD <= ? " +
+                     "     AND TRUNC(v.NgayGD) >= ? AND TRUNC(v.NgayGD) <= ? " +
                      "GROUP BY sp.MaSP, sp.TenSP";
                      
         try (Connection con = DBConnection.getConnection();
@@ -97,7 +97,7 @@ public class ThongKeDAO {
 
     public List<ThongKeDTO.TrangThai> getTyLeTrangThai() {
         List<ThongKeDTO.TrangThai> list = new ArrayList<>();
-        String sql = "{call SP_THONGKE_TRANGTHAI_DH(?)}";
+        String sql = "{? = call FN_THONGKE_TRANGTHAI_DH()}";
         try (Connection conn = DBConnection.getConnection();
              CallableStatement cs = conn.prepareCall(sql)) {
             cs.registerOutParameter(1, OracleTypes.CURSOR);
@@ -170,7 +170,7 @@ public class ThongKeDAO {
         List<ThongKeDTO.TrangThai> list = new ArrayList<>();
         String sql = "SELECT TrangThaiLH, COUNT(MaLH) AS SoLuong " +
                      "FROM LOHANG " +
-                     "WHERE TGNhap >= ? AND TGNhap <= ? " +
+                     "WHERE TRUNC(TGNhap) >= ? AND TRUNC(TGNhap) <= ? " +
                      "GROUP BY TrangThaiLH";
         
         try (Connection con = DBConnection.getConnection();

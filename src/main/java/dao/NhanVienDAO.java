@@ -201,8 +201,36 @@ public class NhanVienDAO {
                      "UPDATE TAIKHOAN SET TrangThaiTK = 1 WHERE Username = ?")) {
             ps.setString(1, username);
             ps.executeUpdate();
-            conn.commit();
         }
+    }
+
+    public boolean coHoatDong(String maNV) {
+        String sqlLoHang = "SELECT COUNT(*) FROM LOHANG WHERE MaNV = ?";
+        String sqlDonHang = "SELECT COUNT(*) FROM DONHANG WHERE MaNV = ?";
+        String sqlXuatKho = "SELECT COUNT(*) FROM XUATKHO WHERE MaNV = ?";
+        try (Connection conn = DBConnection.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(sqlLoHang)) {
+                ps.setString(1, maNV);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) return true;
+                }
+            }
+            try (PreparedStatement ps = conn.prepareStatement(sqlDonHang)) {
+                ps.setString(1, maNV);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) return true;
+                }
+            }
+            try (PreparedStatement ps = conn.prepareStatement(sqlXuatKho)) {
+                ps.setString(1, maNV);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) return true;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public boolean isUsernameExists(String username) {

@@ -70,6 +70,9 @@ public class KhachHangBUS {
     }
     
     public boolean delete(String maKH) throws SQLException {
+        if (khDAO.coDonHang(maKH)) {
+            throw new IllegalArgumentException("Khách hàng đã phát sinh đơn hàng, không được phép xóa!");
+        }
         return khDAO.delete(maKH);
     }
 

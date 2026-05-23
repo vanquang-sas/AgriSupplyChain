@@ -57,28 +57,30 @@ public class KhoDAO {
 
     // ===================== GHI DỮ LIỆU =====================
 
-    // Thêm kho mới: SP_THEM_KHO(p_TenKho, p_LoaiKho, p_DiaChi, p_MoTa)
+    // Thêm kho mới trực tiếp bằng SQL
     public void them(KhoDTO kho) throws SQLException {
+        String sql = "INSERT INTO KHO (TenKho, LoaiKho, DiaChi, MoTa) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall("{CALL SP_THEM_KHO(?, ?, ?, ?)}")) {
-            cs.setString(1, kho.getTenKho());
-            cs.setString(2, kho.getLoaiKho());
-            cs.setString(3, kho.getDiaChi());
-            cs.setString(4, kho.getMoTa());
-            cs.execute();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, kho.getTenKho());
+            ps.setString(2, kho.getLoaiKho());
+            ps.setString(3, kho.getDiaChi());
+            ps.setString(4, kho.getMoTa());
+            ps.executeUpdate();
         }
     }
 
-    // Cập nhật kho: SP_CAPNHAT_KHO(p_MaKho, p_TenKho, p_LoaiKho, p_DiaChi, p_MoTa)
+    // Cập nhật kho trực tiếp bằng SQL
     public void capNhat(KhoDTO kho) throws SQLException {
+        String sql = "UPDATE KHO SET TenKho = ?, LoaiKho = ?, DiaChi = ?, MoTa = ? WHERE MaKho = ?";
         try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall("{CALL SP_CAPNHAT_KHO(?, ?, ?, ?, ?)}")) {
-            cs.setString(1, kho.getMaKho());
-            cs.setString(2, kho.getTenKho());
-            cs.setString(3, kho.getLoaiKho());
-            cs.setString(4, kho.getDiaChi());
-            cs.setString(5, kho.getMoTa());
-            cs.execute();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, kho.getTenKho());
+            ps.setString(2, kho.getLoaiKho());
+            ps.setString(3, kho.getDiaChi());
+            ps.setString(4, kho.getMoTa());
+            ps.setString(5, kho.getMaKho());
+            ps.executeUpdate();
         }
     }
 

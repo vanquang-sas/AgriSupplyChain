@@ -371,3 +371,44 @@ BEGIN
     RETURN v_cursor;
 END;
 /
+
+-- 6. Thống kê Doanh thu theo Năm (trả về 12 tháng)
+CREATE OR REPLACE FUNCTION FN_THONGKE_DOANHTHU_NAM (
+    p_Nam IN NUMBER
+) RETURN SYS_REFCURSOR
+IS
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    OPEN v_cursor FOR
+        WITH Months AS (
+            SELECT LEVEL AS Thang FROM DUAL CONNECT BY LEVEL <= 12
+        ),
+        MonthlyRevenue AS (
+            SELECT EXTRACT(MONTH FROM TGDat) AS Thang, SUM(TongTien) AS DoanhThu
+            FROM DONHANG
+            WHERE EXTRACT(YEAR FROM TGDat) = p_Nam AND TrangThaiDH = 'Hoàn thành'
+            GROUP BY EXTRACT(MONTH FROM TGDat)
+        )
+        SELECT m.Thang, NVL(r.DoanhThu, 0) AS DoanhThu
+        FROM Months m
+        LEFT JOIN MonthlyRevenue r ON m.Thang = r.Thang
+        ORDER BY m.Thang;
+    RETURN v_cursor;
+END;
+/
+
+-- 7. Thống kê số lượng đơn hàng theo Trạng thái
+CREATE OR REPLACE FUNCTION FN_THONGKE_TRANGTHAI_DH
+RETURN SYS_REFCURSOR
+IS
+    v_cursor SYS_REFCURSOR;
+BEGIN
+    OPEN v_cursor FOR
+        SELECT TrangThaiDH, COUNT(*) AS SoLuong
+        FROM DONHANG
+        GROUP BY TrangThaiDH
+        ORDER BY SoLuong DESC;
+    RETURN v_cursor;
+END;
+/
+

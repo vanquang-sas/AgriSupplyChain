@@ -6,6 +6,7 @@ import gui.dialog.NhaCungCapForm;
 import util.AppColor;
 
 import javax.swing.*;
+import java.sql.SQLException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -29,6 +30,7 @@ public class NhaCungCapPanel extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private ModernSearchField searchField;
+    private JButton btnHopTac;
 
     // ── Stat labels ───────────────────────────────────────────────────────────
     private JLabel lblTongNCC, lblDangHopTac, lblNgungHopTac;
@@ -174,23 +176,28 @@ public class NhaCungCapPanel extends JPanel {
         JButton btnThem = createActionButton("Thêm", AppColor.SUCCESS, AppColor.SUCCESS_HOVER, AppColor.SUCCESS_ACTIVE);
         JButton btnSua  = createActionButton("Sửa",  AppColor.INFO,    AppColor.INFO_HOVER,    AppColor.INFO_ACTIVE);
         JButton btnXoa  = createActionButton("Xóa",  AppColor.ERROR,   AppColor.ERROR_HOVER,  AppColor.ERROR_ACTIVE);
+        btnHopTac = createActionButton("Ngừng hợp tác", AppColor.WARNING, AppColor.WARNING_HOVER, AppColor.WARNING_ACTIVE);
+        btnHopTac.setPreferredSize(new Dimension(140, 36));
 
-        // PHÂN QUYỀN: Chỉ Quản lý (Admin) mới thấy các nút Thêm/Sửa/Xóa
+        // PHÂN QUYỀN: Chỉ Quản lý (Admin) mới thấy các nút Thêm/Sửa/Xóa/Khóa
         boolean isAdmin = util.Session.hasRole(0);
         btnThem.setVisible(isAdmin);
         btnSua.setVisible(isAdmin);
         btnXoa.setVisible(isAdmin);
+        btnHopTac.setVisible(isAdmin);
 
         JButton btnRefresh = createIconButton("↻");
 
         btnThem.addActionListener(e -> showForm(null));
         btnSua .addActionListener(e -> showFormForEdit());
         btnXoa .addActionListener(e -> xoaNhaCungCapNieu()); // Tính năng Xóa đa nhiệm
+        btnHopTac.addActionListener(e -> toggleTrangThaiHopTac());
         btnRefresh.addActionListener(e -> loadData(null));
 
         btnGroup.add(btnThem);
         btnGroup.add(btnSua);
         btnGroup.add(btnXoa);
+        btnGroup.add(btnHopTac);
         btnGroup.add(Box.createHorizontalStrut(4));
         btnGroup.add(btnRefresh);
 
@@ -256,6 +263,26 @@ public class NhaCungCapPanel extends JPanel {
         table.setSelectionForeground(AppColor.TEXT_PRIMARY);
         table.setFocusable(false);
         table.setIntercellSpacing(new Dimension(0, 0));
+
+        // Lắng nghe sự kiện click chọn dòng trên bảng để thay đổi nhãn nút Ngừng hợp tác linh hoạt
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = table.getSelectedRow();
+                if (selectedRow >= 0) {
+                    String maNCC = tableModel.getValueAt(selectedRow, 1).toString();
+                    NhaCungCapDTO ncc = currentDataList.stream().filter(k -> k.getMaNCC().equals(maNCC)).findFirst().orElse(null);
+                    if (ncc != null) {
+                        if (ncc.getTrangThaiHopTac() == 1) {
+                            btnHopTac.setText("Ngừng hợp tác");
+                        } else {
+                            btnHopTac.setText("Hợp tác lại");
+                        }
+                    }
+                } else {
+                    btnHopTac.setText("Ngừng hợp tác");
+                }
+            }
+        });
 
         JTableHeader header = table.getTableHeader();
         header.setPreferredSize(new Dimension(0, 52)); 
@@ -479,6 +506,52 @@ public class NhaCungCapPanel extends JPanel {
                         "Thành công", JOptionPane.INFORMATION_MESSAGE);
             }
             loadData(null);
+        }
+    }
+
+    // Tính năng NGỪNG HỢP TÁC / KHÔI PHỤC HỢP TÁC VỚI NHÀ CUNG CẤP
+    private void toggleTrangThaiHopTac() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Vui lòng click chọn một nhà cung cấp trên bảng để thay đổi trạng thái hợp tác.",
+                    "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String maNCC = tableModel.getValueAt(selectedRow, 1).toString();
+        NhaCungCapDTO ncc = currentDataList.stream().filter(k -> k.getMaNCC().equals(maNCC)).findFirst().orElse(null);
+        if (ncc == null) return;
+
+        int currentStatus = ncc.getTrangThaiHopTac();
+        String actionText = (currentStatus == 1) ? "ngừng hợp tác" : "khôi phục hợp tác";
+        String confirmMsg = "Bạn có chắc chắn muốn " + actionText + " với nhà cung cấp:\n"
+                + ncc.getTenNCC() + " (Mã NCC: " + maNCC + ") không?";
+        
+        int confirm = JOptionPane.showConfirmDialog(
+                this, confirmMsg, "Xác nhận thay đổi trạng thái hợp tác",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                if (currentStatus == 1) {
+                    bus.ngungHopTac(maNCC);
+                    JOptionPane.showMessageDialog(this,
+                            "Đã ngừng hợp tác thành công với nhà cung cấp!",
+                            "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    bus.khoiPhucHopTac(maNCC);
+                    JOptionPane.showMessageDialog(this,
+                            "Đã khôi phục trạng thái hợp tác thành công!",
+                            "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                }
+                loadData(null); // Tải lại bảng để cập nhật cột trạng thái
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this,
+                        "Lỗi hệ thống: Không thể thay đổi trạng thái hợp tác.\nChi tiết: " + ex.getMessage(),
+                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 

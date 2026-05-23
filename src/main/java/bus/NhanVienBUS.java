@@ -69,7 +69,10 @@ public class NhanVienBUS {
         return nvDAO.getByUsername(username);
     }
 
-    public boolean delete(String maNV) throws SQLException {
+    public boolean delete(String maNV) throws SQLException, IllegalArgumentException {
+        if (nvDAO.coHoatDong(maNV)) {
+            throw new IllegalArgumentException("Nhân viên đã phát sinh hoạt động (nhập lô hàng, giao đơn hàng hoặc xuất kho), không được phép xóa! Hãy chọn vô hiệu hóa tài khoản của họ.");
+        }
         return nvDAO.delete(maNV);
     }
 }

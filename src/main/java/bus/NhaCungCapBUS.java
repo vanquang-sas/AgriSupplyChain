@@ -64,7 +64,10 @@ public class NhaCungCapBUS {
             throw new IllegalArgumentException("Địa chỉ không được để trống!");
     }
 
-    public boolean delete(String maNCC) throws SQLException {
+    public boolean delete(String maNCC) throws SQLException, IllegalArgumentException {
+        if (dao.daCungCapHang(maNCC)) {
+            throw new IllegalArgumentException("Nhà cung cấp đã từng cung cấp hàng hóa (đã phát sinh lô hàng), không thể xóa! Hãy chọn Ngừng hợp tác với họ.");
+        }
         return dao.delete(maNCC);
     }
 }

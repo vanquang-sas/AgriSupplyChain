@@ -20,29 +20,33 @@ public class LoHangDAO {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
-            try (CallableStatement cs = conn.prepareCall("{call SP_THEM_LH(?, ?)}")) {
-                cs.setString(1, maNCC);
-                cs.setString(2, maNV);
-                cs.execute();
-            }
-
-            String maLH;
-            try (PreparedStatement ps = conn.prepareStatement("SELECT 'LH' || LPAD(SEQ_LOHANG.CURRVAL,6,'0') AS MaLH FROM DUAL");
-                 ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) {
-                    conn.rollback();
-                    return false;
+            String maLH = null;
+            String sqlLH = "INSERT INTO LOHANG (MaNCC, MaNV, TrangThaiLH) VALUES (?, ?, 'Chờ kiểm duyệt')";
+            try (PreparedStatement ps = conn.prepareStatement(sqlLH, new String[]{"MALH"})) {
+                ps.setString(1, maNCC);
+                ps.setString(2, maNV);
+                ps.executeUpdate();
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        maLH = rs.getString(1);
+                    }
                 }
-                maLH = rs.getString("MaLH");
             }
 
-            try (CallableStatement cs = conn.prepareCall("{call SP_THEM_CTLH(?, ?, ?)}")) {
+            if (maLH == null) {
+                conn.rollback();
+                return false;
+            }
+
+            String sqlCT = "INSERT INTO CHITIETLOHANG (MaLH, MaSP, SoLuong) VALUES (?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sqlCT)) {
                 for (ChiTietLoHangDTO item : details) {
-                    cs.setString(1, maLH);
-                    cs.setString(2, item.getMaSP());
-                    cs.setDouble(3, item.getSoLuong());
-                    cs.execute();
+                    ps.setString(1, maLH);
+                    ps.setString(2, item.getMaSP());
+                    ps.setDouble(3, item.getSoLuong());
+                    ps.addBatch();
                 }
+                ps.executeBatch();
             }
 
             conn.commit();
@@ -68,28 +72,26 @@ public class LoHangDAO {
         }
     }
 
-    // 1. Thêm lô hàng
+    // 1. Thêm lô hàng trực tiếp bằng SQL
     public boolean themLoHang(int maNCC) {
-        try {
-            Connection conn = DBConnection.getConnection();
-            CallableStatement cs = conn.prepareCall("{call SP_THEM_LH(?)}");
-            cs.setInt(1, maNCC);
-            return cs.executeUpdate() > 0;
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement("INSERT INTO LOHANG (MaNCC, TrangThaiLH) VALUES (?, 'Chờ kiểm duyệt')")) {
+            ps.setInt(1, maNCC);
+            return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    // 2. Thêm chi tiết lô hàng
+    // 2. Thêm chi tiết lô hàng trực tiếp bằng SQL
     public boolean themChiTietLoHang(int maLH, int maSP, int soLuong) {
-        try {
-            Connection conn = DBConnection.getConnection();
-            CallableStatement cs = conn.prepareCall("{call SP_THEM_CTLH(?,?,?)}");
-            cs.setInt(1, maLH);
-            cs.setInt(2, maSP);
-            cs.setInt(3, soLuong);
-            return cs.executeUpdate() > 0;
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement("INSERT INTO CHITIETLOHANG (MaLH, MaSP, SoLuong) VALUES (?, ?, ?)")) {
+            ps.setInt(1, maLH);
+            ps.setInt(2, maSP);
+            ps.setInt(3, soLuong);
+            return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -169,13 +171,40 @@ public class LoHangDAO {
     }
 
     public boolean xoaLoHang(String maLH) {
-        try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall("{call SP_XOA_LH(?)}")) {
-            cs.setString(1, maLH);
-            cs.execute();
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            // 1. Xóa chi tiết lô hàng trước
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM CHITIETLOHANG WHERE MaLH = ?")) {
+                ps.setString(1, maLH);
+                ps.executeUpdate();
+            }
+
+            // 2. Xóa lô hàng cha
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM LOHANG WHERE MaLH = ?")) {
+                ps.setString(1, maLH);
+                ps.executeUpdate();
+            }
+
+            conn.commit();
             return true;
         } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
             throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException ignored) {
+                }
+            }
         }
     }
 

@@ -57,16 +57,17 @@ public class NhaCungCapDAO {
 
     // ===================== GHI DỮ LIỆU =====================
 
-    // Thêm mới: SP_THEM_NCC
+    // Thêm mới trực tiếp bằng SQL
     public void them(NhaCungCapDTO ncc) throws SQLException {
+        String sql = "INSERT INTO NHACUNGCAP (TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES (?, ?, ?, ?, ?, 1)";
         try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall("{CALL SP_THEM_NCC(?, ?, ?, ?, ?)}")) {
-            cs.setString(1, ncc.getTenNCC());
-            cs.setString(2, ncc.getDiaChi());
-            cs.setString(3, ncc.getSdt());
-            cs.setString(4, ncc.getEmail());
-            cs.setString(5, ncc.getChungNhanCL());
-            cs.execute();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, ncc.getTenNCC());
+            ps.setString(2, ncc.getDiaChi());
+            ps.setString(3, ncc.getSdt());
+            ps.setString(4, ncc.getEmail());
+            ps.setString(5, ncc.getChungNhanCL());
+            ps.executeUpdate();
         }
     }
 
@@ -80,26 +81,28 @@ public class NhaCungCapDAO {
         }
     }
 
-    // Cập nhật: SP_CAPNHAT_NCC
+    // Cập nhật trực tiếp bằng SQL
     public void capNhat(NhaCungCapDTO ncc) throws SQLException {
+        String sql = "UPDATE NHACUNGCAP SET TenNCC = ?, DiaChi = ?, SDT = ?, Email = ?, ChungNhanCL = ? WHERE MaNCC = ?";
         try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall("{CALL SP_CAPNHAT_NCC(?, ?, ?, ?, ?, ?)}")) {
-            cs.setString(1, ncc.getMaNCC());
-            cs.setString(2, ncc.getTenNCC());
-            cs.setString(3, ncc.getDiaChi());
-            cs.setString(4, ncc.getSdt());
-            cs.setString(5, ncc.getEmail());
-            cs.setString(6, ncc.getChungNhanCL());
-            cs.execute();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, ncc.getTenNCC());
+            ps.setString(2, ncc.getDiaChi());
+            ps.setString(3, ncc.getSdt());
+            ps.setString(4, ncc.getEmail());
+            ps.setString(5, ncc.getChungNhanCL());
+            ps.setString(6, ncc.getMaNCC());
+            ps.executeUpdate();
         }
     }
 
-    // Ngừng hợp tác: SP_NGUNG_HOPTAC
+    // Ngừng hợp tác trực tiếp bằng SQL
     public void ngungHopTac(String maNCC) throws SQLException {
+        String sql = "UPDATE NHACUNGCAP SET TrangThaiHopTac = 0 WHERE MaNCC = ?";
         try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall("{CALL SP_NGUNG_HOPTAC(?)}")) {
-            cs.setString(1, maNCC);
-            cs.execute();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maNCC);
+            ps.executeUpdate();
         }
     }
 
@@ -110,8 +113,21 @@ public class NhaCungCapDAO {
                      "UPDATE NHACUNGCAP SET TrangThaiHopTac = 1 WHERE MaNCC = ?")) {
             ps.setString(1, maNCC);
             ps.executeUpdate();
-            conn.commit();
         }
+    }
+
+    public boolean daCungCapHang(String maNCC) {
+        String sql = "SELECT COUNT(*) FROM LOHANG WHERE MaNCC = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maNCC);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     // ===================== HELPER =====================

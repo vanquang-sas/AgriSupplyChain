@@ -38,14 +38,15 @@ public class ThamSoDAO {
         return null;
     }
 
-    // Cập nhật tham số: SP_CAPNHAT_THAMSO(p_MaTS, p_GiaTri, p_MoTa)
+    // Cập nhật tham số trực tiếp bằng SQL
     public void capNhat(String maTS, double giaTri, String moTa) throws SQLException {
+        String sql = "UPDATE THAMSO SET GiaTri = ?, MoTa = ? WHERE MaTS = ?";
         try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall("{CALL SP_CAPNHAT_THAMSO(?, ?, ?)}")) {
-            cs.setString(1, maTS);
-            cs.setDouble(2, giaTri);
-            cs.setString(3, moTa);
-            cs.execute();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDouble(1, giaTri);
+            ps.setString(2, moTa);
+            ps.setString(3, maTS);
+            ps.executeUpdate();
         }
     }
 

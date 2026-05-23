@@ -223,14 +223,35 @@ public class KhachHangDAO {
         }
     }
 
+    // Kiểm tra khách hàng có đơn hàng nào không để phục vụ kiểm tra trước khi xóa
+    public boolean coDonHang(String maKH) {
+        String sql = "SELECT COUNT(*) FROM DONHANG WHERE MaKH = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maKH);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Lỗi DAO - coDonHang: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     // Mở khóa tài khoản (chưa có SP riêng nên dùng UPDATE trực tiếp)
     public void moKhoaTaiKhoan(String username) throws SQLException {
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "UPDATE TAIKHOAN SET TrangThaiTK = 1 WHERE Username = ?")) {
-            ps.setString(1, username);
-            ps.executeUpdate();
-            conn.commit();
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE TAIKHOAN SET TrangThaiTK = 1 WHERE Username = ?")) {
+                    ps.setString(1, username);
+                    ps.executeUpdate();
+                }
+            }
         }
     }
 

@@ -44,16 +44,20 @@ public class SanPhamDAO {
 
     public List<SanPhamDTO> timKiem(String keyword) {
         List<SanPhamDTO> list = new ArrayList<>();
-        String sql = "{call SP_TIMKIEM_SANPHAM(?, ?)}";
+        String sql = "SELECT SP.MaSP, SP.TenSP, SP.MaLSP, LSP.TenLSP, SP.ChatLuong, SP.GiaMua, SP.GiaBan, SP.DonViTinh, SP.BaoQuan, SP.HinhAnh " +
+                     "FROM SANPHAM SP " +
+                     "LEFT JOIN LOAISANPHAM LSP ON SP.MaLSP = LSP.MaLSP " +
+                     "WHERE UPPER(SP.TenSP) LIKE UPPER(?) OR UPPER(SP.MaSP) LIKE UPPER(?) OR UPPER(LSP.TenLSP) LIKE UPPER(?)";
         
         try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
              
-            cs.setString(1, keyword);
-            cs.registerOutParameter(2, OracleTypes.CURSOR);
-            cs.execute();
+            String kw = "%" + keyword + "%";
+            ps.setString(1, kw);
+            ps.setString(2, kw);
+            ps.setString(3, kw);
             
-            try (ResultSet rs = (ResultSet) cs.getObject(2)) {
+            try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     SanPhamDTO sp = new SanPhamDTO();
                     sp.setMaSP(rs.getString("MaSP"));
@@ -122,13 +126,12 @@ public class SanPhamDAO {
     }
 
     public boolean delete(String maSP) throws SQLException {
-        String sql = "{call SP_XOA_SANPHAM(?)}";
+        String sql = "DELETE FROM SANPHAM WHERE MaSP = ?";
         try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
              
-            cs.setString(1, maSP);
-            cs.execute();
-            return true;
+            ps.setString(1, maSP);
+            return ps.executeUpdate() > 0;
         }
     }
 }

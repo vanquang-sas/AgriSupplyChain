@@ -1,36 +1,7 @@
 -- ====================================================================================
 --                           PHẦN 7: Thêm dữ liệu cho demo
 -- ====================================================================================
--- Vô hiệu hoá khoá ngoại -> Xoá dữ liệu cũ -> Kích hoạt lại khoá ngoại -> Thêm dữ liệu mới
-BEGIN
-    -- Disable tất cả FK
-    FOR c IN (
-        SELECT table_name, constraint_name
-        FROM user_constraints
-        WHERE constraint_type = 'R'
-    ) LOOP
-        EXECUTE IMMEDIATE 'ALTER TABLE ' || c.table_name ||
-                          ' DISABLE CONSTRAINT ' || c.constraint_name;
-    END LOOP;
 
-    -- Xoá dữ liệu tất cả bảng
-    FOR t IN (
-        SELECT table_name FROM user_tables
-    ) LOOP
-        EXECUTE IMMEDIATE 'DELETE FROM ' || t.table_name;
-    END LOOP;
-
-    -- Enable lại FK
-    FOR c IN (
-        SELECT table_name, constraint_name
-        FROM user_constraints
-        WHERE constraint_type = 'R'
-    ) LOOP
-        EXECUTE IMMEDIATE 'ALTER TABLE ' || c.table_name ||
-                          ' ENABLE CONSTRAINT ' || c.constraint_name;
-    END LOOP;
-END;
-/
 -- -------------------------------------------------------------------------
 -- 1. KHO (3 Kho theo đúng 3 loại quy định)
 -- -------------------------------------------------------------------------
@@ -126,7 +97,6 @@ INSERT ALL
     INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvgh03', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0983334443', NULL)
     INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvgh04', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0983334444', NULL)
     INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvgh05', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0983334445', NULL)
-
     INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh01', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 1, TP.HCM', '0912345001', 'tra.nguyen@gmail.com')
     INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh02', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 3, TP.HCM', '0912345002', 'lap.tran@gmail.com')
     INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh03', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Thủ Đức, TP.HCM', '0912345003', 'nam.le@yahoo.com')
@@ -229,6 +199,7 @@ DECLARE
     v_total_import_month NUMBER := 0;
     v_target_export_qty NUMBER := 0;
     v_current_export_qty NUMBER := 0;
+    v_BaoQuan NVARCHAR2(100);
     
     -- ===== Counters =====
     v_num_lohang_month NUMBER := 0;
@@ -263,7 +234,6 @@ BEGIN
             BEGIN
                 SELECT MaNCC INTO v_MaNCC FROM (SELECT MaNCC FROM NHACUNGCAP WHERE TrangThaiHopTac = 1 ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
                 SELECT MaNV INTO v_MaNV_ThuMua FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV thu mua' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
-                SELECT MaKho INTO v_MaKho FROM (SELECT MaKho FROM KHO ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
                 
                 v_MaLH := 'LH' || LPAD(SEQ_LOHANG.NEXTVAL, 6, '0');
                 v_day_offset := TRUNC(DBMS_RANDOM.VALUE(0, v_days_in_month));
@@ -301,13 +271,18 @@ BEGIN
                         VALUES (v_MaLH, v_MaSP, v_SoLuong_import);
                         
                         v_total_import_month := v_total_import_month + v_SoLuong_import;
+                        
+                        -- Lấy kho phù hợp với loại bảo quản của sản phẩm hiện tại
+                        SELECT BaoQuan INTO v_BaoQuan FROM SANPHAM WHERE MaSP = v_MaSP;
+                        SELECT MaKho INTO v_MaKho FROM (SELECT MaKho FROM KHO WHERE LoaiKho = v_BaoQuan ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+                        
                         SP_XACNHAN_VITRI_CTLH(v_MaLH || '_' || v_MaSP, v_MaKho, TO_DATE('2028-12-31', 'YYYY-MM-DD'), 'Kệ A' || TRUNC(DBMS_RANDOM.VALUE(1, 11)));
                         UPDATE LICHSUGIA SET TGApDung = (v_month_start + v_day_offset)
                         WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = v_MaSP ORDER BY MaGia DESC) WHERE ROWNUM = 1)
                         AND TRUNC(TGApDung) = TRUNC(SYSDATE);
                     END LOOP;
                 END;
-            EXCEPTION WHEN OTHERS THEN NULL; END;
+            EXCEPTION WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('LOHANG Error: ' || SQLERRM); END;
         END LOOP;
         
         -- =================================================================

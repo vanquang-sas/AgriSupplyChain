@@ -2,6 +2,37 @@
 --                              PHẦN 6: Thêm dữ liệu cần thiết
 -- ====================================================================================
 
+-- Vô hiệu hoá khoá ngoại -> Xoá dữ liệu cũ -> Kích hoạt lại khoá ngoại -> Thêm dữ liệu mới
+BEGIN
+    -- Disable tất cả FK
+    FOR c IN (
+        SELECT table_name, constraint_name
+        FROM user_constraints
+        WHERE constraint_type = 'R'
+    ) LOOP
+        EXECUTE IMMEDIATE 'ALTER TABLE ' || c.table_name ||
+                          ' DISABLE CONSTRAINT ' || c.constraint_name;
+    END LOOP;
+
+    -- Xoá dữ liệu tất cả bảng
+    FOR t IN (
+        SELECT table_name FROM user_tables
+    ) LOOP
+        EXECUTE IMMEDIATE 'DELETE FROM ' || t.table_name;
+    END LOOP;
+
+    -- Enable lại FK
+    FOR c IN (
+        SELECT table_name, constraint_name
+        FROM user_constraints
+        WHERE constraint_type = 'R'
+    ) LOOP
+        EXECUTE IMMEDIATE 'ALTER TABLE ' || c.table_name ||
+                          ' ENABLE CONSTRAINT ' || c.constraint_name;
+    END LOOP;
+END;
+/
+
 -- 1. THAMSO
 INSERT ALL
     INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000001', 'MIN_TONKHO', 10, 'Số lượng tồn kho tối thiểu')

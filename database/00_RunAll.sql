@@ -6,11 +6,24 @@ SET FEEDBACK ON;
 SET ECHO ON;
 SET SERVEROUTPUT ON;
 
--- Nhảy vào CSDL con (XEPDB1)
-ALTER SESSION SET CONTAINER = XEPDB1;
+-- Nhảy vào CSDL con (orclpdb)
+ALTER SESSION SET CONTAINER = orclpdb;
 
 PROMPT --- DON DEP USER CU ---
 -- Xóa user cũ và toàn bộ dữ liệu. Dùng BEGIN..END để bỏ qua lỗi nếu user chưa tồn tại.
+DECLARE
+   v_sid NUMBER;
+   v_serial NUMBER;
+BEGIN
+   FOR r IN (SELECT sid, serial# FROM v$session WHERE username = 'AGRIAPP') LOOP
+      EXECUTE IMMEDIATE 'ALTER SYSTEM KILL SESSION ''' || r.sid || ',' || r.serial# || ''' IMMEDIATE';
+   END LOOP;
+EXCEPTION
+   WHEN OTHERS THEN
+      NULL;
+END;
+/
+
 BEGIN
    EXECUTE IMMEDIATE 'DROP USER AGRIAPP CASCADE';
 EXCEPTION
@@ -34,7 +47,8 @@ GRANT UNLIMITED TABLESPACE TO AGRIAPP;
 
 PROMPT --- CHUYEN DOI KET NOI ---
 -- 4. Chuyển kết nối sang user vừa tạo để bắt đầu chạy script tạo bảng
-CONNECT AGRIAPP/123456@localhost:1521/XEPDB1;
+CONNECT AGRIAPP/123456@localhost:1521/orclpdb;
+SET SERVEROUTPUT ON;
 
 -- ====================================================================================
 -- PHẦN 2: TẠO CẤU TRÚC DATABASE (TABLES, SEQUENCES, LOGIC)
@@ -55,6 +69,9 @@ PROMPT --- DANG CHAY FILE 4: TAO TRIGGER ---
 
 PROMPT --- DANG CHAY FILE 5: TAO PROCEDURE ---
 @@05_Procedures.sql;
+
+PROMPT --- DANG CHAY FILE 8: TAO VIEWS ---
+@@08_Views.sql;
 
 PROMPT --- DANG CHAY FILE 6: THEM DU LIEU CAN THIET ---
 @@06_InsertData.sql;
