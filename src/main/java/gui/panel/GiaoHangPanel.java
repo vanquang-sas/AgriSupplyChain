@@ -169,13 +169,17 @@ public class GiaoHangPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn đơn hàng để cập nhật!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        String maDH = modelDaNhan.getValueAt(row, 0).toString();
+        
+        // Lấy đúng index trên model đề phòng table bị sort/filter
+        int modelRow = tblDaNhan.convertRowIndexToModel(row); 
+        String maDH = modelDaNhan.getValueAt(modelRow, 0).toString();
+
         if (JOptionPane.showConfirmDialog(this, "Xác nhận đã giao đơn hàng " + maDH + " thành công?", "Xác nhận", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             if (bus.giaoThanhCong(maDH, maNV)) {
                 JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
                 loadData();
             } else {
-                JOptionPane.showMessageDialog(this, "Cập nhật thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Cập nhật thất bại! Vui lòng kiểm tra lại Database (có thể sai mã ĐH hoặc đơn này không do nhân viên " + maNV + " phụ trách).", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -183,22 +187,29 @@ public class GiaoHangPanel extends JPanel {
     private void giaoThatBaiAction() {
         int row = tblDaNhan.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn đơn hàng báo thất bại!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn đơn hàng cần báo thất bại!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        String maDH = modelDaNhan.getValueAt(row, 0).toString();
-        String lyDo = JOptionPane.showInputDialog(this, "Nhập lý do giao thất bại (Bắt buộc):", "Giao thất bại", JOptionPane.QUESTION_MESSAGE);
         
+        // Lấy đúng index trên model đề phòng table bị sort/filter
+        int modelRow = tblDaNhan.convertRowIndexToModel(row);
+        String maDH = modelDaNhan.getValueAt(modelRow, 0).toString();
+        
+        String lyDo = JOptionPane.showInputDialog(this, "Nhập lý do giao thất bại (Bắt buộc):", "Giao thất bại", JOptionPane.QUESTION_MESSAGE);
+                
         if (lyDo != null) {
             if (lyDo.trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Lý do không được để trống!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            
+            System.out.println("Đang cập nhật thất bại - Mã ĐH: " + maDH + ", Mã NV: " + maNV + ", Lý do: " + lyDo);
+            
             if (bus.giaoThatBai(maDH, maNV, lyDo)) {
-                JOptionPane.showMessageDialog(this, "Đã cập nhật trạng thái thất bại.");
+                JOptionPane.showMessageDialog(this, "Cập nhật trạng thái thất bại thành công.");
                 loadData();
             } else {
-                JOptionPane.showMessageDialog(this, "Cập nhật thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Cập nhật thất bại! Vui lòng kiểm tra lại Database.", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

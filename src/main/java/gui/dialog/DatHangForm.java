@@ -115,12 +115,12 @@ public class DatHangForm extends JDialog {
         body.add(Box.createVerticalStrut(20)); 
 
         // 2. Ngày giao
-        body.add(makeSectionLabel("Ngày nhận mong muốn *"));
+        body.add(makeSectionLabel("Thời gian nhận mong muốn *"));
         body.add(Box.createVerticalStrut(8));
 
         SpinnerDateModel dateModel = new SpinnerDateModel();
         spnNgayGiao = new JSpinner(dateModel);
-        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(spnNgayGiao, "dd/MM/yyyy");
+        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(spnNgayGiao, "dd/MM/yyyy HH:mm");
         spnNgayGiao.setEditor(dateEditor);
         spnNgayGiao.setValue(new Date());
         styleComponent(spnNgayGiao);
@@ -384,6 +384,13 @@ public class DatHangForm extends JDialog {
             return;
         }
 
+        // Kiểm tra thời gian giao mong muốn (TGGIAOYC)
+        Date ngayGiao = (Date) spnNgayGiao.getValue();
+        if (ngayGiao.getTime() < System.currentTimeMillis() - 60000) { // cho phép lệch tối đa 1 phút
+            JOptionPane.showMessageDialog(this, "Thời gian giao mong muốn không được ở quá khứ!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         String diaChiGop = soNha + ", " + qp + ", " + tinh;
 
         // Vẫn giữ kiểm tra đăng nhập cơ bản
@@ -421,7 +428,7 @@ public class DatHangForm extends JDialog {
             DonHangDTO donHang = new DonHangDTO();
             donHang.setMaDH(maDH);
             donHang.setMaKH(maKH);
-            donHang.setTgDat(new Timestamp(new Date().getTime()));
+            donHang.setTgGiaoYC(new Timestamp(ngayGiao.getTime())); // Ghi nhận thời gian giao mong muốn của khách
             donHang.setDiaChiGiaoHang(diaChiGop);
             
             // Map phuongThuc từ giao diện khớp với check constraint của bảng DONHANG trong Oracle

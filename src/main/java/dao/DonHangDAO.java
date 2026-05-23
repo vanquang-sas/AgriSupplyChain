@@ -133,11 +133,15 @@ public class DonHangDAO {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
-            // Đã bổ dung DiaChiGiaoHang và PhuongThucTT (bỏ GhiChu, MaDH để trigger sinh tự động)
-            String sqlDH = "INSERT INTO DONHANG (MaKH, TgDat, TongTienHang, PhiVanChuyen, TongTien, TrangThaiDH, DiaChiGiaoHang, PhuongThucTT) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            // Đã bổ sung DiaChiGiaoHang, PhuongThucTT và TGGiaoYC (bỏ TgDat để CSDL tự sinh bằng DEFAULT SYSDATE)
+            String sqlDH = "INSERT INTO DONHANG (MaKH, TGGiaoYC, TongTienHang, PhiVanChuyen, TongTien, TrangThaiDH, DiaChiGiaoHang, PhuongThucTT) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             pstmtDH = conn.prepareStatement(sqlDH, new String[]{"MADH"});
             pstmtDH.setString(1, donHang.getMaKH());
-            pstmtDH.setTimestamp(2, new java.sql.Timestamp(donHang.getTgDat().getTime()));
+            if (donHang.getTgGiaoYC() != null) {
+                pstmtDH.setTimestamp(2, new java.sql.Timestamp(donHang.getTgGiaoYC().getTime()));
+            } else {
+                pstmtDH.setNull(2, java.sql.Types.TIMESTAMP);
+            }
             pstmtDH.setDouble(3, 0.0);
             pstmtDH.setDouble(4, donHang.getPhiVanChuyen());
             pstmtDH.setDouble(5, donHang.getPhiVanChuyen());

@@ -56,35 +56,35 @@ public class GiaoHangDAO {
         }
     }
     
-    // Thực thi Giao hàng thành công
+    // Thực thi Giao hàng thành công bằng Procedure
     public boolean giaoHangThanhCong(String MaDH, String MaNV) {
-        String sql = "UPDATE DONHANG SET TRANGTHAIDH = N'Hoàn thành', TGGIAOTT = SYSDATE, TRANGTHAITT = 1 WHERE MADH = ? AND TRIM(MANV) = ? AND TRANGTHAIDH = N'Đang giao'";
+        String sql = "{call SP_GIAOHANG_THANHCONG(?, ?)}";
         try (
             Connection con = DBConnection.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql);
+            CallableStatement cs = con.prepareCall(sql);
         ) {
-            ps.setString(1, MaDH);
-            ps.setString(2, MaNV.trim());
-            int rows = ps.executeUpdate();
-            return rows > 0;
+            cs.setString(1, MaDH);
+            cs.setString(2, MaNV.trim());
+            cs.execute();
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
     
-    // Thực thi Giao hàng thất bại
+    // Thực thi Giao hàng thất bại bằng Procedure
     public boolean giaoHangThatBai(String maDH, String maNV, String lyDoHuy) {
-        String sql = "UPDATE DONHANG SET TRANGTHAIDH = N'Đã huỷ', TGGIAOTT = SYSDATE, LYDOHUY = ? WHERE MADH = ? AND TRIM(MANV) = ? AND TRANGTHAIDH = N'Đang giao'";
+        String sql = "{call SP_GIAOHANG_THATBAI(?, ?, ?)}";
         try (
             Connection con = DBConnection.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql);
+            CallableStatement cs = con.prepareCall(sql);
         ) {
-            ps.setString(1, lyDoHuy);
-            ps.setString(2, maDH);
-            ps.setString(3, maNV.trim());
-            int rows = ps.executeUpdate();
-            return rows > 0;
+            cs.setString(1, maDH);
+            cs.setString(2, maNV.trim());
+            cs.setString(3, lyDoHuy);
+            cs.execute();
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -113,9 +113,9 @@ public class GiaoHangDAO {
                 dh.setMaKH(rs.getString("MAKH"));
                 dh.setMaNV(rs.getString("MANV"));
                 dh.setDiaChiGiaoHang(rs.getString("DIACHIGIAOHANG"));
-                dh.setTgDat(rs.getDate("TGDAT"));
-                dh.setTgGiaoYC(rs.getDate("TGGIAOYC"));
-                dh.setTgGiaoTT(rs.getDate("TGGIAOTT"));
+                dh.setTgDat(rs.getTimestamp("TGDAT"));
+                dh.setTgGiaoYC(rs.getTimestamp("TGGIAOYC"));
+                dh.setTgGiaoTT(rs.getTimestamp("TGGIAOTT"));
                 dh.setLyDoHuy(rs.getString("LYDOHUY"));
                 dh.setPhiVanChuyen(rs.getDouble("PHIVANCHUYEN"));
                 dh.setTongTienHang(rs.getDouble("TONGTIENHANG"));
@@ -138,9 +138,9 @@ public class GiaoHangDAO {
         dh.setMaKH(rs.getString("MAKH"));
         dh.setMaNV(rs.getString("MANV"));
         dh.setDiaChiGiaoHang(rs.getString("DIACHIGIAOHANG"));
-        dh.setTgDat(rs.getDate("TGDAT"));
-        dh.setTgGiaoYC(rs.getDate("TGGIAOYC"));
-        dh.setTgGiaoTT(rs.getDate("TGGIAOTT"));
+        dh.setTgDat(rs.getTimestamp("TGDAT"));
+        dh.setTgGiaoYC(rs.getTimestamp("TGGIAOYC"));
+        dh.setTgGiaoTT(rs.getTimestamp("TGGIAOTT"));
         dh.setTongTien(rs.getDouble("TONGTIEN"));
         dh.setTrangThaiDH(rs.getString("TRANGTHAIDH"));
         dh.setPhuongThucTT(rs.getString("PHUONGTHUCTT"));

@@ -180,7 +180,7 @@ CREATE TABLE DONHANG (
     CONSTRAINT FK_DH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
     CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV),
     CONSTRAINT CK_TGGiaoYC CHECK (TGGiaoYC >= TGDat),
-    CONSTRAINT CK_TGGiaoTT CHECK (TGGiaoTT >= TGGiaoYC),
+    CONSTRAINT CK_TGGiaoTT CHECK (TGGiaoTT >= TGDat),
     CONSTRAINT CK_DH_NVGiaoHang CHECK (TrangThaiDH NOT IN ('Đang giao', 'Hoàn thành') OR MaNV IS NOT NULL)
 );
 -- =======================================================================================================

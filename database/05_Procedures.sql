@@ -430,12 +430,6 @@ BEGIN
 END;
 /
 
--- [Đã chuyển đổi các PROCEDURE sau sang FUNCTION trong 03_Functions.sql:
---  - SP_LAY_DS_DONHANG_BY_KH -> FN_LAY_DS_DONHANG_BY_KH
---  - SP_THONGKE_SANPHAM -> FN_THONGKE_SANPHAM
---  - SP_THONGKE_TRANGTHAI -> FN_THONGKE_TRANGTHAI
---  - SP_THONGKE_TAICHINH -> FN_THONGKE_TAICHINH]
-
 -- ================================= Giỏ hàng =================================
 
 CREATE OR REPLACE PROCEDURE PROC_CLEANUP_GIOHANG IS
