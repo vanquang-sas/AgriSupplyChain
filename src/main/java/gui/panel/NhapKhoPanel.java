@@ -653,25 +653,6 @@ public class NhapKhoPanel extends JPanel {
         @Override public int getIconHeight() { return 20; }
     }
 
-    private static class RefreshIcon implements Icon {
-        @Override
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(AppColor.TEXT_SECONDARY);
-            g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.drawArc(x + 2, y + 2, 12, 12, 45, 270);
-            g2.drawLine(x + 11, y + 2, x + 14, y + 5);
-            g2.drawLine(x + 11, y + 8, x + 14, y + 5);
-            g2.dispose();
-        }
-
-        @Override
-        public int getIconWidth() { return 18; }
-        @Override
-        public int getIconHeight() { return 18; }
-    }
-
     private static class TextCellRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean selected, boolean focus,

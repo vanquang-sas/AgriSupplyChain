@@ -46,7 +46,7 @@ Tài liệu liệt kê các thành phần logic nghiệp vụ được cài đ�
 | **SP_THEM_DH / SP_CAPNHAT_DH / SP_XOA_DH** | Quản lý đơn đặt hàng (Thêm mới, cập nhật trạng thái/địa chỉ và xóa đơn). |
 | **SP_THEM_CTDH / SP_CAPNHAT_CTDH / SP_XOA_CTDH** | Thao tác thêm, cập nhật số lượng và xoá các mặt hàng bên trong đơn hàng. |
 | **SP_YEUCAU_NHAPKHO** | Chuyển trạng thái lô hàng thành **yêu cầu nhập kho** để thông báo cho bộ phận Kho. |
-| **SP_XACNHAN_VITRI_CTLH** | Thủ kho xác nhận vị trí lưu trữ, sinh record `TONKHO`. Tự động chốt hoàn tất nhập lô. |
+| **SP_XACNHAN_NHAPKHO** | Thủ kho xác nhận vị trí lưu trữ, sinh record `TONKHO`. Tự động chốt hoàn tất nhập lô. |
 | **SP_YEUCAU_XUATKHO** | Tìm lô hàng khả dụng theo quy tắc **FEFO / FIFO**, phân bổ hàng và tạo phiếu xuất tạm giữ. |
 | **SP_XACNHAN_XUATKHO** | Xác nhận hàng đã rời kho thực tế. Đổi trạng thái đơn sang **"Chờ giao hàng"**. |
 | **SP_XACNHAN_GIAOHANG** | Chỉ định và cập nhật nhân viên phụ trách việc vận chuyển đơn hàng. |

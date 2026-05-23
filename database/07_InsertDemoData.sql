@@ -276,7 +276,7 @@ BEGIN
                         SELECT BaoQuan INTO v_BaoQuan FROM SANPHAM WHERE MaSP = v_MaSP;
                         SELECT MaKho INTO v_MaKho FROM (SELECT MaKho FROM KHO WHERE LoaiKho = v_BaoQuan ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
                         
-                        SP_XACNHAN_VITRI_CTLH(v_MaLH || '_' || v_MaSP, v_MaKho, TO_DATE('2028-12-31', 'YYYY-MM-DD'), 'Kệ A' || TRUNC(DBMS_RANDOM.VALUE(1, 11)));
+                        SP_XACNHAN_NHAPKHO(v_MaLH, v_MaSP, v_MaKho, TO_DATE('2028-12-31', 'YYYY-MM-DD'), 'Kệ A' || TRUNC(DBMS_RANDOM.VALUE(1, 11)));
                         UPDATE LICHSUGIA SET TGApDung = (v_month_start + v_day_offset)
                         WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = v_MaSP ORDER BY MaGia DESC) WHERE ROWNUM = 1)
                         AND TRUNC(TGApDung) = TRUNC(SYSDATE);

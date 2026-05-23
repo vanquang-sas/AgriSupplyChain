@@ -115,47 +115,42 @@ EXCEPTION
 END;
 /
 
-CREATE OR REPLACE PROCEDURE SP_XACNHAN_VITRI_CTLH (
-    p_MaCTLH IN VARCHAR2,
+CREATE OR REPLACE PROCEDURE SP_XACNHAN_NHAPKHO (
+    p_MaLH IN VARCHAR2,
+    p_MaSP IN VARCHAR2,
     p_MaKho IN VARCHAR2,
     p_TGHetHan IN DATE,
     p_ViTri IN NVARCHAR2
 ) IS
-    v_MaLH VARCHAR2(10);
-    v_MaSP VARCHAR2(10);
     v_SoLuong NUMBER(10,2);
     v_BaoQuan NVARCHAR2(100);
     v_LoaiKho NVARCHAR2(100);
     v_TonTai NUMBER;
     v_ChuaXepXong NUMBER;
 BEGIN
-    -- Extract MaLH and MaSP from composite key parameter p_MaCTLH (format: MaLH_MaSP)
-    v_MaLH := SUBSTR(p_MaCTLH, 1, INSTR(p_MaCTLH, '_') - 1);
-    v_MaSP := SUBSTR(p_MaCTLH, INSTR(p_MaCTLH, '_') + 1);
-
     SELECT CTLH.SoLuong, SP.BaoQuan 
     INTO v_SoLuong, v_BaoQuan
     FROM CHITIETLOHANG CTLH JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
-    WHERE CTLH.MaLH = v_MaLH AND CTLH.MaSP = v_MaSP;
+    WHERE CTLH.MaLH = p_MaLH AND CTLH.MaSP = p_MaSP;
 
     SELECT LoaiKho INTO v_LoaiKho FROM KHO WHERE MaKho = p_MaKho;
     IF v_LoaiKho != v_BaoQuan THEN
         RAISE_APPLICATION_ERROR(-20028, 'Bảo quản sai quy cách! Yêu cầu [' || v_BaoQuan || '] nhưng chọn kho [' || v_LoaiKho || '].');
     END IF;
 
-    SELECT COUNT(*) INTO v_TonTai FROM TONKHO WHERE MaLH = v_MaLH AND MaSP = v_MaSP;
+    SELECT COUNT(*) INTO v_TonTai FROM TONKHO WHERE MaLH = p_MaLH AND MaSP = p_MaSP;
     IF v_TonTai > 0 THEN
         RAISE_APPLICATION_ERROR(-20027, 'Chi tiết lô hàng này đã được nhập kho rồi!');
     END IF;
 
     INSERT INTO TONKHO (MaKho, MaLH, MaSP, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri)
-    VALUES (p_MaKho, v_MaLH, v_MaSP, v_SoLuong, v_SoLuong, SYSDATE, p_TGHetHan, p_ViTri);
+    VALUES (p_MaKho, p_MaLH, p_MaSP, v_SoLuong, v_SoLuong, SYSDATE, p_TGHetHan, p_ViTri);
 
     SELECT COUNT(*) INTO v_ChuaXepXong FROM CHITIETLOHANG C
-    WHERE C.MaLH = v_MaLH AND (C.MaLH, C.MaSP) NOT IN (SELECT MaLH, MaSP FROM TONKHO);
+    WHERE C.MaLH = p_MaLH AND (C.MaLH, C.MaSP) NOT IN (SELECT MaLH, MaSP FROM TONKHO);
 
     IF v_ChuaXepXong = 0 THEN
-        UPDATE LOHANG SET TrangThaiLH = 'Đã nhập kho' WHERE MaLH = v_MaLH;
+        UPDATE LOHANG SET TrangThaiLH = 'Đã nhập kho' WHERE MaLH = p_MaLH;
     END IF;
     COMMIT;
 END;

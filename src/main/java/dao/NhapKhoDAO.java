@@ -10,15 +10,16 @@ public class NhapKhoDAO {
     public NhapKhoDAO() {}
    
     public void xacNhanViTri(TonKhoDTO dto) throws SQLException {
-        String sql = "{call SP_XACNHAN_VITRI_CTLH(?, ?, ?, ?)}";
+        String sql = "{call SP_XACNHAN_NHAPKHO(?, ?, ?, ?, ?)}";
 
         try (Connection conn = DBConnection.getConnection();
                 CallableStatement cs = conn.prepareCall(sql)) {
 
-            cs.setString(1, dto.getMaLH() + "_" + dto.getMaSP());
-            cs.setString(2, dto.getMaKho());
-            cs.setDate(3, new java.sql.Date(dto.getTgHetHan().getTime()));
-            cs.setString(4, dto.getViTri());
+            cs.setString(1, dto.getMaLH());
+            cs.setString(2, dto.getMaSP());
+            cs.setString(3, dto.getMaKho());
+            cs.setDate(4, new java.sql.Date(dto.getTgHetHan().getTime()));
+            cs.setString(5, dto.getViTri());
 
             cs.execute();
         }
