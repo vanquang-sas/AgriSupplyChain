@@ -295,30 +295,53 @@ public class DatHangForm extends JDialog {
     private void onQuanPhuongChanged() {
     }
 
- 
-    // HÀM MỚI: Chỉ tính tiền khi gọi (phí ship cố định theo thẻ khách hàng)
+
     private void tinhToanPhiShip() {
-        // Đã nhập đủ -> Bắt đầu tính giá dựa trên loại khách hàng từ bảng tham số
-        String loaiKH = getLoaiKhachHang();
-        String tsName = "SHIP_THUONG";
-        double defaultVal = 500000;
-        
-        if ("VIP".equalsIgnoreCase(loaiKH)) {
-            tsName = "SHIP_VIP";
-            defaultVal = 100000;
-            lblDiscountInfo.setText("(Áp dụng phí ship đặc quyền thẻ VIP)");
-        } else if ("Thân thiết".equalsIgnoreCase(loaiKH)) {
-            tsName = "SHIP_THANTHIET";
-            defaultVal = 300000;
-            lblDiscountInfo.setText("(Áp dụng phí ship ưu đãi thẻ Thân thiết)");
-        } else {
-            lblDiscountInfo.setText("(Áp dụng phí ship thẻ Thường)");
+        String maKH = Session.maKH;
+        if (maKH == null || maKH.isEmpty()) {
+            if (Session.isLogged() && Session.currentUser != null) {
+                try {
+                    String username = Session.currentUser.getUsername();
+                    dao.KhachHangDAO khDao = new dao.KhachHangDAO();
+                    dto.KhachHangDTO kh = khDao.getByUsername(username);
+                    if (kh != null) {
+                        maKH = kh.getMaKH();
+                    } else {
+                        maKH = username.length() > 10 ? username.substring(0, 10) : username;
+                    }
+                } catch (Exception e) {
+                    maKH = "KH000001";
+                }
+            } else {
+                maKH = "KH000001";
+            }
         }
-        
-        double totalFee = new dao.ThamSoDAO().getValueByName(tsName, defaultVal);
-        phiVanChuyen = new BigDecimal(totalFee);
-        
+
+        double fee = 500000.0; // Phí dự phòng tuyệt đối nếu có lỗi
+        String sql = "{ ? = call FN_TINH_PHIVANCHUYEN(?) }";
+        try (java.sql.Connection con = util.DBConnection.getConnection();
+             java.sql.CallableStatement cs = con.prepareCall(sql)) {
+            cs.registerOutParameter(1, java.sql.Types.NUMERIC);
+            cs.setString(2, maKH);
+            cs.execute();
+            fee = cs.getDouble(1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        phiVanChuyen = BigDecimal.valueOf(fee);
         lblPhiVC.setText(FMT.format(phiVanChuyen));
+
+        // Cập nhật nhãn thông tin phụ thuộc loại khách hàng
+        String loaiKH = getLoaiKhachHang();
+        if ("VIP".equalsIgnoreCase(loaiKH)) {
+            lblDiscountInfo.setText("(Áp dụng phí ship đặc quyền khách hàng VIP)");
+        } else if ("Thân thiết".equalsIgnoreCase(loaiKH)) {
+            lblDiscountInfo.setText("(Áp dụng phí ship ưu đãi khách hàng Thân thiết)");
+        } else {
+            lblDiscountInfo.setText("(Áp dụng phí ship khách hàng Thường)");
+        }
+
         capNhatTongTien();
     }                           
 
