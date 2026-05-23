@@ -281,24 +281,6 @@ BEGIN
 END;
 /
 
--- 4. Thống kê trạng thái đơn hàng
-CREATE OR REPLACE FUNCTION FN_THONGKE_TRANGTHAI (
-    p_FromDate IN DATE,
-    p_ToDate IN DATE
-) RETURN SYS_REFCURSOR
-AS
-    v_cursor SYS_REFCURSOR;
-BEGIN
-    OPEN v_cursor FOR
-    SELECT TrangThaiDH, COUNT(MaDH) as SoLuong 
-    FROM DONHANG 
-    WHERE TRUNC(TGDat) BETWEEN p_FromDate AND p_ToDate
-    GROUP BY TrangThaiDH
-    ORDER BY SoLuong DESC;
-    RETURN v_cursor;
-END;
-/
-
 -- 5. Thống kê tài chính
 CREATE OR REPLACE FUNCTION FN_THONGKE_TAICHINH (
     p_LoaiThongKe IN VARCHAR2, -- 'MONTH' hoặc 'DAY'

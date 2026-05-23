@@ -2,7 +2,7 @@ package gui.panel;
 
 import dto.GioHangDTO;
 import gui.MainFrame;
-import gui.dialog.ThanhToanForm;
+import gui.dialog.DatHangForm;
 import util.AppColor;
 import util.Session;
 
@@ -528,8 +528,8 @@ public class GioHangPanel extends JPanel {
             total = total.add(item.getThanhTien());
         }
         
-        ThanhToanForm thanhToanForm = new ThanhToanForm(parentFrame, total);
-        thanhToanForm.setVisible(true);
+        DatHangForm datHangForm = new DatHangForm(parentFrame, total);
+        datHangForm.setVisible(true);
     }
 
     private void styleQtyButton(JButton btn) {

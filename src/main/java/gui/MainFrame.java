@@ -63,7 +63,7 @@ public class MainFrame extends JFrame {
 
     private void initComponents() {
         // Thiết lập thông số cơ bản cho Frame
-        setTitle("Mekong Agri-Chain – Hệ thống Quản lý Chuỗi cung ứng Nông sản");
+        setTitle("Mekong Agri-Chain - Hệ thống Quản lý Chuỗi cung ứng Nông sản");
         setSize(1366, 768);
         setMinimumSize(new Dimension(1100, 600));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

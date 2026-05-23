@@ -113,56 +113,39 @@ public class ThongKeDAO {
 
     // ============================================= TRẠNG THÁI ĐƠN HÀNG/LÔ HÀNG =============================================
     public List<ThongKeDTO.TrangThai> getThongKeTrangThaiDonHang(java.util.Date from, java.util.Date to) {
-
         List<ThongKeDTO.TrangThai> list = new ArrayList<>();
-
-        String sql = "{? = call FN_THONGKE_TRANGTHAI(?, ?)}";
+        String sql = "SELECT TrangThaiDH, COUNT(MaDH) AS SoLuong " +
+                     "FROM DONHANG " +
+                     "WHERE TRUNC(TGDat) >= ? AND TRUNC(TGDat) <= ? " +
+                     "GROUP BY TrangThaiDH";
 
         try (Connection conn = DBConnection.getConnection();
-            CallableStatement cs = conn.prepareCall(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            cs.registerOutParameter(1, OracleTypes.CURSOR);
-            cs.setDate(2, new java.sql.Date(from.getTime()));
-            cs.setDate(3, new java.sql.Date(to.getTime()));
+            ps.setDate(1, new java.sql.Date(from.getTime()));
+            ps.setDate(2, new java.sql.Date(to.getTime()));
 
-            cs.execute();
-
-            List<ThongKeDTO.TrangThai> temp = new ArrayList<>();
-            int total = 0;
-
-            try (ResultSet rs = (ResultSet) cs.getObject(1)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                List<ThongKeDTO.TrangThai> temp = new ArrayList<>();
+                int total = 0;
 
                 while (rs.next()) {
-
-                    ThongKeDTO.TrangThai dto =
-                            new ThongKeDTO.TrangThai();
-
-                    dto.trangThai =
-                            rs.getString("TrangThaiDH");
-
-                    dto.soLuong =
-                            rs.getInt("SoLuong");
-
+                    ThongKeDTO.TrangThai dto = new ThongKeDTO.TrangThai();
+                    dto.trangThai = rs.getString("TrangThaiDH");
+                    dto.soLuong = rs.getInt("SoLuong");
                     total += dto.soLuong;
-
                     temp.add(dto);
                 }
+
+                // Tính tỷ lệ %
+                for (ThongKeDTO.TrangThai d : temp) {
+                    d.tyLe = total > 0 ? (double) d.soLuong / total * 100 : 0;
+                    list.add(d);
+                }
             }
-
-            // Tính tỷ lệ %
-            for (ThongKeDTO.TrangThai d : temp) {
-
-                d.tyLe = total > 0
-                        ? (double) d.soLuong / total * 100
-                        : 0;
-
-                list.add(d);
-            }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return list;
     }
 

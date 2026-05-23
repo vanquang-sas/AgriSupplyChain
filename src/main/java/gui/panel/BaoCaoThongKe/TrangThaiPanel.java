@@ -150,7 +150,7 @@ public class TrangThaiPanel extends JPanel {
         drawPieChart(chartPanelDH, dsDH, "Tỷ lệ trạng thái đơn hàng", pieChartDH, true);
 
         // 2. Tải dữ liệu Lô hàng
-        dataLH = thongKeBUS.getThongKeTrangThaiLoHang(tuNgay, denNgay); // Yêu cầu DAO/BUS đã thêm hàm này
+        dataLH = thongKeBUS.getThongKeTrangThaiLoHang(tuNgay, denNgay);
         modelLH.setRowCount(0);
         DefaultPieDataset<String> dsLH = new DefaultPieDataset<>();
         for (ThongKeDTO.TrangThai d : dataLH) {

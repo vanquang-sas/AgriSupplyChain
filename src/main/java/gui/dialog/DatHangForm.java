@@ -21,7 +21,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class ThanhToanForm extends JDialog {
+public class DatHangForm extends JDialog {
 
     private final MainFrame parentFrame;
     private final BigDecimal tongTienHang;
@@ -42,7 +42,7 @@ public class ThanhToanForm extends JDialog {
     private JLabel lblTongCong;
     private JLabel lblDiscountInfo; // Hiển thị thông tin giảm giá ship
 
-    public ThanhToanForm(MainFrame parentFrame, BigDecimal tongTienHang) {
+    public DatHangForm(MainFrame parentFrame, BigDecimal tongTienHang) {
         super(parentFrame, "Xác nhận thông tin giao hàng", true);
         this.parentFrame = parentFrame;
         this.tongTienHang = tongTienHang;
@@ -203,7 +203,7 @@ public class ThanhToanForm extends JDialog {
         btnNo.addActionListener(e -> dispose());
         btnNo.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        JButton btnYes = new JButton("Xác nhận & Thanh toán");
+        JButton btnYes = new JButton("Xác nhận");
         btnYes.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnYes.setPreferredSize(new Dimension(220, 45));
         btnYes.putClientProperty(FlatClientProperties.STYLE, 
