@@ -150,7 +150,7 @@ BEGIN
     WHERE C.MaLH = p_MaLH AND (C.MaLH, C.MaSP) NOT IN (SELECT MaLH, MaSP FROM TONKHO);
 
     IF v_ChuaXepXong = 0 THEN
-        UPDATE LOHANG SET TrangThaiLH = 'Đã nhập kho' WHERE MaLH = p_MaLH;
+        UPDATE LOHANG SET TrangThaiLH = N'Đã nhập kho' WHERE MaLH = p_MaLH;
     END IF;
     COMMIT;
 END;
@@ -165,7 +165,7 @@ CREATE OR REPLACE PROCEDURE SP_YEUCAU_XUATKHO (p_MaDH IN VARCHAR2) IS
     v_TrangThaiDH NVARCHAR2(50);
 BEGIN
     SELECT TrangThaiDH INTO v_TrangThaiDH FROM DONHANG WHERE MaDH = p_MaDH;
-    IF v_TrangThaiDH IN ('Đang giao', 'Hoàn thành', 'Đã huỷ') THEN
+    IF v_TrangThaiDH IN (N'Đang giao', N'Hoàn thành', N'Đã huỷ') THEN
         RAISE_APPLICATION_ERROR(-20023, 'Trạng thái đơn hàng không hợp lệ!');
     END IF;
 
@@ -183,7 +183,7 @@ BEGIN
                 v_SoLuongXuat := rec_TK.SLKhaDung; v_SoLuongCan := v_SoLuongCan - rec_TK.SLKhaDung;
             END IF;
             INSERT INTO XUATKHO (MaDH, MaSP, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK) 
-            VALUES (p_MaDH, rec_CTDH.MaSP, rec_TK.MaTonKho, NULL, v_SoLuongXuat, SYSDATE, 'Tạm giữ');
+            VALUES (p_MaDH, rec_CTDH.MaSP, rec_TK.MaTonKho, NULL, v_SoLuongXuat, SYSDATE, N'Tạm giữ');
         END LOOP;
         IF v_SoLuongCan > 0 THEN RAISE_APPLICATION_ERROR(-20024, 'Kho không đủ hàng cho: ' || rec_CTDH.MaSP); END IF;
     END LOOP;
@@ -195,9 +195,9 @@ END;
 
 CREATE OR REPLACE PROCEDURE SP_XACNHAN_XUATKHO (p_MaDH IN VARCHAR2, p_MaNV IN VARCHAR2) IS
 BEGIN
-    UPDATE XUATKHO SET TrangThaiXK = 'Đã xuất', MaNV = p_MaNV, TGCapNhat = SYSDATE
-    WHERE MaDH = p_MaDH AND TrangThaiXK = 'Tạm giữ';
-    UPDATE DONHANG SET TrangThaiDH = 'Chờ giao hàng' WHERE MaDH = p_MaDH;
+    UPDATE XUATKHO SET TrangThaiXK = N'Đã xuất', MaNV = p_MaNV, TGCapNhat = SYSDATE
+    WHERE MaDH = p_MaDH AND TrangThaiXK = N'Tạm giữ';
+    UPDATE DONHANG SET TrangThaiDH = N'Chờ giao hàng' WHERE MaDH = p_MaDH;
     COMMIT;
 EXCEPTION
     WHEN OTHERS THEN ROLLBACK; RAISE;
@@ -479,17 +479,34 @@ BEGIN
 END;
 /
 
--- 2. Procedure Giao hàng thành công (Cập nhật Hoàn thành và thêm SYSDATE vào TGGIAOTT)
+-- 2. Procedure Giao hàng thành công (Cập nhật Hoàn thành/Chờ thanh toán và thêm SYSDATE vào TGGIAOTT)
 CREATE OR REPLACE PROCEDURE SP_GIAOHANG_THANHCONG (
     p_MaDH IN VARCHAR2,
     p_MaNV IN VARCHAR2
 ) IS
+    v_PhuongThucTT NVARCHAR2(50);
 BEGIN
-    UPDATE DONHANG 
-    SET TrangThaiDH = N'Hoàn thành', 
-        TGGiaoTT = SYSDATE,
-        TrangThaiTT = 1 
-    WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = N'Đang giao';
+    -- Lấy phương thức thanh toán của đơn hàng
+    SELECT PhuongThucTT INTO v_PhuongThucTT 
+    FROM DONHANG 
+    WHERE MaDH = p_MaDH;
+    
+    IF v_PhuongThucTT = N'Ghi nợ' THEN
+        -- Đơn hàng ghi nợ thì chuyển TrangThaiDH thành "Chờ thanh toán" (TrangThaiTT giữ nguyên là 0)
+        UPDATE DONHANG 
+        SET TrangThaiDH = N'Chờ thanh toán', 
+            TGGiaoTT = SYSDATE
+        WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = N'Đang giao';
+    ELSE
+        -- Các đơn hàng khác (COD, Chuyển khoản, Ví điện tử) thì chuyển TrangThaiDH thành "Hoàn thành"
+        -- Với COD thì chuyển TrangThaiTT thành 1 (Chuyển khoản, Ví điện tử đã là 1 từ trước)
+        UPDATE DONHANG 
+        SET TrangThaiDH = N'Hoàn thành', 
+            TGGiaoTT = SYSDATE,
+            TrangThaiTT = 1 
+        WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = N'Đang giao';
+    END IF;
+    
     COMMIT;
 END;
 /

@@ -17,7 +17,7 @@ public class GiaoHangDAO {
     // TAB 1: Lấy danh sách CHỜ GIAO (Trạng thái 'Chờ giao hàng' và chưa có ai nhận đơn)
     public List<DonHangDTO> getDanhSachChoGiao() {
         List<DonHangDTO> list = new ArrayList<>();
-        String sql = "SELECT * FROM DONHANG WHERE TRANGTHAIDH = N'Chờ giao hàng' AND MANV IS NULL ORDER BY TGDAT ASC";
+        String sql = "SELECT * FROM DONHANG WHERE TRANGTHAIDH = 'Chờ giao hàng' AND MANV IS NULL ORDER BY TGDAT ASC";
         try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
             while(rs.next()){ list.add(mapRowToDTO(rs)); }

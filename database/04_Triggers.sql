@@ -125,7 +125,7 @@ BEGIN
     FROM DONHANG
     WHERE MaDH = v_MaDH_Check;
 
-    IF v_TrangThai IN ('Chờ xử lý', 'Hoàn thành') THEN
+    IF v_TrangThai IN ('Chờ xử lý', 'Hoàn thành', 'Chờ thanh toán') THEN
         RAISE_APPLICATION_ERROR(-20003, 
             'Khong the thay doi chi tiet don hang vi don hang dang o trang thai: ' || v_TrangThai);
     END IF;
@@ -503,6 +503,9 @@ BEGIN
         ELSIF :NEW.TrangThaiDH = N'Hoàn thành' AND (:OLD.TrangThaiDH IS NULL OR :OLD.TrangThaiDH <> N'Hoàn thành') THEN
             INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
             VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Đơn hàng', N'Đơn hàng ' || :NEW.MaDH || N' đã được giao thành công.', 0, SYSDATE, :NEW.MaKH);
+        ELSIF :NEW.TrangThaiDH = N'Chờ thanh toán' AND (:OLD.TrangThaiDH IS NULL OR :OLD.TrangThaiDH <> N'Chờ thanh toán') THEN
+            INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+            VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Đơn hàng', N'Đơn hàng ' || :NEW.MaDH || N' đã được giao thành công và đang chờ thanh toán ghi nợ.', 0, SYSDATE, :NEW.MaKH);
         ELSIF :NEW.TrangThaiDH = N'Đã huỷ' AND (:OLD.TrangThaiDH IS NULL OR :OLD.TrangThaiDH <> N'Đã huỷ') THEN
             INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
             VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Đơn hàng', N'Đơn hàng ' || :NEW.MaDH || N' giao thất bại. Lý do: ' || NVL(:NEW.LyDoHuy, N'Chưa rõ'), 0, SYSDATE, :NEW.MaKH);

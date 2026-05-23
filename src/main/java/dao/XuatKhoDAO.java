@@ -54,7 +54,7 @@ public class XuatKhoDAO {
                      "FROM DONHANG DH " +
                      "JOIN CHITIETDONHANG CTDH ON DH.MaDH = CTDH.MaDH " +
                      "LEFT JOIN KHACHHANG KH ON DH.MaKH = KH.MaKH " +
-                     "WHERE DH.TrangThaiDH IN (N'Chờ giao hàng', N'Hoàn thành') " +
+                     "WHERE DH.TrangThaiDH IN (N'Chờ giao hàng', N'Đang giao', N'Hoàn thành', N'Chờ thanh toán') " +
                      "GROUP BY DH.MaDH, KH.TenKH, DH.TrangThaiDH " +
                      "ORDER BY DH.MaDH DESC";
 
@@ -110,10 +110,10 @@ public class XuatKhoDAO {
              ps.setString(1, maDH);
              try (ResultSet rs = ps.executeQuery()) {
                  if (rs.next()) {
-                     String status = rs.getString("TrangThaiDH");
-                     if ("Chờ giao hàng".equals(status) || "Đang giao".equals(status) || "Hoàn thành".equals(status)) {
-                         return true;
-                     }
+                      String status = rs.getString("TrangThaiDH");
+                      if ("Chờ giao hàng".equals(status) || "Đang giao".equals(status) || "Hoàn thành".equals(status) || "Chờ thanh toán".equals(status)) {
+                          return true;
+                      }
                  }
              }
         }

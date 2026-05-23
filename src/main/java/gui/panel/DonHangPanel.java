@@ -345,7 +345,7 @@ public class DonHangPanel extends JPanel {
                     for (DonHangDTO dh : currentDataList) {
                         cTong++;
                         String st = dh.getTrangThaiDH();
-                        if (st.equalsIgnoreCase("Chờ xử lý") || st.equalsIgnoreCase("Đã đặt") || st.equalsIgnoreCase("Chờ giao hàng")) cDang++;
+                        if (st.equalsIgnoreCase("Chờ xử lý") || st.equalsIgnoreCase("Đã đặt") || st.equalsIgnoreCase("Chờ giao hàng") || st.equalsIgnoreCase("Đang giao") || st.equalsIgnoreCase("Chờ thanh toán")) cDang++;
                         else if (st.equalsIgnoreCase("Hoàn thành") || st.equalsIgnoreCase("Đã giao")) cGiao++;
                         else if (st.equalsIgnoreCase("Đã huỷ")) cHuy++;
                     }
@@ -422,6 +422,69 @@ public class DonHangPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, ex.getMessage(), "Lỗi thao tác", JOptionPane.WARNING_MESSAGE);
             }
         }
+    }
+
+    private DonHangDTO timDonHangTheoMa(String maDH) {
+        if (maDH == null || currentDataList == null) return null;
+        for (DonHangDTO dh : currentDataList) {
+            if (maDH.equals(dh.getMaDH())) {
+                return dh;
+            }
+        }
+        return null;
+    }
+
+    private void xuLyThanhToan(int row) {
+        String maDH = (String) tableModel.getValueAt(row, 0);
+        DonHangDTO dh = timDonHangTheoMa(maDH);
+        if (dh == null) {
+            JOptionPane.showMessageDialog(this, "Không tìm thấy thông tin đơn hàng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String[] options = {"Chuyển khoản", "Ví điện tử"};
+        int choice = JOptionPane.showOptionDialog(
+            this,
+            "Chọn phương thức thanh toán cho đơn hàng " + maDH + ":",
+            "Phương thức thanh toán",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            options[0]
+        );
+
+        if (choice == JOptionPane.CLOSED_OPTION) {
+            return;
+        }
+
+        String phuongThucChon = options[choice];
+        
+        // Tạo một bản sao DTO tạm thời với phương thức chọn để truyền vào form QR
+        DonHangDTO tempDh = new DonHangDTO();
+        tempDh.setMaDH(dh.getMaDH());
+        tempDh.setMaKH(dh.getMaKH());
+        tempDh.setMaNV(dh.getMaNV());
+        tempDh.setTgDat(dh.getTgDat());
+        tempDh.setTgGiaoYC(dh.getTgGiaoYC());
+        tempDh.setTgGiaoTT(dh.getTgGiaoTT());
+        tempDh.setDiaChiGiaoHang(dh.getDiaChiGiaoHang());
+        tempDh.setLyDoHuy(dh.getLyDoHuy());
+        tempDh.setPhiVanChuyen(dh.getPhiVanChuyen());
+        tempDh.setTongTienHang(dh.getTongTienHang());
+        tempDh.setGiamGia(dh.getGiamGia());
+        tempDh.setTongTien(dh.getTongTien());
+        tempDh.setTrangThaiDH(dh.getTrangThaiDH());
+        tempDh.setTrangThaiTT(dh.getTrangThaiTT());
+        tempDh.setPhuongThucTT(phuongThucChon);
+
+        // Mở HienThiQRForm cho đơn hàng ghi nợ
+        gui.MainFrame parentFrame = (gui.MainFrame) javax.swing.SwingUtilities.getWindowAncestor(this);
+        gui.dialog.HienThiQRForm qrForm = new gui.dialog.HienThiQRForm(parentFrame, tempDh, true);
+        qrForm.setVisible(true);
+
+        // Sau khi đóng form QR, tải lại dữ liệu để cập nhật trạng thái mới
+        loadData(null);
     }
 
     private void updateRowHeights() {
@@ -583,8 +646,10 @@ public class DonHangPanel extends JPanel {
             final Color bg, fg;
             if (st.equalsIgnoreCase("Hoàn thành") || st.equalsIgnoreCase("Đã giao")) {
                 bg = new Color(0xD1FAE5); fg = new Color(0x065F46); // Xanh lá
-            } else if (st.equalsIgnoreCase("Đã đặt") || st.equalsIgnoreCase("Chờ xử lý") || st.equalsIgnoreCase("Chờ giao hàng")) {
+            } else if (st.equalsIgnoreCase("Đã đặt") || st.equalsIgnoreCase("Chờ xử lý") || st.equalsIgnoreCase("Chờ giao hàng") || st.equalsIgnoreCase("Đang giao")) {
                 bg = new Color(0xFEF3C7); fg = new Color(0xD97706); // Vàng
+            } else if (st.equalsIgnoreCase("Chờ thanh toán")) {
+                bg = new Color(0xDBEAFE); fg = new Color(0x1E3A8A); // Xanh dương
             } else {
                 bg = new Color(0xFEE2E2); fg = new Color(0x991B1B); // Đỏ (Hủy)
             }
@@ -612,6 +677,7 @@ public class DonHangPanel extends JPanel {
         }
         @Override public Component getTableCellRendererComponent(JTable t, Object value, boolean isS, boolean hasF, int r, int c) {
             String status = (String) t.getValueAt(r, 4);
+            String maDH = (String) t.getValueAt(r, 0);
             JPanel cell = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
             cell.setOpaque(true);
             if (isS) cell.setBackground(new Color(220, 252, 231));
@@ -620,6 +686,13 @@ public class DonHangPanel extends JPanel {
 
             if (status.equalsIgnoreCase("Đã đặt") || status.equalsIgnoreCase("Chờ xử lý")) {
                 setText("Huỷ đơn"); setBackground(AppColor.ERROR); setForeground(Color.WHITE); setEnabled(true);
+            } else if (status.equalsIgnoreCase("Chờ thanh toán")) {
+                DonHangDTO dh = timDonHangTheoMa(maDH);
+                if (dh != null && "Ghi nợ".equalsIgnoreCase(dh.getPhuongThucTT())) {
+                    setText("Thanh toán"); setBackground(new Color(37, 99, 235)); setForeground(Color.WHITE); setEnabled(true);
+                } else {
+                    setText("---"); setBackground(new Color(243,244,246)); setForeground(new Color(156,163,175)); setEnabled(false);
+                }
             } else {
                 setText("---"); setBackground(new Color(243,244,246)); setForeground(new Color(156,163,175)); setEnabled(false);
             }
@@ -634,13 +707,29 @@ public class DonHangPanel extends JPanel {
             super(checkBox);
             button = new JButton(); button.setOpaque(true); button.setBorderPainted(false); button.setFocusPainted(false);
             button.setCursor(new Cursor(Cursor.HAND_CURSOR)); button.setFont(new Font("Segoe UI", Font.BOLD, 12));
-            button.addActionListener(e -> { fireEditingStopped(); xuLyHuyDon(clickedRow); });
+            button.addActionListener(e -> { 
+                fireEditingStopped(); 
+                String status = (String) table.getValueAt(clickedRow, 4);
+                if (status.equalsIgnoreCase("Chờ thanh toán")) {
+                    xuLyThanhToan(clickedRow);
+                } else {
+                    xuLyHuyDon(clickedRow); 
+                }
+            });
         }
         @Override public Component getTableCellEditorComponent(JTable t, Object value, boolean isS, int r, int c) {
             clickedRow = r;
             String status = (String) t.getValueAt(r, 4);
+            String maDH = (String) t.getValueAt(r, 0);
             if (status.equalsIgnoreCase("Đã đặt") || status.equalsIgnoreCase("Chờ xử lý")) {
                 button.setText("Huỷ đơn"); button.setBackground(AppColor.ERROR); button.setForeground(Color.WHITE); button.setEnabled(true);
+            } else if (status.equalsIgnoreCase("Chờ thanh toán")) {
+                DonHangDTO dh = timDonHangTheoMa(maDH);
+                if (dh != null && "Ghi nợ".equalsIgnoreCase(dh.getPhuongThucTT())) {
+                    button.setText("Thanh toán"); button.setBackground(new Color(37, 99, 235)); button.setForeground(Color.WHITE); button.setEnabled(true);
+                } else {
+                    button.setText("---"); button.setBackground(new Color(243,244,246)); button.setForeground(new Color(156,163,175)); button.setEnabled(false);
+                }
             } else {
                 button.setText("---"); button.setBackground(new Color(243,244,246)); button.setForeground(new Color(156,163,175)); button.setEnabled(false);
             }

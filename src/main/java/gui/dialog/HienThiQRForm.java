@@ -19,6 +19,7 @@ public class HienThiQRForm extends JDialog {
     private final MainFrame parentFrame; 
     private final DonHangDTO donHang;
     private final List<ChiTietDonHangDTO> chiTietList;
+    private boolean isPayingDebt = false;
     private static final NumberFormat FMT = NumberFormat.getCurrencyInstance(Locale.of("vi", "VN"));
 
     public HienThiQRForm(MainFrame parent, DonHangDTO donHang, List<ChiTietDonHangDTO> chiTietList) {
@@ -26,6 +27,22 @@ public class HienThiQRForm extends JDialog {
         this.parentFrame = parent;
         this.donHang = donHang;
         this.chiTietList = chiTietList;
+
+        setSize(480, 580);
+        setLocationRelativeTo(parent);
+        setLayout(new BorderLayout());
+        setBackground(new Color(245, 247, 250));
+        getRootPane().putClientProperty(FlatClientProperties.STYLE, "arc: 16");
+
+        initComponents();
+    }
+
+    public HienThiQRForm(MainFrame parent, DonHangDTO donHang, boolean isPayingDebt) {
+        super(parent, "Quét mã thanh toán", true);
+        this.parentFrame = parent;
+        this.donHang = donHang;
+        this.chiTietList = null;
+        this.isPayingDebt = isPayingDebt;
 
         setSize(480, 580);
         setLocationRelativeTo(parent);
@@ -119,23 +136,49 @@ public class HienThiQRForm extends JDialog {
         pnlAction.putClientProperty(FlatClientProperties.STYLE, "border: 1,0,0,0,#E2E8F0");
 
         // NÚT HỦY GIAO DỊCH (Giữ nguyên giỏ hàng, KHÔNG lưu đơn hàng)
-        JButton btnHuy = new JButton("Hủy giao dịch");
+        JButton btnHuy = new JButton(isPayingDebt ? "Quay lại" : "Hủy giao dịch");
         btnHuy.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btnHuy.setPreferredSize(new Dimension(150, 45));
         btnHuy.putClientProperty(FlatClientProperties.STYLE, 
                 "arc: 12; background: #FEF2F2; foreground: #DC2626; hoverBackground: #FEE2E2; borderWidth: 0;");
         btnHuy.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnHuy.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(this, 
-                    "Bạn có chắc chắn muốn hủy giao dịch cho đơn hàng này?\n(Giỏ hàng của bạn vẫn sẽ được giữ nguyên)", 
-                    "Xác nhận hủy", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-            
-            if (confirm == JOptionPane.YES_OPTION) {
+            if (isPayingDebt) {
                 dispose();
+            } else {
+                int confirm = JOptionPane.showConfirmDialog(this, 
+                        "Bạn có chắc chắn muốn hủy giao dịch cho đơn hàng này?\n(Đơn hàng sẽ bị hủy và giỏ hàng của bạn vẫn sẽ được khôi phục nguyên vẹn)", 
+                        "Xác nhận hủy", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                
+                if (confirm == JOptionPane.YES_OPTION) {
+                    try {
+                        // Gọi hàm hủy đơn hàng (sẽ gọi SP_HUY_DH phục hồi SLKhaDung)
+                        new dao.DonHangDAO().xoaDonHang(donHang.getMaDH());
+                        
+                        // Khôi phục lại giỏ hàng trong DB
+                        bus.GioHangBUS ghBus = new bus.GioHangBUS();
+                        for (dto.ChiTietDonHangDTO ct : chiTietList) {
+                            ghBus.addToCart(util.Session.maKH, ct.getMaSP(), ct.getSoLuong());
+                        }
+                        
+                        // Cập nhật lại cache giỏ hàng và giao diện giỏ hàng
+                        util.Session.cartCache = ghBus.getCart(util.Session.maKH);
+                        if (parentFrame != null) {
+                            parentFrame.updateCartBadge();
+                            parentFrame.navigateToGioHang();
+                        }
+                        
+                        JOptionPane.showMessageDialog(this, "Hủy giao dịch thành công. Giỏ hàng đã được khôi phục!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        JOptionPane.showMessageDialog(this, "Lỗi khi hủy đơn hàng: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    }
+                    dispose();
+                }
             }
         });
 
-        // NÚT ĐÃ THANH TOÁN (Chỉ tạo đơn hàng & xóa giỏ hàng khi thực sự thành công)
+        // NÚT ĐÃ THANH TOÁN (Chuyển trạng thái thanh toán TrangThaiTT thành 1 trong CSDL)
         JButton btnDone = new JButton("Thanh toán [DEMO]");
         btnDone.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btnDone.setPreferredSize(new Dimension(150, 45));
@@ -144,19 +187,25 @@ public class HienThiQRForm extends JDialog {
         btnDone.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnDone.addActionListener(e -> {
             DonHangDAO dao = new DonHangDAO();
-            boolean isSaved = dao.insertDonHang(donHang, chiTietList);
+            boolean isUpdated;
+            if (isPayingDebt) {
+                isUpdated = dao.thanhToanDonHangGhiNo(donHang.getMaDH(), donHang.getPhuongThucTT());
+            } else {
+                isUpdated = dao.updateTrangThaiThanhToan(donHang.getMaDH(), 1);
+            }
             
-            if (isSaved) {
-                new bus.GioHangBUS().clearCart(Session.maKH);
-                Session.clearCart();
-                if (parentFrame != null) {
-                    parentFrame.updateCartBadge();
-                    parentFrame.navigateToGioHang();
+            if (isUpdated) {
+                // Đồng bộ trạng thái thanh toán trong DTO đang giữ
+                donHang.setTrangThaiTT(1);
+                if (isPayingDebt) {
+                    donHang.setTrangThaiDH("Hoàn thành");
+                    JOptionPane.showMessageDialog(this, "Thanh toán nợ thành công cho đơn hàng: " + donHang.getMaDH() + "\nPhương thức thanh toán đã chuyển thành: " + donHang.getPhuongThucTT(), "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Hệ thống ghi nhận đặt hàng & thanh toán thành công!\nMã đơn hàng: " + donHang.getMaDH(), "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 }
-                JOptionPane.showMessageDialog(this, "Hệ thống ghi nhận đặt hàng & thanh toán thành công!\nMã đơn hàng: " + donHang.getMaDH(), "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 dispose();
             } else {
-                JOptionPane.showMessageDialog(this, "Có lỗi xảy ra khi tạo đơn hàng trên hệ thống. Vui lòng thanh toán lại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Có lỗi xảy ra khi cập nhật trạng thái thanh toán. Vui lòng thử lại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         });
 

@@ -133,8 +133,8 @@ public class DonHangDAO {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
-            // Đã bổ sung DiaChiGiaoHang, PhuongThucTT và TGGiaoYC (bỏ TgDat để CSDL tự sinh bằng DEFAULT SYSDATE)
-            String sqlDH = "INSERT INTO DONHANG (MaKH, TGGiaoYC, TongTienHang, PhiVanChuyen, TongTien, TrangThaiDH, DiaChiGiaoHang, PhuongThucTT) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            // Đã bổ sung DiaChiGiaoHang, PhuongThucTT, TGGiaoYC và TrangThaiTT (bỏ TgDat để CSDL tự sinh bằng DEFAULT SYSDATE)
+            String sqlDH = "INSERT INTO DONHANG (MaKH, TGGiaoYC, TongTienHang, PhiVanChuyen, TongTien, TrangThaiDH, DiaChiGiaoHang, PhuongThucTT, TrangThaiTT) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             pstmtDH = conn.prepareStatement(sqlDH, new String[]{"MADH"});
             pstmtDH.setString(1, donHang.getMaKH());
             if (donHang.getTgGiaoYC() != null) {
@@ -148,6 +148,7 @@ public class DonHangDAO {
             pstmtDH.setString(6, donHang.getTrangThaiDH());
             pstmtDH.setString(7, donHang.getDiaChiGiaoHang());
             pstmtDH.setString(8, donHang.getPhuongThucTT());
+            pstmtDH.setInt(9, donHang.getTrangThaiTT());
             pstmtDH.executeUpdate();
 
             // Lấy mã đơn hàng được sinh tự động bởi trigger
@@ -206,6 +207,56 @@ public class DonHangDAO {
                     conn.setAutoCommit(true);
                     conn.close();
                 }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public boolean updateTrangThaiThanhToan(String maDH, int trangThaiTT) {
+        Connection conn = null;
+        java.sql.PreparedStatement pstmt = null;
+        boolean result = false;
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "UPDATE DONHANG SET TrangThaiTT = ? WHERE MaDH = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, trangThaiTT);
+            pstmt.setString(2, maDH);
+            int rows = pstmt.executeUpdate();
+            result = rows > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public boolean thanhToanDonHangGhiNo(String maDH, String phuongThucTT) {
+        Connection conn = null;
+        java.sql.PreparedStatement pstmt = null;
+        boolean result = false;
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "UPDATE DONHANG SET TrangThaiTT = 1, TrangThaiDH = N'Hoàn thành', PhuongThucTT = ? WHERE MaDH = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, phuongThucTT);
+            pstmt.setString(2, maDH);
+            int rows = pstmt.executeUpdate();
+            result = rows > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }

@@ -11,11 +11,12 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
 import java.awt.*;
 import java.util.List;
 import gui.component.WrapLayout;
 public class CuaHangPanel extends JPanel {
-
+    private javax.swing.Timer searchTimer;
     private MainFrame parentFrame;
 
     // private String maKH;
@@ -229,29 +230,30 @@ public class CuaHangPanel extends JPanel {
     // EVENTS
     // =========================================
     private void initEvents() {
+        searchTimer = new javax.swing.Timer(300, e -> filterSanPham());
+        searchTimer.setRepeats(false);
 
         // =========================================
         // REALTIME SEARCH
         // =========================================
         txtTimKiem.getDocument().addDocumentListener(
-                new DocumentListener() {
-
-                    @Override
-                    public void insertUpdate(DocumentEvent e) {
-                        filterSanPham();
-                    }
-
-                    @Override
-                    public void removeUpdate(DocumentEvent e) {
-                        filterSanPham();
-                    }
-
-                    @Override
-                    public void changedUpdate(DocumentEvent e) {
-                        filterSanPham();
+            new DocumentListener() {
+                private void restartTimer() {
+                    if (searchTimer.isRunning()) {
+                        searchTimer.restart();
+                    } else {
+                        searchTimer.start();
                     }
                 }
-        );
+
+                @Override
+                public void insertUpdate(DocumentEvent e) { restartTimer(); }
+                @Override
+                public void removeUpdate(DocumentEvent e) { restartTimer(); }
+                @Override
+                public void changedUpdate(DocumentEvent e) { restartTimer(); }
+            }
+    );
 
         // =========================================
         // FILTER CATEGORY

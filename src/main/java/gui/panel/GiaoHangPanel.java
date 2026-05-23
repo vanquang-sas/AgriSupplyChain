@@ -23,7 +23,7 @@ public class GiaoHangPanel extends JPanel {
     private DefaultTableModel modelChoGiao, modelDaNhan, modelLichSu;
     private JTable tblChoGiao, tblDaNhan, tblLichSu;
 
-    private static final String[] COLUMNS = {"MÃ ĐH", "MÃ KH", "ĐỊA CHỈ GIAO", "NGÀY ĐẶT", "TỔNG TIỀN", "PHƯƠNG THỨC", "TRẠNG THÁI"};
+    private static final String[] COLUMNS = {"MÃ ĐH", "MÃ KH", "ĐỊA CHỈ GIAO", "THỜI GIAN GIAO", "TỔNG TIỀN", "PHƯƠNG THỨC", "TRẠNG THÁI"};
 
     public GiaoHangPanel(String maNV) {
         this.maNV = maNV;
@@ -219,17 +219,17 @@ public class GiaoHangPanel extends JPanel {
         // Tab 1
         modelChoGiao.setRowCount(0);
         for (DonHangDTO dh : bus.layDonChoGiao()) { // Lưu ý: Hàm này đã không cần truyền MaNV
-            modelChoGiao.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgDat(), String.format("%,.0f", dh.getTongTien()), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
+            modelChoGiao.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgGiaoYC(), String.format("%,.0f", dh.getTongTien()), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
         }
         // Tab 2
         modelDaNhan.setRowCount(0);
         for (DonHangDTO dh : bus.layDonDaNhan(maNV)) {
-            modelDaNhan.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgDat(), String.format("%,.0f", dh.getTongTien()), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
+            modelDaNhan.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgGiaoYC(), String.format("%,.0f", dh.getTongTien()), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
         }
         // Tab 3
         modelLichSu.setRowCount(0);
         for (DonHangDTO dh : bus.lichSuGiaoHang(maNV)) {
-            modelLichSu.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgDat(), String.format("%,.0f", dh.getTongTien()), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
+            modelLichSu.addRow(new Object[]{dh.getMaDH(), dh.getMaKH(), dh.getDiaChiGiaoHang(), dh.getTgGiaoYC(), String.format("%,.0f", dh.getTongTien()), dh.getPhuongThucTT(), dh.getTrangThaiDH()});
         }
     }
 
@@ -382,6 +382,7 @@ public class GiaoHangPanel extends JPanel {
                 case "Chờ giao hàng": badgeBg = new Color(0xDBEAFE); badgeFg = new Color(0x1E3A8A); break; // Xanh dương
                 case "Đang giao":     badgeBg = new Color(0xFEF3C7); badgeFg = new Color(0xD97706); break; // Vàng
                 case "Hoàn thành":    badgeBg = new Color(0xD1FAE5); badgeFg = new Color(0x065F46); break; // Xanh lá
+                case "Chờ thanh toán": badgeBg = new Color(0xE0F2FE); badgeFg = new Color(0x0369A1); break; // Xanh trời nhạt / Cyan
                 case "Đã huỷ":        badgeBg = new Color(0xFEE2E2); badgeFg = new Color(0x991B1B); break; // Đỏ
                 default:              badgeBg = new Color(0xF3F4F6); badgeFg = new Color(0x374151); break; // Xám
             }

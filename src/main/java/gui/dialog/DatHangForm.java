@@ -132,7 +132,7 @@ public class DatHangForm extends JDialog {
         body.add(Box.createVerticalStrut(8));
 
         cbxPhuongThuc = new JComboBox<>(new String[]{
-            "Tiền mặt (COD)", "Chuyển khoản Ngân hàng", "Ví MoMo"
+            "Tiền mặt (COD)", "Chuyển khoản Ngân hàng", "Ví MoMo", "Ghi nợ"
         });
         styleComponent(cbxPhuongThuc);
         body.add(wrapFull(cbxPhuongThuc));
@@ -370,7 +370,7 @@ public class DatHangForm extends JDialog {
         double tyLeGiamGia = 0.0;
         
         // Truy vấn tỷ lệ giảm giá trực tiếp từ database
-        String sql = "SELECT GiaTri FROM THAMSO WHERE TenTS = (SELECT CASE NVL(LoaiKH, 'Thường') WHEN 'VIP' THEN 'GG_VIP' WHEN 'Thân thiết' THEN 'GG_THANTHIET' ELSE 'GG_THUONG' END FROM KHACHHANG WHERE MaKH = ?)";
+        String sql = "SELECT GiaTri FROM THAMSO WHERE TenTS = (SELECT CASE NVL(LoaiKH, N'Thường') WHEN N'VIP' THEN 'GG_VIP' WHEN N'Thân thiết' THEN 'GG_THANTHIET' ELSE 'GG_THUONG' END FROM KHACHHANG WHERE MaKH = ?)";
         try (java.sql.Connection con = util.DBConnection.getConnection();
              java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maKH);
@@ -491,6 +491,8 @@ public class DatHangForm extends JDialog {
                 phuongThucDB = "Chuyển khoản";
             } else if (phuongThuc.contains("MoMo")) {
                 phuongThucDB = "Ví điện tử";
+            } else if (phuongThuc.contains("Ghi nợ")) {
+                phuongThucDB = "Ghi nợ";
             }
             donHang.setPhuongThucTT(phuongThucDB);
             
@@ -499,6 +501,7 @@ public class DatHangForm extends JDialog {
             donHang.setGiamGia(giamGia.doubleValue());
             donHang.setTongTien(tongThanhToan.doubleValue());
             donHang.setTrangThaiDH("Đã đặt");
+            donHang.setTrangThaiTT(0); // Trạng thái thanh toán ban đầu là 0 (Chưa thanh toán)
 
             List<ChiTietDonHangDTO> chiTietList = new ArrayList<>();
             for (GioHangDTO item : Session.cartCache) {
@@ -510,28 +513,35 @@ public class DatHangForm extends JDialog {
                 chiTietList.add(ct);
             }
 
-            if (phuongThuc.equals("Tiền mặt (COD)")) {
-                // Nếu là COD thì tạo đơn hàng trực tiếp trong CSDL và xóa giỏ hàng
-                DonHangDAO dao = new DonHangDAO();
-                boolean isSaved = dao.insertDonHang(donHang, chiTietList);
-                if (isSaved) {
-                    new bus.GioHangBUS().clearCart(Session.maKH);
-                    Session.clearCart();
-                    if (parentFrame != null) {
-                        parentFrame.updateCartBadge();
-                        parentFrame.navigateToGioHang();
-                    }
+            // Tạo đơn hàng trực tiếp trong CSDL (áp dụng cho tất cả phương thức)
+            DonHangDAO dao = new DonHangDAO();
+            boolean isSaved = dao.insertDonHang(donHang, chiTietList);
+            if (isSaved) {
+                // Xóa giỏ hàng sau khi đặt thành công
+                new bus.GioHangBUS().clearCart(Session.maKH);
+                Session.clearCart();
+                if (parentFrame != null) {
+                    parentFrame.updateCartBadge();
+                    parentFrame.navigateToGioHang();
+                }
+
+                if (phuongThucDB.equals("COD") || phuongThucDB.equals("Ghi nợ")) {
                     this.dispose(); 
-                    JOptionPane.showMessageDialog(parentFrame, "Đặt hàng thành công!\nMã đơn hàng: " + donHang.getMaDH() + "\nĐơn hàng sẽ được giao theo hình thức thanh toán khi nhận hàng (COD).", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                    String msg = "Đặt hàng thành công!\nMã đơn hàng: " + donHang.getMaDH();
+                    if (phuongThucDB.equals("COD")) {
+                        msg += "\nĐơn hàng sẽ được giao theo hình thức thanh toán khi nhận hàng (COD).";
+                    } else {
+                        msg += "\nĐơn hàng được ghi nhận dưới hình thức ghi nợ.";
+                    }
+                    JOptionPane.showMessageDialog(parentFrame, msg, "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 } else {
-                    JOptionPane.showMessageDialog(this, "Lỗi khi tạo đơn hàng COD trên hệ thống.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    // Đối với chuyển khoản hoặc Ví điện tử: Đóng form đi, mở QR hiển thị thanh toán
+                    this.dispose(); 
+                    HienThiQRForm qrForm = new HienThiQRForm(parentFrame, donHang, chiTietList);
+                    qrForm.setVisible(true);
                 }
             } else {
-                // Đối với chuyển khoản hoặc Ví điện tử: Đóng form đi, mở QR hiển thị thanh toán
-                // Chỉ lưu vào CSDL khi người dùng thực hiện thanh toán thành công trên HienThiQRForm
-                this.dispose(); 
-                HienThiQRForm qrForm = new HienThiQRForm(parentFrame, donHang, chiTietList);
-                qrForm.setVisible(true);
+                JOptionPane.showMessageDialog(this, "Lỗi khi tạo đơn hàng trên hệ thống.", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
 
         } catch (Exception ex) {

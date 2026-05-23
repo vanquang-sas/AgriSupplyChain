@@ -45,4 +45,5 @@ SELECT
 FROM CHITIETDONHANG ct
 JOIN DONHANG dh ON ct.MaDH = dh.MaDH
 JOIN SANPHAM sp ON ct.MaSP = sp.MaSP
-WHERE dh.TrangThaiDH NOT IN ('Đã hủy', 'Trả hàng');
+WHERE dh.TrangThaiDH NOT IN ('Đã hủy');
+

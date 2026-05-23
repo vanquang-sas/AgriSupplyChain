@@ -79,6 +79,13 @@ public class DonHangBUS {
         }
     }
 
+    public boolean thanhToanDonHangGhiNo(String maDH, String phuongThucTT) {
+        if (maDH == null || maDH.trim().isEmpty() || phuongThucTT == null || phuongThucTT.trim().isEmpty()) {
+            return false;
+        }
+        return donHangDAO.thanhToanDonHangGhiNo(maDH, phuongThucTT);
+    }
+
     /**
      * Lấy đối tượng DAO (có thể dùng cho testing)
      */
