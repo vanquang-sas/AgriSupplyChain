@@ -189,7 +189,7 @@ CREATE TABLE DONHANG (
 CREATE TABLE CHITIETDONHANG (
     MaDH VARCHAR2(10),
     MaSP VARCHAR2(10),
-    GiaBan NUMBER(12,2) CHECK (GiaBan > 0),
+    GiaBan NUMBER(15,2) CHECK (GiaBan > 0),
     SoLuong NUMBER(10,2) CHECK (SoLuong > 0),
     ThanhTien NUMBER(15,2) CHECK (ThanhTien > 0),
     PRIMARY KEY (MaDH, MaSP),

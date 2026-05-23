@@ -191,8 +191,8 @@ DECLARE
     v_MaDH VARCHAR2(10);
     
     -- ===== Variables for pricing & quantities =====
-    v_GiaMua NUMBER(12,2);
-    v_GiaBan_New NUMBER(12,2);
+    v_GiaMua NUMBER(15,2);
+    v_GiaBan_New NUMBER(15,2);
     v_margin NUMBER := 0;
     v_SoLuong_import NUMBER := 0;
     v_SoLuong_export NUMBER := 0;
