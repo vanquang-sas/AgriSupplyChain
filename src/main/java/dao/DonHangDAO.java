@@ -54,6 +54,7 @@ public class DonHangDAO {
                 donHangDTO.setTongTien(rs.getDouble("TongTien"));
                 donHangDTO.setTrangThaiDH(rs.getString("TrangThaiDH"));
                 donHangDTO.setTrangThaiTT(rs.getInt("TrangThaiTT"));
+                donHangDTO.setPhuongThucTT(rs.getString("PhuongThucTT"));
                 
                 // Lấy chuỗi danh sách sản phẩm từ hàm LISTAGG
                 // Ví dụ: "2 Xoài, 1 Chuối"

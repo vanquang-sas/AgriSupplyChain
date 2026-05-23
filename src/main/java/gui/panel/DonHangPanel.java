@@ -600,17 +600,17 @@ public class DonHangPanel extends JPanel {
             if (c == 0) { 
                 setFont(new Font("Segoe UI", Font.BOLD, 13)); 
                 setForeground(new Color(31, 41, 55)); 
-                setHorizontalAlignment(SwingConstants.LEFT); // Ép cứng lề trái
+                setHorizontalAlignment(SwingConstants.LEFT); 
             } 
             else if (c == 3) { 
                 setFont(new Font("Segoe UI", Font.BOLD, 13)); 
                 setForeground(AppColor.PRIMARY); 
-                setHorizontalAlignment(SwingConstants.RIGHT); // Cột tiền lề phải
+                setHorizontalAlignment(SwingConstants.RIGHT); 
             }
             else { 
                 setFont(new Font("Segoe UI", Font.PLAIN, 13)); 
                 setForeground(new Color(75, 85, 99)); 
-                setHorizontalAlignment(SwingConstants.LEFT); // Reset lề trái cho Ngày đặt và Sản phẩm
+                setHorizontalAlignment(SwingConstants.LEFT); 
             }
 
             if (isS) setBackground(new Color(220, 252, 231));
@@ -690,8 +690,6 @@ public class DonHangPanel extends JPanel {
                 DonHangDTO dh = timDonHangTheoMa(maDH);
                 if (dh != null && "Ghi nợ".equalsIgnoreCase(dh.getPhuongThucTT())) {
                     setText("Thanh toán"); setBackground(new Color(37, 99, 235)); setForeground(Color.WHITE); setEnabled(true);
-                } else {
-                    setText("---"); setBackground(new Color(243,244,246)); setForeground(new Color(156,163,175)); setEnabled(false);
                 }
             } else {
                 setText("---"); setBackground(new Color(243,244,246)); setForeground(new Color(156,163,175)); setEnabled(false);
@@ -727,8 +725,6 @@ public class DonHangPanel extends JPanel {
                 DonHangDTO dh = timDonHangTheoMa(maDH);
                 if (dh != null && "Ghi nợ".equalsIgnoreCase(dh.getPhuongThucTT())) {
                     button.setText("Thanh toán"); button.setBackground(new Color(37, 99, 235)); button.setForeground(Color.WHITE); button.setEnabled(true);
-                } else {
-                    button.setText("---"); button.setBackground(new Color(243,244,246)); button.setForeground(new Color(156,163,175)); button.setEnabled(false);
                 }
             } else {
                 button.setText("---"); button.setBackground(new Color(243,244,246)); button.setForeground(new Color(156,163,175)); button.setEnabled(false);

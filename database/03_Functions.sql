@@ -198,7 +198,6 @@ BEGIN
 END;
 /
 
--- 2. Lấy danh sách đơn hàng của một khách hàng kèm chi tiết sản phẩm gom bằng LISTAGG
 CREATE OR REPLACE FUNCTION FN_LAY_DS_DONHANG_BY_KH (
     p_MaKH IN VARCHAR2
 ) RETURN SYS_REFCURSOR
@@ -213,6 +212,7 @@ BEGIN
         DH.TongTien,
         DH.TrangThaiDH,
         DH.TrangThaiTT,
+        DH.PhuongThucTT,
         -- Gom tất cả tên sản phẩm cùng số lượng thành một chuỗi (có chống overflow)
         LISTAGG(CTDH.SoLuong || ' ' || SP.TenSP, ', ' ON OVERFLOW TRUNCATE) 
             WITHIN GROUP (ORDER BY SP.TenSP) AS DanhSachSP
@@ -220,7 +220,7 @@ BEGIN
     LEFT JOIN CHITIETDONHANG CTDH ON DH.MaDH = CTDH.MaDH
     LEFT JOIN SANPHAM SP ON CTDH.MaSP = SP.MaSP
     WHERE DH.MaKH = p_MaKH
-    GROUP BY DH.MaDH, DH.MaKH, DH.TGDat, DH.TongTien, DH.TrangThaiDH, DH.TrangThaiTT
+    GROUP BY DH.MaDH, DH.MaKH, DH.TGDat, DH.TongTien, DH.TrangThaiDH, DH.TrangThaiTT, DH.PhuongThucTT
     ORDER BY DH.TGDat DESC;
     
     RETURN v_cursor;
