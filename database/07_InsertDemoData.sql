@@ -167,7 +167,7 @@ SELECT * FROM dual;
 COMMIT;
 
 -- ====================================================================================
---        PHẦN 8: DATA ENRICHMENT - Sinh dữ liệu 12 tháng (05/2025 - 05/2026) -     
+--        PHẦN 8: DATA ENRICHMENT - Sinh dữ liệu (11/2025 - 05/2026)     
 -- ====================================================================================
 
 SET DEFINE OFF;
@@ -189,6 +189,8 @@ DECLARE
     v_MaKho VARCHAR2(10);
     v_MaLH VARCHAR2(10);
     v_MaDH VARCHAR2(10);
+    v_DiaChiGiao NVARCHAR2(255);
+    v_PhuongThucTT NVARCHAR2(50);
     
     -- ===== Variables for pricing & quantities =====
     v_GiaMua NUMBER(15,2);
@@ -196,221 +198,352 @@ DECLARE
     v_margin NUMBER := 0;
     v_SoLuong_import NUMBER := 0;
     v_SoLuong_export NUMBER := 0;
-    v_total_import_month NUMBER := 0;
-    v_target_export_qty NUMBER := 0;
-    v_current_export_qty NUMBER := 0;
     v_BaoQuan NVARCHAR2(100);
     
-    -- ===== Counters =====
-    v_num_lohang_month NUMBER := 0;
-    v_num_lohang_items NUMBER := 0;
-    v_num_donhang_month NUMBER := 0;
-    v_num_items_per_order NUMBER := 0;
-    v_sp1_changes NUMBER := 0;
+    -- ===== Counters & Control =====
+    v_import_sp_idx NUMBER := 1;
+    v_num_items NUMBER := 0;
     
-    -- ===== Arrays for 6 focused products =====
+    -- ===== Arrays =====
+    -- Tất cả 25 sản phẩm
+    TYPE t_sp_all IS TABLE OF VARCHAR2(10);
+    v_all_products t_sp_all := t_sp_all(
+        'SP000001', 'SP000002', 'SP000003', 'SP000004', 'SP000005',
+        'SP000006', 'SP000007', 'SP000008', 'SP000009', 'SP000010',
+        'SP000011', 'SP000012', 'SP000013', 'SP000014', 'SP000015',
+        'SP000016', 'SP000017', 'SP000018', 'SP000019', 'SP000020',
+        'SP000021', 'SP000022', 'SP000023', 'SP000024', 'SP000025'
+    );
+    
+    -- Danh sách sản phẩm cho mỗi loại (để cập nhật biến động giá 1-2 lần/tháng cho mỗi loại)
     TYPE t_sp_array IS TABLE OF VARCHAR2(10);
-    v_focused_products t_sp_array := t_sp_array('SP000001', 'SP000002', 'SP000006', 'SP000007', 'SP000021', 'SP000025');
+    -- Cập nhật giá nhóm 1 (tuần 1)
+    v_sp_week1 t_sp_array := t_sp_array('SP000002', 'SP000007', 'SP000012', 'SP000017', 'SP000022');
+    -- Cập nhật giá nhóm 2 (tuần 3)
+    v_sp_week3 t_sp_array := t_sp_array('SP000004', 'SP000009', 'SP000014', 'SP000019', 'SP000024');
     
+    -- Helper procedure to perform price update and shift TGApDung
+    PROCEDURE P_UPDATE_PRICE_SIMULATED(p_MaSP IN VARCHAR2, p_Date IN DATE) IS
+        v_current_GiaMua NUMBER(15,2);
+        v_new_GiaMua NUMBER(15,2);
+        v_new_GiaBan NUMBER(15,2);
+        v_rand_margin NUMBER;
+    BEGIN
+        SELECT GiaMua INTO v_current_GiaMua FROM SANPHAM WHERE MaSP = p_MaSP;
+        -- Dao động từ -3% đến +5%
+        v_new_GiaMua := ROUND(v_current_GiaMua * (1 + DBMS_RANDOM.VALUE(-0.03, 0.05)), -3);
+        -- Biên lợi nhuận 30% - 50%
+        v_rand_margin := 0.30 + DBMS_RANDOM.VALUE(0, 0.20);
+        v_new_GiaBan := ROUND(v_new_GiaMua * (1 + v_rand_margin), -3);
+        
+        -- Gọi procedure hệ thống để cập nhật bảng SANPHAM (tự kích hoạt trigger thêm vào LICHSUGIA với TGApDung = SYSDATE)
+        SP_CAPNHAT_GIA(p_MaSP, v_new_GiaMua, v_new_GiaBan);
+        
+        -- Cập nhật lại TGApDung của dòng lịch sử giá vừa tạo thành ngày mô phỏng
+        UPDATE LICHSUGIA 
+        SET TGApDung = p_Date 
+        WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = p_MaSP ORDER BY MaGia DESC) WHERE ROWNUM = 1)
+          AND TRUNC(TGApDung) = TRUNC(SYSDATE);
+    EXCEPTION 
+        WHEN OTHERS THEN 
+            DBMS_OUTPUT.PUT_LINE('Lỗi cập nhật giá ' || p_MaSP || ': ' || SQLERRM);
+    END;
+
 BEGIN
-    DBMS_OUTPUT.PUT_LINE('BẮT ĐẦU CHẠY DATA ENRICHMENT - VERSION 3 (BIẾN ĐỘNG GIÁ MUA & BÁN)');
+    DBMS_OUTPUT.PUT_LINE('BẮT ĐẦU CHẠY DATA ENRICHMENT - GIAI ĐOẠN 11/2025 - 05/2026');
     
-    -- Lặp qua 13 tháng (05/2025 - 05/2026)
-    FOR v_month_offset IN 0..12 LOOP
-        v_month_date := ADD_MONTHS(TO_DATE('2025-05-01', 'YYYY-MM-DD'), v_month_offset);
+    -- Xoá dữ liệu cũ của các bảng liên quan đến giao dịch trước khi nạp demo
+    -- (Để tránh trùng lặp nếu chạy lại script)
+    DELETE FROM XUATKHO;
+    DELETE FROM TONKHO;
+    DELETE FROM CHITIETDONHANG;
+    DELETE FROM DONHANG;
+    DELETE FROM CHITIETLOHANG;
+    DELETE FROM LOHANG;
+    DELETE FROM THONGBAO;
+    DELETE FROM LICHSUGIA;
+    
+    -- Khởi tạo lại giá trị ban đầu cho LICHSUGIA từ bảng SANPHAM để đồng bộ
+    FOR r IN (SELECT MaSP, GiaMua, GiaBan FROM SANPHAM) LOOP
+        INSERT INTO LICHSUGIA (MaSP, GiaMua, GiaBan, TGApDung)
+        VALUES (r.MaSP, r.GiaMua, r.GiaBan, TO_DATE('2025-10-15', 'YYYY-MM-DD'));
+    END LOOP;
+    
+    -- Lặp qua 7 tháng (11/2025 - 05/2026, tương ứng offset 0..6)
+    FOR v_month_offset IN 0..6 LOOP
+        v_month_date := ADD_MONTHS(TO_DATE('2025-11-01', 'YYYY-MM-DD'), v_month_offset);
         v_month_start := TRUNC(v_month_date, 'MM');
         v_month_end := LAST_DAY(v_month_date);
         v_days_in_month := TO_NUMBER(TO_CHAR(v_month_end, 'DD'));
         
-        v_total_import_month := 0;
-        v_current_export_qty := 0;
-        v_sp1_changes := 0;
+        -- =================================================================
+        -- 1. BIẾN ĐỘNG GIÁ SẢN PHẨM TRONG THÁNG
+        -- =================================================================
+        -- 1.1 Sản phẩm SP000001 (Thịt heo Iberico) biến động giá 4 lần/tháng (vào ngày 3, 10, 17, 24)
+        P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 2);   -- Ngày 3
+        P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 9);   -- Ngày 10
+        P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 16);  -- Ngày 17
+        P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 23);  -- Ngày 24
         
-        -- =================================================================
-        -- 1. NHẬP KHO (LOHANG)
-        -- =================================================================
-        v_num_lohang_month := TRUNC(5 + DBMS_RANDOM.VALUE(0, 3)); 
-        FOR i IN 1..v_num_lohang_month LOOP
-            BEGIN
-                SELECT MaNCC INTO v_MaNCC FROM (SELECT MaNCC FROM NHACUNGCAP WHERE TrangThaiHopTac = 1 ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
-                SELECT MaNV INTO v_MaNV_ThuMua FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV thu mua' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
-                
-                v_MaLH := 'LH' || LPAD(SEQ_LOHANG.NEXTVAL, 6, '0');
-                v_day_offset := TRUNC(DBMS_RANDOM.VALUE(0, v_days_in_month));
-                
-                INSERT INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH)
-                VALUES (v_MaLH, v_MaNCC, v_MaNV_ThuMua, v_month_start + v_day_offset, 'Chờ kiểm duyệt');
-                
-                v_num_lohang_items := TRUNC(1 + DBMS_RANDOM.VALUE(0, 3)); 
-                DECLARE
-                    TYPE t_sp_temp IS TABLE OF VARCHAR2(10);
-                    v_used_sps t_sp_temp := t_sp_temp();
-                    v_is_dup BOOLEAN;
-                BEGIN
-                    FOR j IN 1..v_num_lohang_items LOOP
-                        -- Đảm bảo không trùng MaSP trong cùng 1 lô hàng
-                        LOOP
-                            v_MaSP := v_focused_products(TRUNC(DBMS_RANDOM.VALUE(1, v_focused_products.COUNT + 1)));
-                            v_is_dup := FALSE;
-                            IF v_used_sps.COUNT > 0 THEN
-                                FOR k IN 1..v_used_sps.COUNT LOOP
-                                    IF v_used_sps(k) = v_MaSP THEN
-                                        v_is_dup := TRUE;
-                                        EXIT;
-                                    END IF;
-                                END LOOP;
-                            END IF;
-                            EXIT WHEN NOT v_is_dup;
-                        END LOOP;
-                        v_used_sps.EXTEND;
-                        v_used_sps(v_used_sps.COUNT) := v_MaSP;
-
-                        v_SoLuong_import := TRUNC(200 + DBMS_RANDOM.VALUE(0, 801));
-                        
-                        INSERT INTO CHITIETLOHANG (MaLH, MaSP, SoLuong)
-                        VALUES (v_MaLH, v_MaSP, v_SoLuong_import);
-                        
-                        v_total_import_month := v_total_import_month + v_SoLuong_import;
-                        
-                        -- Lấy kho phù hợp với loại bảo quản của sản phẩm hiện tại
-                        SELECT BaoQuan INTO v_BaoQuan FROM SANPHAM WHERE MaSP = v_MaSP;
-                        SELECT MaKho INTO v_MaKho FROM (SELECT MaKho FROM KHO WHERE LoaiKho = v_BaoQuan ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
-                        
-                        SP_XACNHAN_NHAPKHO(v_MaLH, v_MaSP, v_MaKho, TO_DATE('2028-12-31', 'YYYY-MM-DD'), 'Kệ A' || TRUNC(DBMS_RANDOM.VALUE(1, 11)));
-                        UPDATE LICHSUGIA SET TGApDung = (v_month_start + v_day_offset)
-                        WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = v_MaSP ORDER BY MaGia DESC) WHERE ROWNUM = 1)
-                        AND TRUNC(TGApDung) = TRUNC(SYSDATE);
-                    END LOOP;
-                END;
-            EXCEPTION WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('LOHANG Error: ' || SQLERRM); END;
+        -- 1.2 Mỗi danh mục sản phẩm (LSP00001 - LSP00005) đều có biến động giá 2 lần/tháng
+        -- Lần 1 vào ngày 5 (các sản phẩm thuộc v_sp_week1)
+        FOR i IN 1..v_sp_week1.COUNT LOOP
+            P_UPDATE_PRICE_SIMULATED(v_sp_week1(i), v_month_start + 4);
         END LOOP;
         
+        -- Lần 2 vào ngày 20 (các sản phẩm thuộc v_sp_week3)
+        FOR i IN 1..v_sp_week3.COUNT LOOP
+            P_UPDATE_PRICE_SIMULATED(v_sp_week3(i), v_month_start + 19);
+        END LOOP;
+
         -- =================================================================
-        -- 2. XUẤT BÁN & BIẾN ĐỘNG GIÁ CHRONOLOGICAL (Tịnh tiến theo thời gian)
+        -- 2. NHẬP HÀNG (LOHANG, CHITIETLOHANG)
         -- =================================================================
-        v_target_export_qty := ROUND(v_total_import_month * (0.75 + DBMS_RANDOM.VALUE(0, 0.15)), 0);
-        v_num_donhang_month := TRUNC(12 + DBMS_RANDOM.VALUE(0, 7)); 
-        
-        FOR j IN 1..v_num_donhang_month LOOP
+        -- 6 đợt nhập hàng mỗi tháng vào các ngày 3, 8, 13, 18, 23, 28 (ít nhất 1 lần/tuần)
+        FOR d IN 1..6 LOOP
+            v_day_offset := CASE d
+                WHEN 1 THEN 2   -- Ngày 3
+                WHEN 2 THEN 7   -- Ngày 8
+                WHEN 3 THEN 12  -- Ngày 13
+                WHEN 4 THEN 17  -- Ngày 18
+                WHEN 5 THEN 22  -- Ngày 23
+                ELSE 27         -- Ngày 28
+            END;
+            v_simulated_date := v_month_start + v_day_offset;
+            
+            SELECT MaNCC INTO v_MaNCC FROM (SELECT MaNCC FROM NHACUNGCAP WHERE TrangThaiHopTac = 1 ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+            SELECT MaNV INTO v_MaNV_ThuMua FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV thu mua' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+            
+            v_MaLH := 'LH' || LPAD(SEQ_LOHANG.NEXTVAL, 6, '0');
+            
+            INSERT INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH)
+            VALUES (v_MaLH, v_MaNCC, v_MaNV_ThuMua, v_simulated_date, 'Chờ kiểm duyệt');
+            
+            -- Số lượng sản phẩm trong lô hàng:
+            -- 1-2 SP (đợt 1, 2, 4, 5) hoặc 3-4 SP (đợt 3, 6) -> phần lớn là 1-2 sản phẩm
+            IF d IN (1, 2, 4, 5) THEN
+                v_num_items := TRUNC(DBMS_RANDOM.VALUE(1, 3)); -- 1 hoặc 2
+            ELSE
+                v_num_items := TRUNC(DBMS_RANDOM.VALUE(3, 5)); -- 3 hoặc 4
+            END IF;
+            
+            DECLARE
+                TYPE t_sp_temp IS TABLE OF VARCHAR2(10);
+                v_used_sps t_sp_temp := t_sp_temp();
             BEGIN
-                -- Bắt buộc thời gian đi tới (ngày mùng 1 -> mùng 2 -> ... cuối tháng)
-                v_day_offset := TRUNC((j / v_num_donhang_month) * v_days_in_month);
-                IF v_day_offset >= v_days_in_month THEN v_day_offset := v_days_in_month - 1; END IF;
-                v_simulated_date := v_month_start + v_day_offset;
+                FOR j IN 1..v_num_items LOOP
+                    -- Chọn sản phẩm tuần tự (round-robin) từ danh sách 25 sản phẩm để đảm bảo nạp đều tất cả sản phẩm
+                    v_MaSP := v_all_products(v_import_sp_idx);
+                    v_import_sp_idx := MOD(v_import_sp_idx, 25) + 1;
+                    
+                    v_SoLuong_import := TRUNC(DBMS_RANDOM.VALUE(1500, 3501)); -- 1500 đến 3500 đơn vị (B2B nhập)
+                    
+                    INSERT INTO CHITIETLOHANG (MaLH, MaSP, SoLuong)
+                    VALUES (v_MaLH, v_MaSP, v_SoLuong_import);
+                    
+                    -- Xác định kho phù hợp với tính chất bảo quản của sản phẩm
+                    SELECT BaoQuan INTO v_BaoQuan FROM SANPHAM WHERE MaSP = v_MaSP;
+                    SELECT MaKho INTO v_MaKho FROM (SELECT MaKho FROM KHO WHERE LoaiKho = v_BaoQuan ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+                    
+                    -- Kiểm tra trạng thái lô hàng phù hợp theo dòng thời gian
+                    -- Tháng 11/2025 -> 4/2026 và các đợt 1,2,3 của tháng 5/2026 sẽ được nhập kho đầy đủ
+                    IF v_month_date < TO_DATE('2026-05-01', 'YYYY-MM-DD') OR d <= 3 THEN
+                        -- Xác nhận nhập kho bằng procedure (sinh bản ghi TONKHO)
+                        SP_XACNHAN_NHAPKHO(v_MaLH, v_MaSP, v_MaKho, v_simulated_date + 365, 'Kệ A' || TRUNC(DBMS_RANDOM.VALUE(1, 11)));
+                        -- Cập nhật ngày nhập kho của TONKHO thành ngày mô phỏng
+                        UPDATE TONKHO SET TGNhapKho = v_simulated_date WHERE MaLH = v_MaLH AND MaSP = v_MaSP;
+                    END IF;
+                END LOOP;
                 
-                -- ================= [CHÈN BIẾN ĐỘNG GIÁ MUA VÀ GIÁ BÁN] ================= --
-                -- 2.1 Cập nhật giá cho SP000001 (Đủ 4 lần/tháng)
-                IF MOD(j, TRUNC(v_num_donhang_month / 4)) = 0 AND v_sp1_changes < 4 THEN
-                    SELECT GiaMua INTO v_GiaMua FROM SANPHAM WHERE MaSP = 'SP000001';
-                    
-                    -- DAO ĐỘNG GIÁ MUA (-3% đến +5%) làm tròn hàng nghìn cho đẹp
-                    v_GiaMua := ROUND(v_GiaMua * (1 + DBMS_RANDOM.VALUE(-0.03, 0.05)), -3);
-                    
-                    -- TÍNH GIÁ BÁN THEO MARGIN (30% - 50%)
-                    v_margin := 0.30 + DBMS_RANDOM.VALUE(0, 0.20);
-                    v_GiaBan_New := ROUND(v_GiaMua * (1 + v_margin), -3);
-                    
-                    SP_CAPNHAT_GIA('SP000001', v_GiaMua, v_GiaBan_New);
-
-                    UPDATE LICHSUGIA SET TGApDung = v_simulated_date 
-                    WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = 'SP000001' ORDER BY MaGia DESC) WHERE ROWNUM = 1)
-                    AND TRUNC(TGApDung) = TRUNC(SYSDATE);
-                    
-                    v_sp1_changes := v_sp1_changes + 1;
+                -- Đối với tháng 5/2026 (tháng hiện tại), phân bổ trạng thái LOHANG phù hợp:
+                IF v_month_date >= TO_DATE('2026-05-01', 'YYYY-MM-DD') THEN
+                    IF d = 4 THEN
+                        -- Đợt 4: chuyển sang trạng thái "Chờ nhập kho"
+                        SP_YEUCAU_NHAPKHO(v_MaLH);
+                    -- Đợt 5 và 6 giữ trạng thái "Chờ kiểm duyệt"
+                    END IF;
                 END IF;
-                
-                -- 2.2 Cập nhật giá cho các SP khác (1-2 lần/tháng)
-                IF j = TRUNC(v_num_donhang_month / 2) OR j = v_num_donhang_month THEN
-                    FOR sp_idx IN 2..v_focused_products.COUNT LOOP 
-                        IF DBMS_RANDOM.VALUE(0, 1) > 0.3 THEN 
-                            SELECT GiaMua INTO v_GiaMua FROM SANPHAM WHERE MaSP = v_focused_products(sp_idx);
-                            
-                            -- DAO ĐỘNG GIÁ MUA (-3% đến +5%) làm tròn hàng nghìn
-                            v_GiaMua := ROUND(v_GiaMua * (1 + DBMS_RANDOM.VALUE(-0.03, 0.05)), -3);
-                            
-                            v_margin := 0.30 + DBMS_RANDOM.VALUE(0, 0.20);
-                            v_GiaBan_New := ROUND(v_GiaMua * (1 + v_margin), -3);
-                            
-                            SP_CAPNHAT_GIA(v_focused_products(sp_idx), v_GiaMua, v_GiaBan_New);
+            END;
+        END LOOP;
 
-                            UPDATE LICHSUGIA SET TGApDung = v_simulated_date 
-                            WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = v_focused_products(sp_idx) ORDER BY MaGia DESC) WHERE ROWNUM = 1)
-                            AND TRUNC(TGApDung) = TRUNC(SYSDATE);
-                        END IF;
-                    END LOOP;
-                END IF;
-                
-                -- ================= [TẠO ĐƠN HÀNG MỚI] ================= --
-                SELECT MaKH INTO v_MaKH FROM (SELECT MaKH FROM KHACHHANG ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
-                
-                IF DBMS_RANDOM.VALUE(0, 1) > 0.3 THEN
-                    SELECT MaNV INTO v_MaNV_GiaoHang FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV giao hàng' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
-                ELSE
-                    v_MaNV_GiaoHang := NULL;
-                END IF;
-                
-                v_MaDH := 'DH' || LPAD(SEQ_DONHANG.NEXTVAL, 6, '0');
-                
-                INSERT INTO DONHANG (MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, TrangThaiDH, TrangThaiTT, PhuongThucTT)
-                VALUES (v_MaDH, v_MaKH, v_MaNV_GiaoHang, v_simulated_date, v_simulated_date + TRUNC(DBMS_RANDOM.VALUE(1, 3)),
-                        N'TP.HCM - Quận ' || TRUNC(DBMS_RANDOM.VALUE(1, 13)), 'Đã đặt', 0, 'COD');
-                
-                -- Số lượng sản phẩm khác nhau trong 1 đơn (Tối đa bằng số lượng SP focused đang dùng = 6)
-                v_num_items_per_order := LEAST(TRUNC(2 + DBMS_RANDOM.VALUE(0, 5)), 6); 
-                DECLARE
-                    TYPE t_sp_temp IS TABLE OF VARCHAR2(10);
-                    v_used_sps t_sp_temp := t_sp_temp();
-                    v_is_dup BOOLEAN;
-                BEGIN
-                    FOR k IN 1..v_num_items_per_order LOOP
-                        IF v_current_export_qty >= v_target_export_qty THEN EXIT; END IF;
-                        
-                        -- Đảm bảo không trùng MaSP trong cùng 1 đơn hàng
-                        LOOP
-                            v_MaSP := v_focused_products(TRUNC(DBMS_RANDOM.VALUE(1, v_focused_products.COUNT + 1)));
-                            v_is_dup := FALSE;
-                            IF v_used_sps.COUNT > 0 THEN
-                                FOR idx IN 1..v_used_sps.COUNT LOOP
-                                    IF v_used_sps(idx) = v_MaSP THEN
-                                        v_is_dup := TRUE;
-                                        EXIT;
-                                    END IF;
-                                END LOOP;
-                            END IF;
-                            EXIT WHEN NOT v_is_dup;
-                        END LOOP;
-                        v_used_sps.EXTEND;
-                        v_used_sps(v_used_sps.COUNT) := v_MaSP;
-
-                        v_SoLuong_export := TRUNC(5 + DBMS_RANDOM.VALUE(0, 46));
-                        IF (v_current_export_qty + v_SoLuong_export) > v_target_export_qty THEN 
-                            v_SoLuong_export := v_target_export_qty - v_current_export_qty; 
-                        END IF;
-                        
-                        INSERT INTO CHITIETDONHANG (MaDH, MaSP, SoLuong) VALUES (v_MaDH, v_MaSP, v_SoLuong_export);
-                        v_current_export_qty := v_current_export_qty + v_SoLuong_export;
-                    END LOOP;
+        -- =================================================================
+        -- 3. BÁN HÀNG (DONHANG, CHITIETDONHANG)
+        -- =================================================================
+        -- Sinh 14 đơn hàng mỗi tháng trải đều các ngày (khoảng 10-20 lần bán, ít nhất 2 lần/tuần)
+        FOR j IN 1..14 LOOP
+            -- Trải đều các ngày trong tháng (ít nhất 2 lần/tuần)
+            v_day_offset := TRUNC(((j - 1) / 14) * v_days_in_month) + 1;
+            IF v_day_offset > v_days_in_month THEN v_day_offset := v_days_in_month; END IF;
+            v_simulated_date := v_month_start + (v_day_offset - 1);
+            
+            -- Chọn khách hàng ngẫu nhiên
+            SELECT MaKH INTO v_MaKH FROM (SELECT MaKH FROM KHACHHANG ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+            -- Chọn nhân viên giao hàng ngẫu nhiên
+            SELECT MaNV INTO v_MaNV_GiaoHang FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV giao hàng' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+            
+            -- Xác định phương thức thanh toán: 60% Ghi nợ, 40% phương thức khác
+            IF j IN (1, 3, 5, 7, 9, 11, 13) THEN
+                v_PhuongThucTT := N'Ghi nợ';
+            ELSE
+                v_PhuongThucTT := CASE TRUNC(DBMS_RANDOM.VALUE(0, 3))
+                    WHEN 0 THEN N'COD'
+                    WHEN 1 THEN N'Chuyển khoản'
+                    ELSE N'Ví điện tử'
                 END;
-                
-                BEGIN SP_YEUCAU_XUATKHO(v_MaDH); EXCEPTION WHEN OTHERS THEN NULL; END;
-                
-                -- NHỮNG ĐƠN TỪ THÁNG 4/2026 TRỞ VỀ TRƯỚC SẼ ĐƯỢC CHỐT DOANH THU
-                IF v_month_date <= TO_DATE('2026-04-30', 'YYYY-MM-DD') THEN
-                    BEGIN
-                        IF v_MaNV_GiaoHang IS NULL THEN
-                            SELECT MaNV INTO v_MaNV_GiaoHang FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV giao hàng' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+            END IF;
+            
+            v_MaDH := 'DH' || LPAD(SEQ_DONHANG.NEXTVAL, 6, '0');
+            v_DiaChiGiao := N'TP.HCM - Quận ' || TRUNC(DBMS_RANDOM.VALUE(1, 13));
+            
+            -- Khởi tạo đơn hàng với trạng thái 'Đã đặt'
+            INSERT INTO DONHANG (MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, TrangThaiDH, TrangThaiTT, PhuongThucTT)
+            VALUES (v_MaDH, v_MaKH, v_MaNV_GiaoHang, v_simulated_date, v_simulated_date + 2, v_DiaChiGiao, 'Đã đặt', 0, v_PhuongThucTT);
+            
+            -- Xác định số lượng sản phẩm trong đơn hàng:
+            -- 1-2 SP (15%), 3-5 SP (65%), 6-10 SP (20%) -> phần lớn từ 3-5 sản phẩm
+            v_num_items := CASE
+                WHEN j IN (1, 8) THEN TRUNC(DBMS_RANDOM.VALUE(1, 3))       -- 1 đến 2 sản phẩm
+                WHEN j IN (2, 3, 5, 6, 7, 10, 11, 12, 13) THEN TRUNC(DBMS_RANDOM.VALUE(3, 6)) -- 3 đến 5 sản phẩm
+                ELSE TRUNC(DBMS_RANDOM.VALUE(6, 11))                       -- 6 đến 10 sản phẩm
+            END;
+            
+            DECLARE
+                TYPE t_sp_temp IS TABLE OF VARCHAR2(10);
+                v_used_sps t_sp_temp := t_sp_temp();
+                v_is_sp_dup BOOLEAN;
+            BEGIN
+                FOR k IN 1..v_num_items LOOP
+                    -- Đảm bảo không trùng lặp sản phẩm trong một đơn hàng
+                    LOOP
+                        v_MaSP := v_all_products(TRUNC(DBMS_RANDOM.VALUE(1, 26)));
+                        v_is_sp_dup := FALSE;
+                        IF v_used_sps.COUNT > 0 THEN
+                            FOR idx IN 1..v_used_sps.COUNT LOOP
+                                IF v_used_sps(idx) = v_MaSP THEN
+                                    v_is_sp_dup := TRUE;
+                                    EXIT;
+                                END IF;
+                            END LOOP;
                         END IF;
+                        EXIT WHEN NOT v_is_sp_dup;
+                    END LOOP;
+                    v_used_sps.EXTEND;
+                    v_used_sps(v_used_sps.COUNT) := v_MaSP;
+                    
+                    -- Số lượng bán B2B hợp lý: vài chục kg (từ 20 đến 120 kg/sp) và ít hơn nhiều so với lượng nhập lô hàng
+                    v_SoLuong_export := TRUNC(DBMS_RANDOM.VALUE(20, 121));
+                    
+                    INSERT INTO CHITIETDONHANG (MaDH, MaSP, SoLuong)
+                    VALUES (v_MaDH, v_MaSP, v_SoLuong_export);
+                END LOOP;
+            END;
+            
+            -- Chạy nghiệp vụ tạo yêu cầu xuất kho (Tạm giữ tồn kho và điền bảng XUATKHO)
+            BEGIN
+                SP_YEUCAU_XUATKHO(v_MaDH);
+                -- Đồng bộ thời gian trong XUATKHO
+                UPDATE XUATKHO SET TGCapNhat = v_simulated_date WHERE MaDH = v_MaDH;
+            EXCEPTION 
+                WHEN OTHERS THEN 
+                    DBMS_OUTPUT.PUT_LINE('Lỗi tạo yêu cầu xuất kho ' || v_MaDH || ': ' || SQLERRM);
+            END;
+            
+            -- Phân bổ trạng thái đơn hàng theo dòng thời gian:
+            -- 1. Với các tháng trước tháng 5/2026 (Quá khứ hoàn tất):
+            IF v_month_date < TO_DATE('2026-05-01', 'YYYY-MM-DD') THEN
+                BEGIN
+                    -- Xác nhận xuất kho (chuyển XUATKHO thành "Đã xuất", trừ tồn kho thực tế, và đổi TrangThaiDH = "Chờ giao hàng")
+                    SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
+                    
+                    -- Đổi trạng thái sang "Đang giao"
+                    SP_XACNHAN_GIAOHANG(v_MaDH, v_MaNV_GiaoHang);
+                    
+                    -- Xác nhận giao thành công
+                    SP_GIAOHANG_THANHCONG(v_MaDH, v_MaNV_GiaoHang);
+                    
+                    -- Xử lý cụ thể đối với đơn hàng Ghi nợ:
+                    -- 70% đã thanh toán (Hoàn thành, TrangThaiTT = 1), 30% vẫn nợ (Chờ thanh toán, TrangThaiTT = 0)
+                    IF v_PhuongThucTT = N'Ghi nợ' THEN
+                        IF j IN (1, 5, 9, 13) THEN
+                            -- Chuyển trạng thái nợ thành đã thanh toán thành công
+                            UPDATE DONHANG 
+                            SET TrangThaiTT = 1, 
+                                TrangThaiDH = N'Hoàn thành', 
+                                TGGiaoTT = v_simulated_date + 1 
+                            WHERE MaDH = v_MaDH;
+                        ELSE
+                            -- Giữ nguyên trạng thái chưa thanh toán (Chờ thanh toán)
+                            UPDATE DONHANG 
+                            SET TrangThaiTT = 0, 
+                                TrangThaiDH = N'Chờ thanh toán', 
+                                TGGiaoTT = v_simulated_date + 1 
+                            WHERE MaDH = v_MaDH;
+                        END IF;
+                    ELSE
+                        -- Các đơn thường thì đã hoàn thành và thanh toán
+                        UPDATE DONHANG 
+                        SET TGGiaoTT = v_simulated_date + 1 
+                        WHERE MaDH = v_MaDH;
+                    END IF;
+                    
+                    -- Đồng bộ hóa ngày đặt, giao yêu cầu và giao thực tế
+                    UPDATE DONHANG 
+                    SET TGDat = v_simulated_date,
+                        TGGiaoYC = v_simulated_date + 2
+                    WHERE MaDH = v_MaDH;
+                    
+                    UPDATE XUATKHO SET TGCapNhat = v_simulated_date WHERE MaDH = v_MaDH;
+                    
+                EXCEPTION WHEN OTHERS THEN NULL;
+                END;
+            
+            -- 2. Đối với tháng 5/2026 (Mô phỏng động cho tháng hiện tại):
+            ELSE
+                BEGIN
+                    IF j <= 6 THEN
+                        -- Đơn 1 đến 6: Đã giao thành công (Hoàn thành / Chờ thanh toán)
+                        SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
+                        SP_XACNHAN_GIAOHANG(v_MaDH, v_MaNV_GiaoHang);
+                        SP_GIAOHANG_THANHCONG(v_MaDH, v_MaNV_GiaoHang);
+                        IF v_PhuongThucTT = N'Ghi nợ' AND j IN (1, 5) THEN
+                            UPDATE DONHANG SET TrangThaiTT = 1, TrangThaiDH = N'Hoàn thành', TGGiaoTT = v_simulated_date + 1 WHERE MaDH = v_MaDH;
+                        ELSE
+                            UPDATE DONHANG SET TGGiaoTT = v_simulated_date + 1 WHERE MaDH = v_MaDH;
+                        END IF;
+                        
+                    ELSIF j IN (7, 8) THEN
+                        -- Đơn 7 và 8: Đang giao hàng
+                        SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
+                        SP_XACNHAN_GIAOHANG(v_MaDH, v_MaNV_GiaoHang);
+                        
+                    ELSIF j IN (9, 10) THEN
+                        -- Đơn 9 và 10: Chờ giao hàng (đã xuất kho nhưng shipper chưa nhận)
                         SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
                         
-                        UPDATE DONHANG 
-                        SET TrangThaiDH = 'Hoàn thành', TrangThaiTT = 1, TGGiaoTT = TGGiaoYC + DBMS_RANDOM.VALUE(0, 1),
-                            PhiVanChuyen = TRUNC(DBMS_RANDOM.VALUE(15, 50)) * 1000, MaNV = v_MaNV_GiaoHang
-                        WHERE MaDH = v_MaDH;
-                        UPDATE DONHANG SET TongTien = NVL(TongTienHang, 0) + NVL(PhiVanChuyen, 0) - NVL(GiamGia, 0) WHERE MaDH = v_MaDH;
-                    EXCEPTION WHEN OTHERS THEN NULL; END;
-                END IF;
-                
-            EXCEPTION WHEN OTHERS THEN NULL; END;
+                    ELSIF j IN (11, 12) THEN
+                        -- Đơn 11 và 12: Đặt hàng thành công, đang giữ kho tạm thời (Đã đặt) -> XUATKHO giữ trạng thái 'Tạm giữ'
+                        NULL;
+                        
+                    ELSIF j = 13 THEN
+                        -- Đơn 13: Đã hủy đơn hàng (hoàn lại kho qua SP_HUY_DH)
+                        SP_HUY_DH(v_MaDH, N'Khách hàng báo hủy do thay đổi kế hoạch sản xuất B2B');
+                        
+                    ELSIF j = 14 THEN
+                        -- Đơn 14: Giữ nguyên trạng thái mới đặt (Đã đặt)
+                        NULL;
+                    END IF;
+                    
+                    -- Đồng bộ hóa ngày đặt, giao yêu cầu và giao thực tế
+                    UPDATE DONHANG 
+                    SET TGDat = v_simulated_date,
+                        TGGiaoYC = v_simulated_date + 2
+                    WHERE MaDH = v_MaDH;
+                    
+                    UPDATE XUATKHO SET TGCapNhat = v_simulated_date WHERE MaDH = v_MaDH;
+                EXCEPTION WHEN OTHERS THEN NULL;
+                END;
+            END IF;
+            
         END LOOP;
     END LOOP;
     
@@ -420,21 +553,95 @@ EXCEPTION WHEN OTHERS THEN ROLLBACK; DBMS_OUTPUT.PUT_LINE('LỖI: ' || SQLERRM);
 END;
 /
 
--- ===== VERIFICATION QUERIES (Run after script completes) =====
+-- ===== CÁC CÂU LỆNH TRUY VẤN XÁC MINH DỮ LIỆU SAU KHI CHẠY =====
 PROMPT
-PROMPT ===== VERIFICATION - Check data enrichment results =====
+PROMPT ====================================================================================
+PROMPT                     KẾT QUẢ KIỂM TRA & XÁC MINH DỮ LIỆU DEMO
+PROMPT ====================================================================================
 PROMPT
 
-SELECT 'LOHANG Count' AS metric, COUNT(*) AS result FROM LOHANG
+-- 1. Tổng số lượng bản ghi trong các bảng giao dịch chính
+SELECT 'LOHANG (Lô hàng)' AS "Bảng", COUNT(*) AS "Số bản ghi" FROM LOHANG
 UNION ALL
-SELECT 'DONHANG Count', COUNT(*) FROM DONHANG
+SELECT 'CHITIETLOHANG (Chi tiết lô)', COUNT(*) FROM CHITIETLOHANG
 UNION ALL
-SELECT 'CHITIETLOHANG Count', COUNT(*) FROM CHITIETLOHANG
+SELECT 'DONHANG (Đơn hàng)', COUNT(*) FROM DONHANG
 UNION ALL
-SELECT 'CHITIETDONHANG Count', COUNT(*) FROM CHITIETDONHANG
+SELECT 'CHITIETDONHANG (Chi tiết đơn)', COUNT(*) FROM CHITIETDONHANG
 UNION ALL
-SELECT 'TONKHO Count', COUNT(*) FROM TONKHO
+SELECT 'TONKHO (Lưu kho thực tế)', COUNT(*) FROM TONKHO
 UNION ALL
-SELECT 'XUATKHO Count', COUNT(*) FROM XUATKHO
+SELECT 'XUATKHO (Xuất kho chi tiết)', COUNT(*) FROM XUATKHO
 UNION ALL
-SELECT 'LICHSUGIA Count', COUNT(*) FROM LICHSUGIA;
+SELECT 'LICHSUGIA (Biến động giá)', COUNT(*) FROM LICHSUGIA;
+
+-- 2. Phân bổ các trạng thái đơn hàng (Xác nhận tính đa dạng và logic thời gian)
+PROMPT
+PROMPT ====================================================================================
+PROMPT 2. Thống kê số lượng đơn hàng theo Trạng thái đơn và Trạng thái thanh toán:
+PROMPT ====================================================================================
+SELECT TrangThaiDH AS "Trạng thái Đơn", 
+       TrangThaiTT AS "TT Thanh Toán", 
+       PhuongThucTT AS "Phương thức", 
+       COUNT(*) AS "Số đơn hàng", 
+       SUM(TongTien) AS "Tổng doanh thu"
+FROM DONHANG
+GROUP BY TrangThaiDH, TrangThaiTT, PhuongThucTT
+ORDER BY TrangThaiDH, TrangThaiTT;
+
+-- 3. Phân bổ các trạng thái lô hàng nhập kho
+PROMPT
+PROMPT ====================================================================================
+PROMPT 3. Thống kê số lượng lô hàng nhập theo trạng thái:
+PROMPT ====================================================================================
+SELECT TrangThaiLH AS "Trạng thái Lô hàng", COUNT(*) AS "Số lô hàng", SUM(TongTien) AS "Tổng giá trị nhập"
+FROM LOHANG
+GROUP BY TrangThaiLH;
+
+-- 4. Xác minh tổng số lượng nhập kho của từng sản phẩm trong 25 sản phẩm
+-- (Đảm bảo 100 < số lượng < 10000)
+PROMPT
+PROMPT ====================================================================================
+PROMPT 4. Tổng số lượng nhập kho của từng sản phẩm trong 25 sản phẩm (Định mức 100 - 10000):
+PROMPT ====================================================================================
+SELECT sp.MaSP, sp.TenSP, NVL(SUM(ctl.SoLuong), 0) AS "Tổng SL Nhập"
+FROM SANPHAM sp
+LEFT JOIN CHITIETLOHANG ctl ON sp.MaSP = ctl.MaSP
+GROUP BY sp.MaSP, sp.TenSP
+ORDER BY sp.MaSP;
+
+-- 5. Xác minh số lần biến động giá của sản phẩm đặc biệt SP000001 (chi tiết)
+PROMPT
+PROMPT ====================================================================================
+PROMPT 5. Số lần biến động giá của sản phẩm chi tiết SP000001 (Yêu cầu ít nhất 4 lần/tháng):
+PROMPT ====================================================================================
+SELECT TO_CHAR(TGApDung, 'MM-YYYY') AS "Tháng-Năm", COUNT(*) AS "Số lần biến động"
+FROM LICHSUGIA
+WHERE MaSP = 'SP000001'
+GROUP BY TO_CHAR(TGApDung, 'MM-YYYY')
+ORDER BY TO_CHAR(TGApDung, 'MM-YYYY');
+
+-- 6. Xác minh số lần biến động giá của các nhóm loại sản phẩm mỗi tháng
+PROMPT
+PROMPT ====================================================================================
+PROMPT 6. Số lần biến động giá trung bình theo từng Loại Sản Phẩm mỗi tháng (Yêu cầu 1-2 lần/tháng):
+PROMPT ====================================================================================
+SELECT lsp.TenLSP AS "Loại Sản Phẩm", TO_CHAR(lsg.TGApDung, 'MM-YYYY') AS "Tháng-Năm", COUNT(*) AS "Số lần biến động"
+FROM LICHSUGIA lsg
+JOIN SANPHAM sp ON lsg.MaSP = sp.MaSP
+JOIN LOAISANPHAM lsp ON sp.MaLSP = lsp.MaLSP
+GROUP BY lsp.TenLSP, TO_CHAR(lsg.TGApDung, 'MM-YYYY')
+ORDER BY TO_CHAR(lsg.TGApDung, 'MM-YYYY'), lsp.TenLSP;
+
+-- 7. Xác minh tính nhất quán giữa tồn kho khả dụng và số lượng tạm giữ
+PROMPT
+PROMPT ====================================================================================
+PROMPT 7. Kiểm tra tính đồng bộ giữa SL tồn kho thực tế, SL khả dụng và SL tạm giữ trong XUATKHO:
+PROMPT ====================================================================================
+SELECT tk.MaTonKho, tk.MaSP, sp.TenSP, tk.SLConLai AS "Tồn kho thực tế (ConLai)", tk.SLKhaDung AS "SL Khả dụng (KhaDung)",
+       (tk.SLConLai - tk.SLKhaDung) AS "Chênh lệch (Tạm giữ)",
+       NVL((SELECT SUM(SLXuat) FROM XUATKHO WHERE MaTonKho = tk.MaTonKho AND TrangThaiXK = 'Tạm giữ'), 0) AS "Tạm giữ ở XUATKHO"
+FROM TONKHO tk
+JOIN SANPHAM sp ON tk.MaSP = sp.MaSP
+WHERE tk.SLConLai <> tk.SLKhaDung OR (tk.SLConLai - tk.SLKhaDung) <> 0
+ORDER BY tk.MaTonKho;

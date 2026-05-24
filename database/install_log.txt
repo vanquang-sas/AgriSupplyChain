@@ -1,30 +1,3924 @@
 SQL> 
 SQL> PROMPT --- DANG CHAY FILE 1: TAO BANG VA CONSTRAINT ---
 > @@01_Tables.sql;
---- DANG CHAY FILE 1: TAO BANG VA CONSTRAINT -- @@01_Tables.sql
+> -- ====================================================================================
+--- DANG CHAY FILE 1: TAO BANG VA CONSTRAINT -- -- ====================================================================================
+SQL> -- 	     PHẦN 1: TẠO BẢNG VÀ CONSTRAINT
+SQL> -- ====================================================================================
+SQL> -- Script xoá toàn bộ bảng cũ
+SQL> BEGIN
+  2  	  FOR t IN (
+  3  	      SELECT table_name
+  4  	      FROM user_tables
+  5  	  ) LOOP
+  6  	      BEGIN
+  7  		  EXECUTE IMMEDIATE 'DROP TABLE ' || t.table_name || ' CASCADE CONSTRAINTS';
+  8  	      EXCEPTION
+  9  		  WHEN OTHERS THEN
+ 10  		      DBMS_OUTPUT.PUT_LINE('Lỗi khi drop ' || t.table_name || ': ' || SQLERRM);
+ 11  	      END;
+ 12  	  END LOOP;
+ 13  END;
+ 14  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- 1. Bảng THAMSO
+SQL> CREATE TABLE THAMSO (
+  2  	 MaTS VARCHAR2(10) PRIMARY KEY,
+  3  	 TenTS NVARCHAR2(100) UNIQUE,
+  4  	 GiaTri NUMBER(15,2),
+  5  	 MoTa NVARCHAR2(500)
+  6  );
+
+Table created.
+
+SQL> 
+SQL> -- 2. Bảng THONGBAO
+SQL> CREATE TABLE THONGBAO (
+  2  	 MaTB VARCHAR2(10) PRIMARY KEY,
+  3  	 LoaiTB NVARCHAR2(20),
+  4  	 NoiDung NVARCHAR2(500),
+  5  	 TrangThaiTB NUMBER(1) DEFAULT 0 CHECK (TrangThaiTB IN (0, 1)),      -- 0: Chưa đọc, 1: Đã đọc
+  6  	 TGTao DATE DEFAULT SYSDATE,
+  7  	 NguoiNhan NVARCHAR2(50)
+  8  );
+
+Table created.
+
+SQL> 
+SQL> -- 3. Bảng TAIKHOAN
+SQL> CREATE TABLE TAIKHOAN (
+  2  	 Username NVARCHAR2(50) PRIMARY KEY,
+  3  	 Password VARCHAR2(255) NOT NULL,
+  4  	 LoaiTK NUMBER(1) CHECK (LoaiTK IN (0, 1, 2)), -- 0: Quản lý, 1: Nhân viên, 2: Khách hàng
+  5  	 TrangThaiTK NUMBER(1) CHECK (TrangThaiTK IN (0, 1)), -- 0: Bị khoá, 1: Hoạt động
+  6  	 DiaChi NVARCHAR2(255),
+  7  	 SDT VARCHAR2(12),
+  8  	 Email NVARCHAR2(100),
+  9  	 TGTao DATE DEFAULT SYSDATE
+ 10  );
+
+Table created.
+
+SQL> 
+SQL> -- 4. Bảng KHACHHANG
+SQL> CREATE TABLE KHACHHANG (
+  2  	 MaKH VARCHAR2(10) PRIMARY KEY,
+  3  	 Username NVARCHAR2(50),
+  4  	 TenKH NVARCHAR2(100),
+  5  	 LoaiKH NVARCHAR2(50) CHECK (LoaiKH IN ('Thường','Thân thiết','VIP')),
+  6  	 CONSTRAINT FK_KH_TAIKHOAN FOREIGN KEY (Username) REFERENCES TAIKHOAN(Username)
+  7  );
+
+Table created.
+
+SQL> 
+SQL> -- 5. Bảng NHANVIEN
+SQL> CREATE TABLE NHANVIEN (
+  2  	 MaNV VARCHAR2(10) PRIMARY KEY,
+  3  	 Username NVARCHAR2(50),
+  4  	 TenNV NVARCHAR2(100),
+  5  	 ChucVu NVARCHAR2(50) CHECK (ChucVu IN ('NV thu mua', 'NV kho', 'NV giao hàng','Quản lý')),
+  6  	 Luong NUMBER(15,2),
+  7  	 CONSTRAINT FK_NV_TAIKHOAN FOREIGN KEY (Username) REFERENCES TAIKHOAN(Username)
+  8  );
+
+Table created.
+
+SQL> 
+SQL> -- 6. Bảng NHACUNGCAP
+SQL> CREATE TABLE NHACUNGCAP (
+  2  	 MaNCC VARCHAR2(10) PRIMARY KEY,
+  3  	 TenNCC NVARCHAR2(100),
+  4  	 DiaChi NVARCHAR2(255),
+  5  	 SDT VARCHAR2(12),
+  6  	 Email VARCHAR2(100),
+  7  	 ChungNhanCL VARCHAR2(100),
+  8  	 TrangThaiHopTac NUMBER(1) CHECK (TrangThaiHopTac IN (0, 1)) -- 0: Ngừng hợp tác, 1: Đang hợp tác
+  9  );
+
+Table created.
+
+SQL> 
+SQL> -- 7. Bảng LOAISANPHAM
+SQL> CREATE TABLE LOAISANPHAM (
+  2  	 MaLSP VARCHAR2(10) PRIMARY KEY,
+  3  	 TenLSP NVARCHAR2(100),
+  4  	 MoTa NVARCHAR2(500)
+  5  );
+
+Table created.
+
+SQL> 
+SQL> -- 8. Bảng SANPHAM
+SQL> CREATE TABLE SANPHAM (
+  2  	 MaSP VARCHAR2(10) PRIMARY KEY,
+  3  	 TenSP NVARCHAR2(100),
+  4  	 MaLSP VARCHAR2(10),
+  5  	 ChatLuong NVARCHAR2(100) CHECK (ChatLuong IN ('Loại 1', 'Loại 2', 'Loại 3')),
+  6  	 GiaMua NUMBER(15,2),
+  7  	 GiaBan NUMBER(15,2),
+  8  	 DonViTinh NVARCHAR2(20),
+  9  	 BaoQuan NVARCHAR2(100) CHECK (BaoQuan IN ('Mát', 'Lạnh', 'Đông')),
+ 10  	 HinhAnh NVARCHAR2(200),
+ 11  	 CONSTRAINT FK_SP_LSP FOREIGN KEY (MaLSP) REFERENCES LOAISANPHAM(MaLSP)
+ 12  );
+
+Table created.
+
+SQL> 
+SQL> -- 9. Bảng KHO
+SQL> CREATE TABLE KHO (
+  2  	 MaKho VARCHAR2(10) PRIMARY KEY,
+  3  	 TenKho NVARCHAR2(100),
+  4  	 LoaiKho NVARCHAR2(100) CHECK (LoaiKho IN ('Mát', 'Lạnh', 'Đông')),
+  5  	 DiaChi NVARCHAR2(255),
+  6  	 MoTa NVARCHAR2(500)
+  7  );
+
+Table created.
+
+SQL> 
+SQL> -- 10. Bảng LICHSUGIA
+SQL> CREATE TABLE LICHSUGIA (
+  2  	 MaGia VARCHAR2(10) PRIMARY KEY,
+  3  	 MaSP VARCHAR2(10),
+  4  	 GiaMua NUMBER(15,2),
+  5  	 GiaBan NUMBER(15,2),
+  6  	 TGApDung DATE DEFAULT SYSDATE,
+  7  	 CONSTRAINT FK_LSG_SP FOREIGN KEY (MaSP) REFERENCES SANPHAM(MaSP)
+  8  );
+
+Table created.
+
+SQL> 
+SQL> -- 11. Bảng LOHANG
+SQL> CREATE TABLE LOHANG (
+  2  	 MaLH VARCHAR2(10) PRIMARY KEY,
+  3  	 MaNCC VARCHAR2(10),
+  4  	 MaNV VARCHAR2(10),
+  5  	 TGNhap DATE DEFAULT SYSDATE,
+  6  	 TongTien NUMBER(15,2) DEFAULT 0 CHECK (TongTien >= 0),
+  7  	 TrangThaiLH NVARCHAR2(50) DEFAULT 'Chờ kiểm duyệt' CHECK (TrangThaiLH IN ('Chờ kiểm duyệt', 'Chờ nhập kho', 'Đã nhập kho')),
+  8  	 CONSTRAINT FK_LH_NCC FOREIGN KEY (MaNCC) REFERENCES NHACUNGCAP(MaNCC),
+  9  	 CONSTRAINT FK_LH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
+ 10  );
+
+Table created.
+
+SQL> 
+SQL> -- 12. Bảng CHITIETLOHANG
+SQL> CREATE TABLE CHITIETLOHANG (
+  2  	 MaLH VARCHAR2(10),
+  3  	 MaSP VARCHAR2(10),
+  4  	 GiaMua NUMBER(15,2) CHECK (GiaMua > 0),
+  5  	 SoLuong NUMBER(10,2) CHECK (SoLuong > 0),
+  6  	 ThanhTien NUMBER(15,2) CHECK (ThanhTien > 0),
+  7  	 PRIMARY KEY (MaLH, MaSP),
+  8  	 CONSTRAINT FK_CTLH_LH FOREIGN KEY (MaLH) REFERENCES LOHANG(MaLH),
+  9  	 CONSTRAINT FK_CTLH_SP FOREIGN KEY (MaSP) REFERENCES SANPHAM(MaSP)
+ 10  );
+
+Table created.
+
+SQL> 
+SQL> -- 13. Bảng TONKHO
+SQL> CREATE TABLE TONKHO (
+  2  	 MaTonKho VARCHAR2(10) PRIMARY KEY,
+  3  	 MaKho VARCHAR2(10),
+  4  	 MaLH VARCHAR2(10),
+  5  	 MaSP VARCHAR2(10),
+  6  	 SLConLai NUMBER(10,2) CHECK (SLConLai >= 0),
+  7  	 SLKhaDung NUMBER(10,2) CHECK (SLKhaDung >= 0),
+  8  	 TGNhapKho DATE DEFAULT SYSDATE,
+  9  	 TGHetHan DATE,
+ 10  	 ViTri NVARCHAR2(100),
+ 11  	 TrangThai NVARCHAR2(50) DEFAULT N'Còn hạn' CHECK (TrangThai IN (N'Còn hạn', N'Sắp hết hạn', N'Hết hạn')),
+ 12  	 CONSTRAINT FK_TK_KHO FOREIGN KEY (MaKho) REFERENCES KHO(MaKho),
+ 13  	 CONSTRAINT FK_TK_CTLH FOREIGN KEY (MaLH, MaSP) REFERENCES CHITIETLOHANG(MaLH, MaSP),
+ 14  	 CONSTRAINT UQ_TK_LH_SP UNIQUE (MaLH, MaSP),
+ 15  	 CONSTRAINT CK_TGHetHan CHECK (TGHetHan >= TGNhapKho)
+ 16  );
+
+Table created.
+
+SQL> 
+SQL> -- =======================================================================================================
+SQL> -- 14. Bảng DONHANG
+SQL> CREATE TABLE DONHANG (
+  2  	 MaDH VARCHAR2(10) PRIMARY KEY,
+  3  	 MaKH VARCHAR2(10),
+  4  	 MaNV VARCHAR2(10),
+  5  	 TGDat DATE DEFAULT SYSDATE,
+  6  	 TGGiaoYC DATE,
+  7  	 TGGiaoTT DATE,
+  8  	 DiaChiGiaoHang NVARCHAR2(255),
+  9  	 LyDoHuy NVARCHAR2(500),
+ 10  	 PhiVanChuyen NUMBER(15,2) CHECK (PhiVanChuyen >= 0),
+ 11  	 TongTienHang NUMBER(15,2) DEFAULT 0 CHECK (TongTienHang >= 0),
+ 12  	 GiamGia NUMBER(15,2) DEFAULT 0 CHECK (GiamGia >= 0),
+ 13  	 TongTien NUMBER(15,2) DEFAULT 0 CHECK (TongTien >= 0),
+ 14  	 TrangThaiDH NVARCHAR2(50) DEFAULT 'Đã đặt' CHECK (TrangThaiDH IN ('Đã đặt', 'Chờ xử lý', 'Chờ thanh toán', 'Chờ giao hàng', 'Đang giao', 'Hoàn thành', 'Đã huỷ')),
+ 15  	 TrangThaiTT NUMBER(1) DEFAULT 0 CHECK (TrangThaiTT IN (0, 1)),
+ 16  	 PhuongThucTT NVARCHAR2(50) DEFAULT 'COD' CHECK (PhuongThucTT IN ('COD', 'Chuyển khoản', 'Ví điện tử', 'Ghi nợ')),
+ 17  	 CONSTRAINT FK_DH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
+ 18  	 CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV),
+ 19  	 CONSTRAINT CK_TGGiaoYC CHECK (TGGiaoYC >= TGDat),
+ 20  	 CONSTRAINT CK_TGGiaoTT CHECK (TGGiaoTT >= TGDat),
+ 21  	 CONSTRAINT CK_DH_NVGiaoHang CHECK (TrangThaiDH NOT IN ('Đang giao', 'Hoàn thành') OR MaNV IS NOT NULL)
+ 22  );
+
+Table created.
+
+SQL> -- =======================================================================================================
+SQL> 
+SQL> -- 15. Bảng CHITIETDONHANG
+SQL> CREATE TABLE CHITIETDONHANG (
+  2  	 MaDH VARCHAR2(10),
+  3  	 MaSP VARCHAR2(10),
+  4  	 GiaBan NUMBER(15,2) CHECK (GiaBan > 0),
+  5  	 SoLuong NUMBER(10,2) CHECK (SoLuong > 0),
+  6  	 ThanhTien NUMBER(15,2) CHECK (ThanhTien > 0),
+  7  	 PRIMARY KEY (MaDH, MaSP),
+  8  	 CONSTRAINT FK_CTDH_DH FOREIGN KEY (MaDH) REFERENCES DONHANG(MaDH),
+  9  	 CONSTRAINT FK_CTDH_SP FOREIGN KEY (MaSP) REFERENCES SANPHAM(MaSP)
+ 10  );
+
+Table created.
+
+SQL> 
+SQL> -- 16. Bảng XUATKHO
+SQL> CREATE TABLE XUATKHO (
+  2  	 MaXK VARCHAR2(10) PRIMARY KEY,
+  3  	 MaDH VARCHAR2(10),
+  4  	 MaSP VARCHAR2(10),
+  5  	 MaTonKho VARCHAR2(10),
+  6  	 MaNV VARCHAR2(10),
+  7  	 SLXuat NUMBER(10,2) CHECK (SLXuat > 0),
+  8  	 TGCapNhat DATE DEFAULT SYSDATE,
+  9  	 TrangThaiXK NVARCHAR2(50) DEFAULT 'Tạm giữ' CHECK (TrangThaiXK IN ('Tạm giữ', 'Đã xuất', 'Đã huỷ')),
+ 10  	 CONSTRAINT FK_XK_CTDH FOREIGN KEY (MaDH, MaSP) REFERENCES CHITIETDONHANG(MaDH, MaSP),
+ 11  	 CONSTRAINT FK_XK_TonKho FOREIGN KEY (MaTonKho) REFERENCES TONKHO(MaTonKho),
+ 12  	 CONSTRAINT FK_XK_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
+ 13  );
+
+Table created.
+
+SQL> 
+SQL> -- 17. Bảng GIOHANG
+SQL> CREATE TABLE GIOHANG (
+  2  	 MaKH VARCHAR2(10),
+  3  	 MaSP VARCHAR2(10),
+  4  	 SoLuong NUMBER(10,2) CHECK (SoLuong > 0),
+  5  	 ThanhTien NUMBER(15,2) CHECK (ThanhTien> 0),
+  6  	 TGCapNhat DATE DEFAULT SYSDATE,
+  7  	 PRIMARY KEY (MaKH, MaSP),
+  8  	 CONSTRAINT FK_GH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
+  9  	 CONSTRAINT FK_GH_SP FOREIGN KEY (MaSP) REFERENCES SANPHAM(MaSP)
+ 10  );
+
+Table created.
+
 SQL> 
 SQL> PROMPT --- DANG CHAY FILE 2: TAO SEQUENCE ---
 > @@02_Sequences.sql;
---- DANG CHAY FILE 2: TAO SEQUENCE -- @@02_Sequences.sql
+> -- ====================================================================================
+--- DANG CHAY FILE 2: TAO SEQUENCE -- -- ====================================================================================
+SQL> -- 	  PHẦN 2: Tạo SEQUENCE và trigger tự động sinh mã cho khoá chính
+SQL> -- ====================================================================================
+SQL> 
+SQL> BEGIN
+  2  	 EXECUTE IMMEDIATE 'DROP SEQUENCE SEQ_THAMSO';
+  3  EXCEPTION
+  4  	 WHEN OTHERS THEN
+  5  	     IF SQLCODE != -2289 THEN RAISE; END IF;
+  6  END;
+  7  /
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2  	 EXECUTE IMMEDIATE 'DROP SEQUENCE SEQ_THONGBAO';
+  3  EXCEPTION
+  4  	 WHEN OTHERS THEN
+  5  	     IF SQLCODE != -2289 THEN RAISE; END IF;
+  6  END;
+  7  /
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2  	 EXECUTE IMMEDIATE 'DROP SEQUENCE SEQ_KHACHHANG';
+  3  EXCEPTION
+  4  	 WHEN OTHERS THEN
+  5  	     IF SQLCODE != -2289 THEN RAISE; END IF;
+  6  END;
+  7  /
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2  	 EXECUTE IMMEDIATE 'DROP SEQUENCE SEQ_NHANVIEN';
+  3  EXCEPTION
+  4  	 WHEN OTHERS THEN
+  5  	     IF SQLCODE != -2289 THEN RAISE; END IF;
+  6  END;
+  7  /
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2  	 EXECUTE IMMEDIATE 'DROP SEQUENCE SEQ_NHACUNGCAP';
+  3  EXCEPTION
+  4  	 WHEN OTHERS THEN
+  5  	     IF SQLCODE != -2289 THEN RAISE; END IF;
+  6  END;
+  7  /
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2  	 EXECUTE IMMEDIATE 'DROP SEQUENCE SEQ_LOAISANPHAM';
+  3  EXCEPTION
+  4  	 WHEN OTHERS THEN
+  5  	     IF SQLCODE != -2289 THEN RAISE; END IF;
+  6  END;
+  7  /
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2  	 EXECUTE IMMEDIATE 'DROP SEQUENCE SEQ_SANPHAM';
+  3  EXCEPTION
+  4  	 WHEN OTHERS THEN
+  5  	     IF SQLCODE != -2289 THEN RAISE; END IF;
+  6  END;
+  7  /
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2  	 EXECUTE IMMEDIATE 'DROP SEQUENCE SEQ_LICHSUGIA';
+  3  EXCEPTION
+  4  	 WHEN OTHERS THEN
+  5  	     IF SQLCODE != -2289 THEN RAISE; END IF;
+  6  END;
+  7  /
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2  	 EXECUTE IMMEDIATE 'DROP SEQUENCE SEQ_DONHANG';
+  3  EXCEPTION
+  4  	 WHEN OTHERS THEN
+  5  	     IF SQLCODE != -2289 THEN RAISE; END IF;
+  6  END;
+  7  /
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2  	 EXECUTE IMMEDIATE 'DROP SEQUENCE SEQ_LOHANG';
+  3  EXCEPTION
+  4  	 WHEN OTHERS THEN
+  5  	     IF SQLCODE != -2289 THEN RAISE; END IF;
+  6  END;
+  7  /
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2  	 EXECUTE IMMEDIATE 'DROP SEQUENCE SEQ_KHO';
+  3  EXCEPTION
+  4  	 WHEN OTHERS THEN
+  5  	     IF SQLCODE != -2289 THEN RAISE; END IF;
+  6  END;
+  7  /
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2  	 EXECUTE IMMEDIATE 'DROP SEQUENCE SEQ_TONKHO';
+  3  EXCEPTION
+  4  	 WHEN OTHERS THEN
+  5  	     IF SQLCODE != -2289 THEN RAISE; END IF;
+  6  END;
+  7  /
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2  	 EXECUTE IMMEDIATE 'DROP SEQUENCE SEQ_XUATKHO';
+  3  EXCEPTION
+  4  	 WHEN OTHERS THEN
+  5  	     IF SQLCODE != -2289 THEN RAISE; END IF;
+  6  END;
+  7  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> CREATE SEQUENCE SEQ_THAMSO START WITH 100 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+Sequence created.
+
+SQL> CREATE SEQUENCE SEQ_THONGBAO START WITH 100 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+Sequence created.
+
+SQL> CREATE SEQUENCE SEQ_KHACHHANG START WITH 100 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+Sequence created.
+
+SQL> CREATE SEQUENCE SEQ_NHANVIEN START WITH 100 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+Sequence created.
+
+SQL> CREATE SEQUENCE SEQ_NHACUNGCAP START WITH 100 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+Sequence created.
+
+SQL> CREATE SEQUENCE SEQ_LOAISANPHAM START WITH 100 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+Sequence created.
+
+SQL> CREATE SEQUENCE SEQ_SANPHAM START WITH 100 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+Sequence created.
+
+SQL> CREATE SEQUENCE SEQ_KHO START WITH 100 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+Sequence created.
+
+SQL> CREATE SEQUENCE SEQ_LICHSUGIA START WITH 100 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+Sequence created.
+
+SQL> CREATE SEQUENCE SEQ_LOHANG START WITH 100 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+Sequence created.
+
+SQL> CREATE SEQUENCE SEQ_TONKHO START WITH 100 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+Sequence created.
+
+SQL> CREATE SEQUENCE SEQ_DONHANG START WITH 100 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+Sequence created.
+
+SQL> CREATE SEQUENCE SEQ_XUATKHO START WITH 100 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+Sequence created.
+
+SQL> 
+SQL> -- 1. THAMSO
+SQL> CREATE OR REPLACE TRIGGER TRG_THAMSO_ID
+  2  BEFORE INSERT ON THAMSO
+  3  FOR EACH ROW
+  4  BEGIN IF :NEW.MaTS IS NULL THEN :NEW.MaTS := 'TS' || LPAD(SEQ_THAMSO.NEXTVAL,6,'0'); END IF; END;
+  5  /
+
+Trigger created.
+
+SQL> 
+SQL> -- 2. THONGBAO
+SQL> CREATE OR REPLACE TRIGGER TRG_THONGBAO_ID
+  2  BEFORE INSERT ON THONGBAO
+  3  FOR EACH ROW
+  4  BEGIN IF :NEW.MaTB IS NULL THEN :NEW.MaTB := 'TB' || LPAD(SEQ_THONGBAO.NEXTVAL,6,'0'); END IF; END;
+  5  /
+
+Trigger created.
+
+SQL> 
+SQL> -- 3. KHACHHANG
+SQL> CREATE OR REPLACE TRIGGER TRG_KHACHHANG_ID
+  2  BEFORE INSERT ON KHACHHANG
+  3  FOR EACH ROW
+  4  BEGIN
+  5  IF :NEW.MaKH IS NULL THEN :NEW.MaKH := 'KH' || LPAD(SEQ_KHACHHANG.NEXTVAL,6,'0'); END IF;
+  6  END;
+  7  /
+
+Trigger created.
+
+SQL> 
+SQL> -- 4. NHANVIEN
+SQL> CREATE OR REPLACE TRIGGER TRG_NHANVIEN_ID
+  2  BEFORE INSERT ON NHANVIEN
+  3  FOR EACH ROW
+  4  BEGIN
+  5  IF :NEW.MaNV IS NULL THEN :NEW.MaNV := 'NV' || LPAD(SEQ_NHANVIEN.NEXTVAL,6,'0'); END IF;
+  6  END;
+  7  /
+
+Trigger created.
+
+SQL> 
+SQL> -- 5. NHACUNGCAP
+SQL> CREATE OR REPLACE TRIGGER TRG_NCC_ID
+  2  BEFORE INSERT ON NHACUNGCAP
+  3  FOR EACH ROW
+  4  BEGIN
+  5  IF :NEW.MaNCC IS NULL THEN :NEW.MaNCC := 'NCC' || LPAD(SEQ_NHACUNGCAP.NEXTVAL,5,'0'); END IF;
+  6  END;
+  7  /
+
+Trigger created.
+
+SQL> 
+SQL> -- 6. LOAISANPHAM
+SQL> CREATE OR REPLACE TRIGGER TRG_LSP_ID
+  2  BEFORE INSERT ON LOAISANPHAM
+  3  FOR EACH ROW
+  4  BEGIN
+  5  IF :NEW.MaLSP IS NULL THEN :NEW.MaLSP := 'LSP' || LPAD(SEQ_LOAISANPHAM.NEXTVAL,5,'0'); END IF;
+  6  END;
+  7  /
+
+Trigger created.
+
+SQL> 
+SQL> -- 7. SANPHAM
+SQL> CREATE OR REPLACE TRIGGER TRG_SANPHAM_ID
+  2  BEFORE INSERT ON SANPHAM
+  3  FOR EACH ROW
+  4  BEGIN
+  5  IF :NEW.MaSP IS NULL THEN :NEW.MaSP := 'SP' || LPAD(SEQ_SANPHAM.NEXTVAL,6,'0'); END IF;
+  6  END;
+  7  /
+
+Trigger created.
+
+SQL> 
+SQL> -- 8. KHO
+SQL> CREATE OR REPLACE TRIGGER TRG_KHO_ID
+  2  BEFORE INSERT ON KHO
+  3  FOR EACH ROW
+  4  BEGIN
+  5  IF :NEW.MaKho IS NULL THEN :NEW.MaKho := 'KHO' || LPAD(SEQ_KHO.NEXTVAL,5,'0'); END IF;
+  6  END;
+  7  /
+
+Trigger created.
+
+SQL> 
+SQL> -- 9. LICHSUGIA
+SQL> CREATE OR REPLACE TRIGGER TRG_LSG_ID
+  2  BEFORE INSERT ON LICHSUGIA
+  3  FOR EACH ROW
+  4  BEGIN
+  5  IF :NEW.MaGia IS NULL THEN :NEW.MaGia := 'GIA' || LPAD(SEQ_LICHSUGIA.NEXTVAL,5,'0'); END IF;
+  6  END;
+  7  /
+
+Trigger created.
+
+SQL> 
+SQL> -- 10. LOHANG
+SQL> CREATE OR REPLACE TRIGGER TRG_LOHANG_ID
+  2  BEFORE INSERT ON LOHANG
+  3  FOR EACH ROW
+  4  BEGIN
+  5  IF :NEW.MaLH IS NULL THEN :NEW.MaLH := 'LH' || LPAD(SEQ_LOHANG.NEXTVAL,6,'0'); END IF;
+  6  END;
+  7  /
+
+Trigger created.
+
+SQL> 
+SQL> 
+SQL> -- 12. TONKHO
+SQL> CREATE OR REPLACE TRIGGER TRG_TONKHO_ID
+  2  BEFORE INSERT ON TONKHO
+  3  FOR EACH ROW
+  4  BEGIN
+  5  IF :NEW.MaTonKho IS NULL THEN :NEW.MaTonKho := 'TK' || LPAD(SEQ_TONKHO.NEXTVAL,6,'0'); END IF;
+  6  END;
+  7  /
+
+Trigger created.
+
+SQL> 
+SQL> -- 13. DONHANG
+SQL> CREATE OR REPLACE TRIGGER TRG_DONHANG_ID
+  2  BEFORE INSERT ON DONHANG
+  3  FOR EACH ROW
+  4  BEGIN
+  5  IF :NEW.MaDH IS NULL THEN :NEW.MaDH := 'DH' || LPAD(SEQ_DONHANG.NEXTVAL,6,'0'); END IF;
+  6  END;
+  7  /
+
+Trigger created.
+
+SQL> 
+SQL> 
+SQL> -- 15. XUATKHO
+SQL> CREATE OR REPLACE TRIGGER TRG_XUATKHO_ID
+  2  BEFORE INSERT ON XUATKHO
+  3  FOR EACH ROW
+  4  BEGIN
+  5  IF :NEW.MaXK IS NULL THEN :NEW.MaXK := 'XK' || LPAD(SEQ_XUATKHO.NEXTVAL,6,'0'); END IF;
+  6  END;
+  7  /
+
+Trigger created.
+
 SQL> 
 SQL> PROMPT --- DANG CHAY FILE 3: TAO FUNCTION ---
 > @@03_Functions.sql;
---- DANG CHAY FILE 3: TAO FUNCTION -- @@03_Functions.sql
+> -- ====================================================================================
+--- DANG CHAY FILE 3: TAO FUNCTION -- -- ====================================================================================
+SQL> -- 			     PHẦN 3: TẠO FUNCTION
+SQL> -- ====================================================================================
+SQL> 
+SQL> -- Tính phí vận chuyển của 1 đơn hàng
+SQL> CREATE OR REPLACE FUNCTION FN_TINH_PHIVANCHUYEN (
+  2  	 p_MaKH IN VARCHAR2
+  3  ) RETURN NUMBER
+  4  IS
+  5  	 v_LoaiKH NVARCHAR2(50) := 'Thường';
+  6  	 v_PhiVanChuyen NUMBER := 0;
+  7  BEGIN
+  8  	 -- Lấy loại khách hàng
+  9  	 SELECT NVL(LoaiKH, 'Thường') INTO v_LoaiKH
+ 10  	 FROM KHACHHANG
+ 11  	 WHERE MaKH = p_MaKH;
+ 12  
+ 13  	 -- Lấy phí ship từ bảng tham số dựa trên loại khách hàng
+ 14  	 IF v_LoaiKH = 'VIP' THEN
+ 15  	     SELECT GiaTri INTO v_PhiVanChuyen FROM THAMSO WHERE TenTS = 'SHIP_VIP';
+ 16  	 ELSIF v_LoaiKH = 'Thân thiết' THEN
+ 17  	     SELECT GiaTri INTO v_PhiVanChuyen FROM THAMSO WHERE TenTS = 'SHIP_THANTHIET';
+ 18  	 ELSE
+ 19  	     SELECT GiaTri INTO v_PhiVanChuyen FROM THAMSO WHERE TenTS = 'SHIP_THUONG';
+ 20  	 END IF;
+ 21  
+ 22  	 RETURN v_PhiVanChuyen;
+ 23  
+ 24  EXCEPTION
+ 25  	 WHEN OTHERS THEN
+ 26  	     BEGIN
+ 27  		 SELECT GiaTri INTO v_PhiVanChuyen FROM THAMSO WHERE TenTS = 'SHIP_THUONG';
+ 28  		 RETURN v_PhiVanChuyen;
+ 29  	     EXCEPTION
+ 30  		 WHEN OTHERS THEN
+ 31  		     RETURN 500000; -- Mức phí dự phòng tuyệt đối
+ 32  	     END;
+ 33  END;
+ 34  /
+
+Function created.
+
+SQL> 
+SQL> -- Lấy danh sách đơn hàng chờ tạo yêu cầu xuất kho, hoặc đã có yêu cầu xuất kho tạm giữ
+SQL> CREATE OR REPLACE FUNCTION FN_GET_DS_DONHANG_CHO_XUAT
+  2  RETURN SYS_REFCURSOR
+  3  IS
+  4  	 v_cursor SYS_REFCURSOR;
+  5  BEGIN
+  6  	 OPEN v_cursor FOR
+  7  	     SELECT DH.MaDH,
+  8  		    NVL(KH.TenKH, N'Khách lẻ') AS TenKH,
+  9  		    COUNT(CTDH.MaSP) AS SoLuongSP,
+ 10  		    SUM(CTDH.SoLuong) AS TongSL,
+ 11  		    DH.TrangThaiDH
+ 12  	     FROM DONHANG DH
+ 13  	     JOIN CHITIETDONHANG CTDH ON DH.MaDH = CTDH.MaDH
+ 14  	     LEFT JOIN KHACHHANG KH ON DH.MaKH = KH.MaKH
+ 15  	     WHERE DH.TrangThaiDH IN (N'Đã đặt', N'Chờ xử lý')
+ 16  	     GROUP BY DH.MaDH, KH.TenKH, DH.TrangThaiDH
+ 17  	     ORDER BY DH.MaDH ASC;
+ 18  	 RETURN v_cursor;
+ 19  END;
+ 20  /
+
+Function created.
+
+SQL> 
+SQL> -- Đếm số đơn hàng chờ xuất nhưng thiếu tồn kho khả dụng
+SQL> CREATE OR REPLACE FUNCTION FN_GET_SO_DONHANG_THIEU_TONKHO
+  2  RETURN NUMBER
+  3  IS
+  4  	 v_count NUMBER;
+  5  BEGIN
+  6  	 SELECT COUNT(*)
+  7  	 INTO v_count
+  8  	 FROM DONHANG DH
+  9  	 WHERE DH.TrangThaiDH IN (N'Đã đặt', N'Chờ xử lý')
+ 10  	   AND NOT EXISTS (
+ 11  	       SELECT 1
+ 12  	       FROM XUATKHO XK
+ 13  	       JOIN CHITIETDONHANG CT ON XK.MaDH = CT.MaDH AND XK.MaSP = CT.MaSP
+ 14  	       WHERE CT.MaDH = DH.MaDH
+ 15  		 AND XK.TrangThaiXK = N'Tạm giữ'
+ 16  	   )
+ 17  	   AND EXISTS (
+ 18  	       SELECT 1
+ 19  	       FROM CHITIETDONHANG CTDH
+ 20  	       WHERE CTDH.MaDH = DH.MaDH
+ 21  	       GROUP BY CTDH.MaSP
+ 22  	       HAVING SUM(CTDH.SoLuong) > (
+ 23  		   SELECT NVL(SUM(TK.SLKhaDung), 0)
+ 24  		   FROM TONKHO TK
+ 25  		   JOIN CHITIETLOHANG CTLH ON TK.MaLH = CTLH.MaLH AND TK.MaSP = CTLH.MaSP
+ 26  		   WHERE CTLH.MaSP = CTDH.MaSP
+ 27  		     AND TK.SLKhaDung > 0
+ 28  		     AND TK.TGHetHan >= TRUNC(SYSDATE)
+ 29  	       )
+ 30  	   );
+ 31  
+ 32  	 RETURN v_count;
+ 33  END;
+ 34  /
+
+Function created.
+
+SQL> 
+SQL> -- Lấy danh sách soạn hàng xuất kho theo FEFO
+SQL> CREATE OR REPLACE FUNCTION FN_GET_DS_SOANHANG
+  2  RETURN SYS_REFCURSOR
+  3  IS
+  4  	 v_cursor SYS_REFCURSOR;
+  5  BEGIN
+  6  	 OPEN v_cursor FOR
+  7  	     SELECT
+  8  		 DH.MaDH,
+  9  		 SP.TenSP,
+ 10  		 XK.SLXuat,
+ 11  		 TO_CHAR(TK.TGHetHan, 'DD/MM/YYYY') AS NgayHetHan,
+ 12  		 TK.ViTri,
+ 13  		 ' ' AS NhanVien,
+ 14  		 XK.TrangThaiXK
+ 15  	     FROM XUATKHO XK
+ 16  	     LEFT JOIN CHITIETDONHANG CTDH ON XK.MaDH = CTDH.MaDH AND XK.MaSP = CTDH.MaSP
+ 17  	     LEFT JOIN DONHANG DH ON CTDH.MaDH = DH.MaDH
+ 18  	     LEFT JOIN SANPHAM SP ON CTDH.MaSP = SP.MaSP
+ 19  	     LEFT JOIN TONKHO TK ON XK.MaTonKho = TK.MaTonKho
+ 20  	     WHERE XK.TrangThaiXK = N'Tạm giữ'
+ 21  	     ORDER BY DH.MaDH ASC, TK.TGHetHan ASC;
+ 22  	 RETURN v_cursor;
+ 23  END;
+ 24  /
+
+Function created.
+
+SQL> 
+SQL> -- Lấy danh sách lô hàng đang chờ nhập kho
+SQL> CREATE OR REPLACE FUNCTION FN_GET_DS_NHAPKHO
+  2  RETURN SYS_REFCURSOR
+  3  IS
+  4  	 v_cursor SYS_REFCURSOR;
+  5  BEGIN
+  6  	 OPEN v_cursor FOR
+  7  	     SELECT
+  8  		 (CTLH.MaLH || '_' || CTLH.MaSP) AS MaCTLH,
+  9  		 SP.TenSP,
+ 10  		 CTLH.SoLuong,
+ 11  		 ' ' AS MaKho,
+ 12  		 SP.BaoQuan,
+ 13  		 ' ' AS ViTri,
+ 14  		 ' ' AS NgayHetHan,
+ 15  		 LH.TrangThaiLH
+ 16  	     FROM CHITIETLOHANG CTLH
+ 17  	     JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
+ 18  	     JOIN LOHANG LH ON CTLH.MaLH = LH.MaLH
+ 19  	     WHERE LH.TrangThaiLH IN (N'Chờ nhập kho', N'Chờ kiểm duyệt');
+ 20  	 RETURN v_cursor;
+ 21  END;
+ 22  /
+
+Function created.
+
+SQL> 
+SQL> -- Lấy chi tiết đơn hàng đọc trực tiếp từ bảng XUATKHO
+SQL> CREATE OR REPLACE FUNCTION FN_GET_CHITIET_DONHANG (
+  2  	 p_MaDH IN VARCHAR2
+  3  )
+  4  RETURN SYS_REFCURSOR
+  5  IS
+  6  	 v_cursor SYS_REFCURSOR;
+  7  BEGIN
+  8  	 OPEN v_cursor FOR
+  9  	     SELECT
+ 10  		 SP.MaSP,
+ 11  		 SP.TenSP,
+ 12  		 CTDH.SoLuong AS SoLuongYeuCau,
+ 13  		 XK.SLXuat AS SoLuongXuat,
+ 14  		 TK.ViTri,
+ 15  		 TO_CHAR(TK.TGHetHan, 'DD/MM/YYYY') AS NgayHetHan
+ 16  	     FROM XUATKHO XK
+ 17  	     JOIN CHITIETDONHANG CTDH ON XK.MaDH = CTDH.MaDH AND XK.MaSP = CTDH.MaSP
+ 18  	     JOIN SANPHAM SP ON CTDH.MaSP = SP.MaSP
+ 19  	     JOIN TONKHO TK ON XK.MaTonKho = TK.MaTonKho
+ 20  	     WHERE CTDH.MaDH = p_MaDH AND XK.TrangThaiXK = N'Tạm giữ'
+ 21  	     ORDER BY SP.TenSP ASC, TK.TGHetHan ASC;
+ 22  	 RETURN v_cursor;
+ 23  END;
+ 24  /
+
+Function created.
+
+SQL> 
+SQL> 
+SQL> -- 1. Function lấy danh sách Sản phẩm (Có tên loại)
+SQL> CREATE OR REPLACE FUNCTION FN_LAY_DS_SANPHAM
+  2  RETURN SYS_REFCURSOR
+  3  AS
+  4  	 v_cursor SYS_REFCURSOR;
+  5  BEGIN
+  6  	 -- Trả về danh sách sản phẩm kèm tên loại (nếu có)
+  7  	 OPEN v_cursor FOR
+  8  	     SELECT SP.MaSP,
+  9  		    SP.TenSP,
+ 10  		    SP.MaLSP,
+ 11  		    LSP.TenLSP,
+ 12  		    SP.ChatLuong,
+ 13  		    SP.GiaMua,
+ 14  		    SP.GiaBan,
+ 15  		    SP.DonViTinh,
+ 16  		    SP.BaoQuan,
+ 17  		    SP.HinhAnh
+ 18  	     FROM SANPHAM SP
+ 19  	     LEFT JOIN LOAISANPHAM LSP ON SP.MaLSP = LSP.MaLSP
+ 20  	     ORDER BY SP.MaSP;
+ 21  	 RETURN v_cursor;
+ 22  END;
+ 23  /
+
+Function created.
+
+SQL> 
+SQL> CREATE OR REPLACE FUNCTION FN_LAY_DS_DONHANG_BY_KH (
+  2  	 p_MaKH IN VARCHAR2
+  3  ) RETURN SYS_REFCURSOR
+  4  IS
+  5  	 v_cursor SYS_REFCURSOR;
+  6  BEGIN
+  7  	 OPEN v_cursor FOR
+  8  	 SELECT
+  9  	     DH.MaDH,
+ 10  	     DH.MaKH,
+ 11  	     DH.TGDat,
+ 12  	     DH.TongTien,
+ 13  	     DH.TrangThaiDH,
+ 14  	     DH.TrangThaiTT,
+ 15  	     DH.PhuongThucTT,
+ 16  	     -- Gom tất cả tên sản phẩm cùng số lượng thành một chuỗi (có chống overflow)
+ 17  	     LISTAGG(CTDH.SoLuong || ' ' || SP.TenSP, ', ' ON OVERFLOW TRUNCATE)
+ 18  		 WITHIN GROUP (ORDER BY SP.TenSP) AS DanhSachSP
+ 19  	 FROM DONHANG DH
+ 20  	 LEFT JOIN CHITIETDONHANG CTDH ON DH.MaDH = CTDH.MaDH
+ 21  	 LEFT JOIN SANPHAM SP ON CTDH.MaSP = SP.MaSP
+ 22  	 WHERE DH.MaKH = p_MaKH
+ 23  	 GROUP BY DH.MaDH, DH.MaKH, DH.TGDat, DH.TongTien, DH.TrangThaiDH, DH.TrangThaiTT, DH.PhuongThucTT
+ 24  	 ORDER BY DH.TGDat DESC;
+ 25  
+ 26  	 RETURN v_cursor;
+ 27  EXCEPTION
+ 28  	 WHEN OTHERS THEN
+ 29  	     RAISE_APPLICATION_ERROR(-20040, 'Lỗi khi lấy danh sách đơn hàng: ' || SQLERRM);
+ 30  END FN_LAY_DS_DONHANG_BY_KH;
+ 31  /
+
+Function created.
+
+SQL> 
+SQL> -- 3. Thống kê Top N Sản phẩm bán chạy nhất
+SQL> CREATE OR REPLACE FUNCTION FN_THONGKE_SANPHAM (
+  2  	 p_Limit IN NUMBER,
+  3  	 p_Type IN VARCHAR2,
+  4  	 p_FromDate IN DATE,
+  5  	 p_ToDate IN DATE
+  6  ) RETURN SYS_REFCURSOR
+  7  AS
+  8  	 v_cursor SYS_REFCURSOR;
+  9  	 v_Limit NUMBER := p_Limit;
+ 10  BEGIN
+ 11  	 IF v_Limit = 0 THEN
+ 12  	     v_Limit := 999999;
+ 13  	 END IF;
+ 14  
+ 15  	 IF p_Type = 'BEST' THEN
+ 16  	     OPEN v_cursor FOR
+ 17  	     SELECT TenSP, TongSoLuong FROM (
+ 18  		 SELECT sp.TenSP, NVL(SUM(ct.SoLuong), 0) AS TongSoLuong
+ 19  		 FROM SANPHAM sp
+ 20  		 -- Lọc ngày và trạng thái trước, sau đó mới LEFT JOIN để đếm số lượng
+ 21  		 LEFT JOIN (
+ 22  		     SELECT ctdh.MaSP, ctdh.SoLuong
+ 23  		     FROM CHITIETDONHANG ctdh
+ 24  		     JOIN DONHANG dh ON ctdh.MaDH = dh.MaDH
+ 25  		     WHERE dh.TrangThaiDH = 'Hoàn thành'
+ 26  		       AND TRUNC(dh.TGDat) BETWEEN p_FromDate AND p_ToDate
+ 27  		 ) ct ON sp.MaSP = ct.MaSP
+ 28  		 GROUP BY sp.TenSP
+ 29  		 ORDER BY TongSoLuong DESC
+ 30  	     ) WHERE ROWNUM <= v_Limit ORDER BY TongSoLuong DESC;
+ 31  	 ELSE
+ 32  	     OPEN v_cursor FOR
+ 33  	     SELECT TenSP, TongSoLuong FROM (
+ 34  		 SELECT sp.TenSP, NVL(SUM(ct.SoLuong), 0) AS TongSoLuong
+ 35  		 FROM SANPHAM sp
+ 36  		 LEFT JOIN (
+ 37  		     SELECT ctdh.MaSP, ctdh.SoLuong
+ 38  		     FROM CHITIETDONHANG ctdh
+ 39  		     JOIN DONHANG dh ON ctdh.MaDH = dh.MaDH
+ 40  		     WHERE dh.TrangThaiDH = 'Hoàn thành'
+ 41  		       AND TRUNC(dh.TGDat) BETWEEN p_FromDate AND p_ToDate
+ 42  		 ) ct ON sp.MaSP = ct.MaSP
+ 43  		 GROUP BY sp.TenSP
+ 44  		 ORDER BY TongSoLuong ASC
+ 45  	     ) WHERE ROWNUM <= v_Limit ORDER BY TongSoLuong DESC;
+ 46  	 END IF;
+ 47  	 RETURN v_cursor;
+ 48  END;
+ 49  /
+
+Function created.
+
+SQL> 
+SQL> -- 5. Thống kê tài chính
+SQL> CREATE OR REPLACE FUNCTION FN_THONGKE_TAICHINH (
+  2  	 p_LoaiThongKe IN VARCHAR2, -- 'MONTH' hoặc 'DAY'
+  3  	 p_Period IN NUMBER
+  4  ) RETURN SYS_REFCURSOR
+  5  AS
+  6  	 v_cursor SYS_REFCURSOR;
+  7  	 v_AnchorDate DATE := SYSDATE;
+  8  BEGIN
+  9  	 IF p_LoaiThongKe = 'MONTH' THEN
+ 10  	     OPEN v_cursor FOR
+ 11  	     WITH MonthRange AS (
+ 12  		 SELECT ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -LEVEL + 1) AS ThoiGian
+ 13  		 FROM DUAL
+ 14  		 CONNECT BY LEVEL <= p_Period
+ 15  	     ),
+ 16  	     RevenueData AS (
+ 17  		 SELECT TRUNC(TGDat, 'MM') AS ThoiGian, SUM(TongTien) AS DoanhThu
+ 18  		 FROM DONHANG
+ 19  		 WHERE (TrangThaiDH = 'HoanThanh' OR TrangThaiDH = 'Hoàn thành')
+ 20  		   AND TGDat >= ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -p_Period + 1)
+ 21  		 GROUP BY TRUNC(TGDat, 'MM')
+ 22  	     ),
+ 23  	     CostData AS (
+ 24  		 SELECT TRUNC(TGNhap, 'MM') AS ThoiGian, SUM(TongTien) AS ChiPhi
+ 25  		 FROM LOHANG
+ 26  		 WHERE TrangThaiLH = 'Đã nhập kho'
+ 27  		   AND TGNhap >= ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -p_Period + 1)
+ 28  		 GROUP BY TRUNC(TGNhap, 'MM')
+ 29  	     )
+ 30  	     SELECT
+ 31  		 TO_CHAR(mr.ThoiGian, 'MM/YYYY') AS ThangNam,
+ 32  		 NVL(rd.DoanhThu, 0) AS DoanhThu,
+ 33  		 NVL(cd.ChiPhi, 0) AS ChiPhi
+ 34  	     FROM MonthRange mr
+ 35  	     LEFT JOIN RevenueData rd ON mr.ThoiGian = rd.ThoiGian
+ 36  	     LEFT JOIN CostData cd ON mr.ThoiGian = cd.ThoiGian
+ 37  	     ORDER BY mr.ThoiGian ASC;
+ 38  
+ 39  	 ELSE -- Xử lý cho chế độ theo NGÀY
+ 40  	     OPEN v_cursor FOR
+ 41  	     WITH DayRange AS (
+ 42  		 SELECT TRUNC(v_AnchorDate) - LEVEL + 1 AS ThoiGian
+ 43  		 FROM DUAL
+ 44  		 CONNECT BY LEVEL <= p_Period
+ 45  	     ),
+ 46  	     RevenueData AS (
+ 47  		 SELECT TRUNC(TGDat) AS ThoiGian, SUM(TongTien) AS DoanhThu
+ 48  		 FROM DONHANG
+ 49  		 WHERE (TrangThaiDH = 'HoanThanh' OR TrangThaiDH = 'Hoàn thành')
+ 50  		   AND TGDat >= TRUNC(v_AnchorDate) - p_Period + 1
+ 51  		 GROUP BY TRUNC(TGDat)
+ 52  	     ),
+ 53  	     CostData AS (
+ 54  		 SELECT TRUNC(TGNhap) AS ThoiGian, SUM(TongTien) AS ChiPhi
+ 55  		 FROM LOHANG
+ 56  		 WHERE TrangThaiLH = 'Đã nhập kho'
+ 57  		   AND TGNhap >= TRUNC(v_AnchorDate) - p_Period + 1
+ 58  		 GROUP BY TRUNC(TGNhap)
+ 59  	     )
+ 60  	     SELECT
+ 61  		 TO_CHAR(dr.ThoiGian, 'DD/MM/YYYY') AS ThangNam,
+ 62  		 NVL(rd.DoanhThu, 0) AS DoanhThu,
+ 63  		 NVL(cd.ChiPhi, 0) AS ChiPhi
+ 64  	     FROM DayRange dr
+ 65  	     LEFT JOIN RevenueData rd ON dr.ThoiGian = rd.ThoiGian
+ 66  	     LEFT JOIN CostData cd ON dr.ThoiGian = cd.ThoiGian
+ 67  	     ORDER BY dr.ThoiGian ASC;
+ 68  	 END IF;
+ 69  	 RETURN v_cursor;
+ 70  END;
+ 71  /
+
+Function created.
+
+SQL> 
+SQL> -- 6. Thống kê Doanh thu theo Năm (trả về 12 tháng)
+SQL> CREATE OR REPLACE FUNCTION FN_THONGKE_DOANHTHU_NAM (
+  2  	 p_Nam IN NUMBER
+  3  ) RETURN SYS_REFCURSOR
+  4  IS
+  5  	 v_cursor SYS_REFCURSOR;
+  6  BEGIN
+  7  	 OPEN v_cursor FOR
+  8  	     WITH Months AS (
+  9  		 SELECT LEVEL AS Thang FROM DUAL CONNECT BY LEVEL <= 12
+ 10  	     ),
+ 11  	     MonthlyRevenue AS (
+ 12  		 SELECT EXTRACT(MONTH FROM TGDat) AS Thang, SUM(TongTien) AS DoanhThu
+ 13  		 FROM DONHANG
+ 14  		 WHERE EXTRACT(YEAR FROM TGDat) = p_Nam AND TrangThaiDH = 'Hoàn thành'
+ 15  		 GROUP BY EXTRACT(MONTH FROM TGDat)
+ 16  	     )
+ 17  	     SELECT m.Thang, NVL(r.DoanhThu, 0) AS DoanhThu
+ 18  	     FROM Months m
+ 19  	     LEFT JOIN MonthlyRevenue r ON m.Thang = r.Thang
+ 20  	     ORDER BY m.Thang;
+ 21  	 RETURN v_cursor;
+ 22  END;
+ 23  /
+
+Function created.
+
+SQL> 
+SQL> -- 7. Thống kê số lượng đơn hàng theo Trạng thái
+SQL> CREATE OR REPLACE FUNCTION FN_THONGKE_TRANGTHAI_DH
+  2  RETURN SYS_REFCURSOR
+  3  IS
+  4  	 v_cursor SYS_REFCURSOR;
+  5  BEGIN
+  6  	 OPEN v_cursor FOR
+  7  	     SELECT TrangThaiDH, COUNT(*) AS SoLuong
+  8  	     FROM DONHANG
+  9  	     GROUP BY TrangThaiDH
+ 10  	     ORDER BY SoLuong DESC;
+ 11  	 RETURN v_cursor;
+ 12  END;
+ 13  /
+
+Function created.
+
+SQL> 
 SQL> 
 SQL> PROMPT --- DANG CHAY FILE 4: TAO TRIGGER ---
 > @@04_Triggers.sql;
---- DANG CHAY FILE 4: TAO TRIGGER -- @@04_Triggers.sql
+> -- ====================================================================================
+--- DANG CHAY FILE 4: TAO TRIGGER -- -- ====================================================================================
+SQL> -- 			 PHẦN 4: Tạo TRIGGER
+SQL> -- ====================================================================================
+SQL> 
+SQL> -- ================================= Bảng NHACUNGCAP =================================
+SQL> -- 1. Kiểm tra SĐT nhà cung cấp (10-12 số)
+SQL> CREATE OR REPLACE TRIGGER TRG_NCC_SDT
+  2  BEFORE INSERT OR UPDATE ON NHACUNGCAP
+  3  FOR EACH ROW
+  4  BEGIN
+  5  	 IF LENGTH(:NEW.SDT) < 10 OR LENGTH(:NEW.SDT) > 12 OR REGEXP_LIKE(:NEW.SDT, '[^0-9]') THEN
+  6  	     RAISE_APPLICATION_ERROR(-20001, 'Số điện thoại phải là chuỗi số từ 10 - 12 ký tự.');
+  7  	 END IF;
+  8  END;
+  9  /
+
+Trigger created.
+
+SQL> 
+SQL> -- ================================= Bảng TAIKHOAN =================================
+SQL> -- 2. Kiểm tra SĐT tài khoản khi có giá trị (10-12 số)
+SQL> CREATE OR REPLACE TRIGGER TRG_TK_SDT
+  2  BEFORE INSERT OR UPDATE ON TAIKHOAN
+  3  FOR EACH ROW
+  4  BEGIN
+  5  	 IF :NEW.SDT IS NOT NULL THEN
+  6  	     IF LENGTH(:NEW.SDT) < 10 OR LENGTH(:NEW.SDT) > 12 OR REGEXP_LIKE(:NEW.SDT, '[^0-9]') THEN
+  7  		 RAISE_APPLICATION_ERROR(-20001, 'Số điện thoại phải là chuỗi số từ 10 - 12 ký tự.');
+  8  	     END IF;
+  9  	 END IF;
+ 10  END;
+ 11  /
+
+Trigger created.
+
+SQL> 
+SQL> -- ================================= Bảng CHITIETDONHANG =================================
+SQL> -- 3. Tự động lấy GiaBan hiện hành từ bảng SANPHAM điền vào GiaBan và tính ThanhTien
+SQL> CREATE OR REPLACE TRIGGER TRG_CTDH_THANHTIEN
+  2  BEFORE INSERT OR UPDATE ON CHITIETDONHANG
+  3  FOR EACH ROW
+  4  DECLARE
+  5  	 v_GiaBan NUMBER(15, 2);
+  6  BEGIN
+  7  	 SELECT GiaBan INTO v_GiaBan
+  8  	 FROM SANPHAM
+  9  	 WHERE MaSP = :NEW.MaSP;
+ 10  
+ 11  	 :NEW.GiaBan := v_GiaBan;
+ 12  	 :NEW.ThanhTien := :NEW.SoLuong * v_GiaBan;
+ 13  
+ 14  EXCEPTION
+ 15  	 WHEN NO_DATA_FOUND THEN
+ 16  	     RAISE_APPLICATION_ERROR(-20002, 'Lỗi: Không tìm thấy sản phẩm có mã ' || :NEW.MaSP);
+ 17  END;
+ 18  /
+
+Trigger created.
+
+SQL> 
+SQL> -- 4. Tự động tính TongTien DONHANG khi thay đổi CHITIETDONHANG
+SQL> CREATE OR REPLACE TRIGGER TRG_CTDH_TONGTIEN
+  2  AFTER INSERT OR UPDATE OR DELETE ON CHITIETDONHANG
+  3  FOR EACH ROW
+  4  DECLARE
+  5  	 v_Delta NUMBER := 0;
+  6  	 v_MaDH VARCHAR2(10);
+  7  	 v_LoaiKH NVARCHAR2(50);
+  8  	 v_TyLeGiamGia NUMBER := 0;
+  9  	 v_TongTienHangMoi NUMBER := 0;
+ 10  	 v_PhiVanChuyen NUMBER := 0;
+ 11  	 v_GiamGiaMoi NUMBER := 0;
+ 12  BEGIN
+ 13  	 -- 1. Xác định mức thay đổi của ThanhTien (Delta)
+ 14  	 IF INSERTING THEN
+ 15  	     v_Delta := :NEW.ThanhTien;
+ 16  	     v_MaDH := :NEW.MaDH;
+ 17  	 ELSIF UPDATING THEN
+ 18  	     v_Delta := :NEW.ThanhTien - :OLD.ThanhTien;
+ 19  	     v_MaDH := :NEW.MaDH;
+ 20  	 ELSIF DELETING THEN
+ 21  	     v_Delta := -:OLD.ThanhTien;
+ 22  	     v_MaDH := :OLD.MaDH;
+ 23  	 END IF;
+ 24  	 -- 2. Lấy Tổng tiền hàng hiện tại, Phí vận chuyển và Loại khách hàng
+ 25  	 SELECT DH.TongTienHang, DH.PhiVanChuyen, KH.LoaiKH
+ 26  	 INTO v_TongTienHangMoi, v_PhiVanChuyen, v_LoaiKH
+ 27  	 FROM DONHANG DH
+ 28  	 JOIN KHACHHANG KH ON DH.MaKH = KH.MaKH
+ 29  	 WHERE DH.MaDH = v_MaDH;
+ 30  	 v_TongTienHangMoi := NVL(v_TongTienHangMoi, 0) + v_Delta;
+ 31  	 -- 3. Xác định tỷ lệ giảm giá từ bảng THAMSO dựa trên LoaiKH
+ 32  	 BEGIN
+ 33  	     IF v_LoaiKH = 'Thường' THEN
+ 34  		 SELECT GiaTri INTO v_TyLeGiamGia FROM THAMSO WHERE TenTS = 'GG_THUONG';
+ 35  	     ELSIF v_LoaiKH = 'Thân thiết' THEN
+ 36  		 SELECT GiaTri INTO v_TyLeGiamGia FROM THAMSO WHERE TenTS = 'GG_THANTHIET';
+ 37  	     ELSIF v_LoaiKH = 'VIP' THEN
+ 38  		 SELECT GiaTri INTO v_TyLeGiamGia FROM THAMSO WHERE TenTS = 'GG_VIP';
+ 39  	     ELSE
+ 40  		 v_TyLeGiamGia := 0;
+ 41  	     END IF;
+ 42  	 EXCEPTION
+ 43  	     WHEN NO_DATA_FOUND THEN
+ 44  		 v_TyLeGiamGia := 0;
+ 45  	 END;
+ 46  	 -- 4. Tính toán số tiền Giảm giá mới
+ 47  	 v_GiamGiaMoi := v_TongTienHangMoi * v_TyLeGiamGia;
+ 48  	 -- 5. Cập nhật TongTien = TongTienHang + PhiVanChuyen - GiamGia
+ 49  	 UPDATE DONHANG
+ 50  	 SET TongTienHang = v_TongTienHangMoi,
+ 51  	     GiamGia = v_GiamGiaMoi,
+ 52  	     TongTien = v_TongTienHangMoi + NVL(v_PhiVanChuyen, 0) - v_GiamGiaMoi
+ 53  	 WHERE MaDH = v_MaDH;
+ 54  END;
+ 55  /
+
+Trigger created.
+
+SQL> 
+SQL> -- 5. Không cho phép thêm, sửa, xóa chi tiết đơn hàng nếu chờ xử lý hoặc hoàn thành
+SQL> CREATE OR REPLACE TRIGGER TRG_CTDH_CHECK_TRANGTHAIDH
+  2  BEFORE INSERT OR UPDATE OR DELETE ON CHITIETDONHANG
+  3  FOR EACH ROW
+  4  DECLARE
+  5  	 v_TrangThai NVARCHAR2(50);
+  6  	 v_MaDH_Check VARCHAR2(10);
+  7  BEGIN
+  8  	 -- Dùng OLD khi DELETE, dùng NEW khi INSERT/UPDATE
+  9  	 IF DELETING THEN
+ 10  	     v_MaDH_Check := :OLD.MaDH;
+ 11  	 ELSE
+ 12  	     v_MaDH_Check := :NEW.MaDH;
+ 13  	 END IF;
+ 14  
+ 15  	 SELECT TrangThaiDH INTO v_TrangThai
+ 16  	 FROM DONHANG
+ 17  	 WHERE MaDH = v_MaDH_Check;
+ 18  
+ 19  	 IF v_TrangThai IN ('Chờ xử lý', 'Hoàn thành', 'Chờ thanh toán') THEN
+ 20  	     RAISE_APPLICATION_ERROR(-20003,
+ 21  		 'Khong the thay doi chi tiet don hang vi don hang dang o trang thai: ' || v_TrangThai);
+ 22  	 END IF;
+ 23  
+ 24  EXCEPTION
+ 25  	 WHEN NO_DATA_FOUND THEN
+ 26  	     RAISE_APPLICATION_ERROR(-20004, 'Khong tim thay thong tin don hang tuong ung.');
+ 27  END;
+ 28  /
+
+Trigger created.
+
+SQL> 
+SQL> -- ================================= Bảng CHITIETLOHANG =================================
+SQL> -- 5. Tự động lấy GiaMua hiện hành từ bảng SANPHAM điền vào GiaMua và tính ThanhTien
+SQL> CREATE OR REPLACE TRIGGER TRG_CTLH_THANHTIEN
+  2  BEFORE INSERT OR UPDATE ON CHITIETLOHANG
+  3  FOR EACH ROW
+  4  DECLARE
+  5  	 v_GiaMua NUMBER(15, 2);
+  6  BEGIN
+  7  	 SELECT GiaMua INTO v_GiaMua
+  8  	 FROM SANPHAM
+  9  	 WHERE MaSP = :NEW.MaSP;
+ 10  
+ 11  	 :NEW.GiaMua := v_GiaMua;
+ 12  	 :NEW.ThanhTien := :NEW.SoLuong * v_GiaMua;
+ 13  
+ 14  EXCEPTION
+ 15  	 WHEN NO_DATA_FOUND THEN
+ 16  	     RAISE_APPLICATION_ERROR(-20005, 'Lỗi: Không tìm thấy sản phẩm có mã ' || :NEW.MaSP);
+ 17  END;
+ 18  /
+
+Trigger created.
+
+SQL> 
+SQL> -- 6. Tự động tính TongTien LOHANG khi thay đổi CHITIETLOHANG
+SQL> CREATE OR REPLACE TRIGGER TRG_CTLH_TONGTIEN
+  2  AFTER INSERT OR UPDATE OR DELETE ON CHITIETLOHANG
+  3  FOR EACH ROW
+  4  BEGIN
+  5  	 IF INSERTING THEN
+  6  	     UPDATE LOHANG SET TongTien = NVL(TongTien, 0) + :NEW.ThanhTien WHERE MaLH = :NEW.MaLH;
+  7  	 ELSIF UPDATING THEN
+  8  	     UPDATE LOHANG SET TongTien = NVL(TongTien, 0) - :OLD.ThanhTien + :NEW.ThanhTien WHERE MaLH = :NEW.MaLH;
+  9  	 ELSIF DELETING THEN
+ 10  	     UPDATE LOHANG SET TongTien = NVL(TongTien, 0) - :OLD.ThanhTien WHERE MaLH = :OLD.MaLH;
+ 11  	 END IF;
+ 12  END;
+ 13  /
+
+Trigger created.
+
+SQL> 
+SQL> -- ================================= Bảng DONHANG =================================
+SQL> -- 7. Kiểm tra trạng thái tài khoản khách hàng trước khi tạo đơn hàng mới
+SQL> CREATE OR REPLACE TRIGGER TRG_DH_CHECK_KH
+  2  BEFORE INSERT ON DONHANG
+  3  FOR EACH ROW
+  4  DECLARE
+  5  	 v_TrangThaiTK NUMBER(1);
+  6  BEGIN
+  7  	 SELECT TK.TrangThaiTK INTO v_TrangThaiTK
+  8  	 FROM KHACHHANG KH
+  9  	 JOIN TAIKHOAN TK ON KH.Username = TK.Username
+ 10  	 WHERE KH.MaKH = :NEW.MaKH;
+ 11  
+ 12  	 IF v_TrangThaiTK = 0 THEN
+ 13  	     RAISE_APPLICATION_ERROR(-20006, 'Từ chối giao dịch: Tài khoản của khách hàng này đang bị khóa.');
+ 14  	 END IF;
+ 15  
+ 16  EXCEPTION
+ 17  	 WHEN NO_DATA_FOUND THEN
+ 18  	     RAISE_APPLICATION_ERROR(-20007, 'Lỗi: Không tìm thấy thông tin khách hàng hoặc tài khoản liên kết.');
+ 19  END;
+ 20  /
+
+Trigger created.
+
+SQL> 
+SQL> -- ================================= Bảng LOHANG =================================
+SQL> -- 8. Kiểm tra trạng thái hợp tác của nhà cung cấp trước khi tạo lô hàng mới
+SQL> CREATE OR REPLACE TRIGGER TRG_LH_CHECK_NCC
+  2  BEFORE INSERT ON LOHANG
+  3  FOR EACH ROW
+  4  DECLARE
+  5  	 v_TrangThaiHopTac NUMBER(1);
+  6  BEGIN
+  7  	 SELECT TrangThaiHopTac INTO v_TrangThaiHopTac
+  8  	 FROM NHACUNGCAP
+  9  	 WHERE MaNCC = :NEW.MaNCC;
+ 10  
+ 11  	 IF v_TrangThaiHopTac = 0 THEN
+ 12  	     RAISE_APPLICATION_ERROR(-20008, 'Từ chối giao dịch: Nhà cung cấp đang trong trạng thái tạm ngừng hợp tác.');
+ 13  	 END IF;
+ 14  
+ 15  EXCEPTION
+ 16  	 WHEN NO_DATA_FOUND THEN
+ 17  	     RAISE_APPLICATION_ERROR(-20009, 'Lỗi: Mã Nhà cung cấp không tồn tại trong hệ thống.');
+ 18  END;
+ 19  /
+
+Trigger created.
+
+SQL> 
+SQL> -- 9. Không cho phép xóa lô hàng đã nhập kho
+SQL> CREATE OR REPLACE TRIGGER TRG_LH_XOA
+  2  BEFORE DELETE ON LOHANG
+  3  FOR EACH ROW
+  4  BEGIN
+  5  	 IF :OLD.TrangThaiLH = 'Đã nhập kho' THEN
+  6  	     RAISE_APPLICATION_ERROR(-20021, 'Không thể xoá lô hàng đã nhập kho!');
+  7  	 END IF;
+  8  END;
+  9  /
+
+Trigger created.
+
+SQL> 
+SQL> -- ================================= Bảng XUATKHO =================================
+SQL> -- 9. Xử lý trừ tồn kho dựa trên TrangThaiXK
+SQL> CREATE OR REPLACE TRIGGER TRG_XK_CAPNHAT_TONKHO
+  2  BEFORE INSERT OR UPDATE OF TrangThaiXK OR DELETE ON XUATKHO
+  3  FOR EACH ROW
+  4  DECLARE
+  5  	 v_SLConLai NUMBER;
+  6  	 v_SLKhaDung NUMBER;
+  7  	 v_MaTonKho_Check VARCHAR2(10);
+  8  BEGIN
+  9  	 -- Lấy mã tồn kho tuỳ theo thao tác
+ 10  	 IF DELETING THEN v_MaTonKho_Check := :OLD.MaTonKho;
+ 11  	 ELSE v_MaTonKho_Check := :NEW.MaTonKho; END IF;
+ 12  
+ 13  	 -- Lấy số lượng hiện tại trong kho để kiểm tra
+ 14  	 SELECT SLConLai, SLKhaDung INTO v_SLConLai, v_SLKhaDung
+ 15  	 FROM TONKHO WHERE MaTonKho = v_MaTonKho_Check;
+ 16  
+ 17  	 IF INSERTING THEN
+ 18  	     -- Lúc INSERT TrangThaiXK luôn là 'Tạm giữ', khi nào nhân viên xác nhận xuất hàng mới chuyển thành 'Đã xuất'
+ 19  	     IF v_SLKhaDung < :NEW.SLXuat THEN
+ 20  		 RAISE_APPLICATION_ERROR(-20010, 'Lỗi: Kho không đủ SL khả dụng (' || v_SLKhaDung || ') cho lô ' || :NEW.MaTonKho);
+ 21  	     ELSE
+ 22  		 UPDATE TONKHO SET SLKhaDung = SLKhaDung - :NEW.SLXuat WHERE MaTonKho = :NEW.MaTonKho;
+ 23  	     END IF;
+ 24  
+ 25  	 ELSIF UPDATING THEN
+ 26  	     -- Chuyển từ "Tạm giữ" -> "Đã xuất": Lấy hàng ra khỏi kho (Trừ SLConLai, còn SLKhaDung đã trừ trước đó rồi)
+ 27  	     IF :OLD.TrangThaiXK = 'Tạm giữ' AND :NEW.TrangThaiXK = 'Đã xuất' THEN
+ 28  		 UPDATE TONKHO SET SLConLai = SLConLai - :NEW.SLXuat WHERE MaTonKho = :NEW.MaTonKho;
+ 29  
+ 30  	     -- Chuyển từ "Tạm giữ" -> "Đã huỷ": Khách huỷ đơn trước khi giao, hoàn lại SLKhaDung
+ 31  	     ELSIF :OLD.TrangThaiXK = 'Tạm giữ' AND :NEW.TrangThaiXK = 'Đã huỷ' THEN
+ 32  		 UPDATE TONKHO SET SLKhaDung = SLKhaDung + :OLD.SLXuat WHERE MaTonKho = :NEW.MaTonKho;
+ 33  
+ 34  	     -- Chuyển từ "Đã xuất" -> "Đã huỷ": Hàng đã đi nhưng bị trả về, hoàn lại cả 2
+ 35  	     ELSIF :OLD.TrangThaiXK = 'Đã xuất' AND :NEW.TrangThaiXK = 'Đã huỷ' THEN
+ 36  		 UPDATE TONKHO
+ 37  		 SET SLConLai = SLConLai + :OLD.SLXuat, SLKhaDung = SLKhaDung + :OLD.SLXuat
+ 38  		 WHERE MaTonKho = :NEW.MaTonKho;
+ 39  	     END IF;
+ 40  
+ 41  	 ELSIF DELETING THEN
+ 42  	     IF :OLD.TrangThaiXK = 'Tạm giữ' THEN
+ 43  		 UPDATE TONKHO SET SLKhaDung = SLKhaDung + :OLD.SLXuat WHERE MaTonKho = :OLD.MaTonKho;
+ 44  	     ELSIF :OLD.TrangThaiXK = 'Đã xuất' THEN
+ 45  		 UPDATE TONKHO
+ 46  		 SET SLConLai = SLConLai + :OLD.SLXuat, SLKhaDung = SLKhaDung + :OLD.SLXuat
+ 47  		 WHERE MaTonKho = :OLD.MaTonKho;
+ 48  	     END IF;
+ 49  	 END IF;
+ 50  END;
+ 51  /
+
+Trigger created.
+
+SQL> -- ================================= Bảng SANPHAM =================================
+SQL> -- 10. Tự động ghi nhận lịch sử giá mỗi khi thay đổi giá mua hoặc bán của sản phẩm
+SQL> CREATE OR REPLACE TRIGGER TRG_SP_LUU_LSG
+  2  AFTER INSERT OR UPDATE OF GiaMua, GiaBan ON SANPHAM
+  3  FOR EACH ROW
+  4  BEGIN
+  5  	 IF  INSERTING OR (UPDATING AND (:OLD.GiaMua <> :NEW.GiaMua) OR (:OLD.GiaBan <> :NEW.GiaBan)) THEN
+  6  	     INSERT INTO LICHSUGIA (
+  7  		 MaSP,
+  8  		 GiaMua,
+  9  		 GiaBan
+ 10  	     )
+ 11  	     VALUES (
+ 12  		 :NEW.MaSP,
+ 13  		 :NEW.GiaMua,
+ 14  		 :NEW.GiaBan
+ 15  	     );
+ 16  	 END IF;
+ 17  END;
+ 18  /
+
+Trigger created.
+
+SQL> 
+SQL> -- ================================= Bảng TONKHO =================================
+SQL> 
+SQL> -- TRIGGER 1: Cập nhật trạng thái TONKHO trước khi INSERT/UPDATE
+SQL> CREATE OR REPLACE TRIGGER TRG_CAPNHAT_TRANGTHAI_TONKHO
+  2  BEFORE INSERT OR UPDATE OF TGHetHan, SLConLai, TrangThai ON TONKHO
+  3  FOR EACH ROW
+  4  DECLARE
+  5  	 v_SoNgayCB NUMBER;
+  6  	 v_NgayHienTai DATE := TRUNC(SYSDATE);
+  7  	 v_TenSP NVARCHAR2(100);
+  8  BEGIN
+  9  	 -- 1. Lấy quy định từ tham số
+ 10  	 BEGIN
+ 11  	     SELECT GiaTri INTO v_SoNgayCB FROM THAMSO WHERE TenTS = 'CANHBAO_HETHAN';
+ 12  	 EXCEPTION WHEN NO_DATA_FOUND THEN v_SoNgayCB := 7;
+ 13  	 END;
+ 14  
+ 15  	 -- 2. Phân loại trạng thái dựa trên TGHetHan
+ 16  	 IF TRUNC(:NEW.TGHetHan) < v_NgayHienTai THEN
+ 17  	     :NEW.TrangThai := N'Hết hạn';
+ 18  	     :NEW.SLKhaDung := 0;
+ 19  	 ELSIF (TRUNC(:NEW.TGHetHan) - v_NgayHienTai) <= v_SoNgayCB THEN
+ 20  	     :NEW.TrangThai := N'Sắp hết hạn';
+ 21  	     :NEW.SLKhaDung := :NEW.SLConLai;
+ 22  	 ELSE
+ 23  	     :NEW.TrangThai := N'Còn hạn';
+ 24  	     :NEW.SLKhaDung := :NEW.SLConLai;
+ 25  	 END IF;
+ 26  END;
+ 27  /
+
+Trigger created.
+
+SQL> 
+SQL> -- TRIGGER 2: Cảnh báo HẾT HẠN (dựa trên TrangThai)
+SQL> CREATE OR REPLACE TRIGGER TRG_CANHBAO_HETHAN
+  2  AFTER INSERT OR UPDATE OF TrangThai ON TONKHO
+  3  FOR EACH ROW
+  4  DECLARE
+  5  	 PRAGMA AUTONOMOUS_TRANSACTION;
+  6  	 v_TenSP NVARCHAR2(100);
+  7  	 v_NoiDung NVARCHAR2(500);
+  8  	 v_CheckExists NUMBER;
+  9  BEGIN
+ 10  	 -- Chỉ xử lý khi TrangThai = 'Hết hạn'
+ 11  	 IF :NEW.TrangThai = N'Hết hạn' THEN
+ 12  	     -- Lấy tên SP
+ 13  	     BEGIN
+ 14  		 SELECT SP.TenSP INTO v_TenSP FROM SANPHAM SP
+ 15  		 WHERE SP.MaSP = :NEW.MaSP;
+ 16  	     EXCEPTION WHEN OTHERS THEN v_TenSP := N'Chưa rõ';
+ 17  	     END;
+ 18  
+ 19  	     v_NoiDung := N'Lô ' || :NEW.MaTonKho || N' của SP ' || v_TenSP || N' đã HẾT HẠN vào ngày ' || TO_CHAR(:NEW.TGHetHan, 'DD/MM/YYYY');
+ 20  
+ 21  	     -- Chống trùng
+ 22  	     SELECT COUNT(*) INTO v_CheckExists FROM THONGBAO WHERE NoiDung = v_NoiDung;
+ 23  
+ 24  	     IF v_CheckExists = 0 THEN
+ 25  		 INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+ 26  		 VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Hết hạn', v_NoiDung, 0, SYSDATE, N'Nhân viên kho/thu mua');
+ 27  	     END IF;
+ 28  	 END IF;
+ 29  
+ 30  	 -- Xử lý khi TrangThai = 'Sắp hết hạn'
+ 31  	 IF :NEW.TrangThai = N'Sắp hết hạn' THEN
+ 32  	     BEGIN
+ 33  		 SELECT SP.TenSP INTO v_TenSP FROM SANPHAM SP
+ 34  		 WHERE SP.MaSP = :NEW.MaSP;
+ 35  	     EXCEPTION WHEN OTHERS THEN v_TenSP := N'Chưa rõ';
+ 36  	     END;
+ 37  
+ 38  	     v_NoiDung := N'Lô ' || :NEW.MaTonKho || N' của SP ' || v_TenSP || N' sẽ hết hạn vào ' || TO_CHAR(:NEW.TGHetHan, 'DD/MM/YYYY');
+ 39  
+ 40  	     SELECT COUNT(*) INTO v_CheckExists FROM THONGBAO WHERE NoiDung = v_NoiDung;
+ 41  
+ 42  	     IF v_CheckExists = 0 THEN
+ 43  		 INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+ 44  		 VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Sắp hết hạn', v_NoiDung, 0, SYSDATE, N'Nhân viên kho/thu mua');
+ 45  	     END IF;
+ 46  	 END IF;
+ 47  
+ 48  	 COMMIT;
+ 49  EXCEPTION WHEN OTHERS THEN
+ 50  	 ROLLBACK;
+ 51  	 DBMS_OUTPUT.PUT_LINE('Lỗi TRG_CANHBAO_HETHAN: ' || SQLERRM);
+ 52  	 COMMIT;
+ 53  END;
+ 54  /
+
+Trigger created.
+
+SQL> 
+SQL> -- TRIGGER 3: Cảnh báo HẾT/SẮP HẾT HÀNG (dựa trên SLConLai)
+SQL> CREATE OR REPLACE TRIGGER TRG_CANHBAO_NHAP_HANG
+  2  AFTER INSERT OR UPDATE OF SLConLai ON TONKHO
+  3  FOR EACH ROW
+  4  DECLARE
+  5  	 PRAGMA AUTONOMOUS_TRANSACTION;
+  6  	 v_MinTonKho NUMBER;
+  7  	 v_TongTon NUMBER;
+  8  	 v_MaSP VARCHAR2(10);
+  9  	 v_TenSP NVARCHAR2(100);
+ 10  	 v_CheckExists NUMBER;
+ 11  	 v_LoaiTB NVARCHAR2(50);
+ 12  	 v_NoiDung NVARCHAR2(500);
+ 13  BEGIN
+ 14  	 -- 1. Lấy ngưỡng tối thiểu
+ 15  	 BEGIN
+ 16  	     SELECT GiaTri INTO v_MinTonKho FROM THAMSO WHERE TenTS = 'MIN_TONKHO';
+ 17  	 EXCEPTION WHEN NO_DATA_FOUND THEN v_MinTonKho := 10;
+ 18  	 END;
+ 19  
+ 20  	 -- 2. Tìm thông tin sản phẩm
+ 21  	 BEGIN
+ 22  	     v_MaSP := :NEW.MaSP;
+ 23  	     SELECT TenSP INTO v_TenSP FROM SANPHAM WHERE MaSP = v_MaSP;
+ 24  	 EXCEPTION WHEN NO_DATA_FOUND THEN
+ 25  	     COMMIT;
+ 26  	     RETURN;
+ 27  	 END;
+ 28  
+ 29  	 -- 3. Tính tổng tồn hiện tại (TÍNH TỪ COMMITTED DATA, bỏ qua lô hết hạn/hủy bỏ)
+ 30  	 SELECT NVL(SUM(SLConLai), 0) INTO v_TongTon
+ 31  	 FROM TONKHO TK
+ 32  	 WHERE TK.MaSP = v_MaSP
+ 33  	   AND TK.TrangThai NOT IN (N'Hết hạn', N'Hủy bỏ');
+ 34  
+ 35  	 -- 4. Điều chỉnh v_TongTon với thay đổi hiện tại
+ 36  	 IF UPDATING THEN
+ 37  	     v_TongTon := v_TongTon - :OLD.SLConLai + :NEW.SLConLai;
+ 38  	 ELSE -- INSERT
+ 39  	     v_TongTon := v_TongTon + :NEW.SLConLai;
+ 40  	 END IF;
+ 41  
+ 42  	 -- 5. Phân loại và chèn thông báo
+ 43  	 IF v_TongTon <= 0 THEN
+ 44  	     v_LoaiTB := N'Hết hàng';
+ 45  	     v_NoiDung := N'CẢNH BÁO: Sản phẩm [' || v_TenSP || N'] đã HẾT HÀNG hoàn toàn. Yêu cầu nhập hàng mới ngay!';
+ 46  	 ELSIF v_TongTon < v_MinTonKho THEN
+ 47  	     v_LoaiTB := N'Sắp hết hàng';
+ 48  	     v_NoiDung := N'Thông báo: Sản phẩm [' || v_TenSP || N'] sắp hết hàng. Hiện chỉ còn ' || ROUND(v_TongTon, 2) || N' đơn vị. Yêu cầu nhập thêm hàng!';
+ 49  	 ELSE
+ 50  	     COMMIT;
+ 51  	     RETURN;
+ 52  	 END IF;
+ 53  
+ 54  	 -- 6. Chống trùng: Chỉ chèn nếu chưa có thông báo CHƯA ĐỌC tương tự
+ 55  	 SELECT COUNT(*) INTO v_CheckExists FROM THONGBAO
+ 56  	 WHERE LoaiTB = v_LoaiTB
+ 57  	   AND INSTR(NoiDung, v_TenSP) > 0
+ 58  	   AND TrangThaiTB = 0;
+ 59  
+ 60  	 IF v_CheckExists = 0 THEN
+ 61  	     INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+ 62  	     VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), v_LoaiTB, v_NoiDung, 0, SYSDATE, N'Nhân viên kho/thu mua');
+ 63  	 END IF;
+ 64  
+ 65  	 COMMIT;
+ 66  EXCEPTION WHEN OTHERS THEN
+ 67  	 ROLLBACK;
+ 68  	 DBMS_OUTPUT.PUT_LINE('Lỗi TRG_CANHBAO_NHAP_HANG: ' || SQLERRM);
+ 69  	 COMMIT;
+ 70  END;
+ 71  /
+
+Trigger created.
+
+SQL> 
+SQL> -- TRIGGER 4: Xử lý khi xóa lô hàng
+SQL> CREATE OR REPLACE TRIGGER TRG_CAPNHAT_KHI_XOA_LO
+  2  AFTER DELETE ON TONKHO
+  3  FOR EACH ROW
+  4  BEGIN
+  5  	 UPDATE CHITIETLOHANG
+  6  	 SET SoLuong = SoLuong - :OLD.SLConLai
+  7  	 WHERE MaLH = :OLD.MaLH AND MaSP = :OLD.MaSP;
+  8  
+  9  	 -- Xóa luôn các thông báo liên quan đến lô hàng vừa xóa
+ 10  	 DELETE FROM THONGBAO
+ 11  	 WHERE NoiDung LIKE N'%Lô ' || :OLD.MaTonKho || N'%';
+ 12  END;
+ 13  /
+
+Trigger created.
+
+SQL> 
+SQL> CREATE OR REPLACE TRIGGER TRG_GIOHANG_THANHTIEN
+  2  BEFORE INSERT OR UPDATE ON GIOHANG
+  3  FOR EACH ROW
+  4  DECLARE
+  5  	 v_GiaBan NUMBER(15,2);
+  6  BEGIN
+  7  	 SELECT GiaBan INTO v_GiaBan FROM SANPHAM WHERE MaSP = :NEW.MaSP;
+  8  	 :NEW.ThanhTien := :NEW.SoLuong * v_GiaBan;
+  9  END;
+ 10  /
+
+Trigger created.
+
+SQL> 
+SQL> -- TRIGGER 5: Thông báo Đơn hàng & Giao hàng
+SQL> CREATE OR REPLACE TRIGGER TRG_DONHANG_THONGBAO
+  2  AFTER INSERT OR UPDATE OF TrangThaiDH ON DONHANG
+  3  FOR EACH ROW
+  4  BEGIN
+  5  	 IF INSERTING THEN
+  6  	     INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+  7  	     VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Đơn hàng', N'Đơn hàng ' || :NEW.MaDH || N' đã được đặt thành công.', 0, SYSDATE, :NEW.MaKH);
+  8  	 ELSIF UPDATING THEN
+  9  	     IF :NEW.TrangThaiDH = N'Chờ giao hàng' AND (:OLD.TrangThaiDH IS NULL OR :OLD.TrangThaiDH <> N'Chờ giao hàng') THEN
+ 10  		 INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+ 11  		 VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Giao hàng', N'Đơn hàng ' || :NEW.MaDH || N' đã được xuất kho, sẵn sàng để giao hàng.', 0, SYSDATE, N'Nhân viên giao hàng');
+ 12  	     ELSIF :NEW.TrangThaiDH = N'Hoàn thành' AND (:OLD.TrangThaiDH IS NULL OR :OLD.TrangThaiDH <> N'Hoàn thành') THEN
+ 13  		 INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+ 14  		 VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Đơn hàng', N'Đơn hàng ' || :NEW.MaDH || N' đã được giao thành công.', 0, SYSDATE, :NEW.MaKH);
+ 15  	     ELSIF :NEW.TrangThaiDH = N'Chờ thanh toán' AND (:OLD.TrangThaiDH IS NULL OR :OLD.TrangThaiDH <> N'Chờ thanh toán') THEN
+ 16  		 INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+ 17  		 VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Đơn hàng', N'Đơn hàng ' || :NEW.MaDH || N' đã được giao thành công và đang chờ thanh toán ghi nợ.', 0, SYSDATE, :NEW.MaKH);
+ 18  	     ELSIF :NEW.TrangThaiDH = N'Đã huỷ' AND (:OLD.TrangThaiDH IS NULL OR :OLD.TrangThaiDH <> N'Đã huỷ') THEN
+ 19  		 INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+ 20  		 VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Đơn hàng', N'Đơn hàng ' || :NEW.MaDH || N' giao thất bại. Lý do: ' || NVL(:NEW.LyDoHuy, N'Chưa rõ'), 0, SYSDATE, :NEW.MaKH);
+ 21  	     END IF;
+ 22  	 END IF;
+ 23  END;
+ 24  /
+
+Trigger created.
+
 SQL> 
 SQL> PROMPT --- DANG CHAY FILE 5: TAO PROCEDURE ---
 > @@05_Procedures.sql;
---- DANG CHAY FILE 5: TAO PROCEDURE -- @@05_Procedures.sql
+> -- ====================================================================================
+--- DANG CHAY FILE 5: TAO PROCEDURE -- -- ====================================================================================
+SQL> -- 			     PHẦN 5: TẠO PROCEDURE
+SQL> -- ====================================================================================
+SQL> 
+SQL> -- ------------------------------------------------------------------------------------
+SQL> -- 1. QUẢN LÝ SẢN PHẨM & GIÁ
+SQL> -- ------------------------------------------------------------------------------------
+SQL> CREATE OR REPLACE PROCEDURE SP_CAPNHAT_GIA (
+  2  	 p_MaSP IN VARCHAR2,
+  3  	 p_GiaMuaMoi IN NUMBER,
+  4  	 p_GiaBanMoi IN NUMBER
+  5  ) IS
+  6  BEGIN
+  7  	 UPDATE SANPHAM
+  8  	 SET GiaMua = NVL(p_GiaMuaMoi, GiaMua),
+  9  	     GiaBan = NVL(p_GiaBanMoi, GiaBan)
+ 10  	 WHERE MaSP = p_MaSP;
+ 11  
+ 12  	 COMMIT;
+ 13  
+ 14  EXCEPTION
+ 15  	 WHEN OTHERS THEN
+ 16  	     ROLLBACK;
+ 17  
+ 18  	     RAISE_APPLICATION_ERROR(-20010,'Lỗi cập nhật giá sản phẩm: ' || SQLERRM);
+ 19  END;
+ 20  /
+
+Procedure created.
+
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE SP_THEM_SP (
+  2  	 p_TenSP IN NVARCHAR2, p_MaLSP IN VARCHAR2, p_ChatLuong IN NVARCHAR2,
+  3  	 p_GiaMua IN NUMBER, p_GiaBan IN NUMBER, p_DonViTinh IN NVARCHAR2, p_BaoQuan IN NVARCHAR2
+  4  ) IS
+  5  BEGIN
+  6  	 INSERT INTO SANPHAM (TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan)
+  7  	 VALUES (p_TenSP, p_MaLSP, p_ChatLuong, p_GiaMua, p_GiaBan, p_DonViTinh, p_BaoQuan);
+  8  	 COMMIT;
+  9  EXCEPTION
+ 10  	 WHEN OTHERS THEN
+ 11  	     ROLLBACK;
+ 12  	     RAISE_APPLICATION_ERROR(-20011, 'Lỗi thêm sản phẩm: ' || SQLERRM);
+ 13  END;
+ 14  
+ 15  /
+
+Procedure created.
+
+SQL> 
+SQL> -- Procedure Xóa Loại Sản Phẩm
+SQL> CREATE OR REPLACE PROCEDURE SP_XOA_LSP (
+  2  	 p_MaLSP IN VARCHAR2
+  3  ) IS
+  4  	 v_count NUMBER;
+  5  BEGIN
+  6  	 -- 1. Đếm số lượng sản phẩm đang có của loại này
+  7  	 SELECT COUNT(*) INTO v_count FROM SANPHAM WHERE MaLSP = p_MaLSP;
+  8  
+  9  	 -- 2. Nếu có >= 1 sản phẩm, lập tức văng lỗi và dừng chương trình
+ 10  	 IF v_count > 0 THEN
+ 11  	     RAISE_APPLICATION_ERROR(-20040, 'Không thể xóa vì đang có sản phẩm thuộc loại này!');
+ 12  	 END IF;
+ 13  
+ 14  	 -- 3. Nếu an toàn (count = 0) thì mới xóa
+ 15  	 DELETE FROM LOAISANPHAM WHERE MaLSP = p_MaLSP;
+ 16  	 COMMIT;
+ 17  END;
+ 18  /
+
+Procedure created.
+
+SQL> 
+SQL> -- ================================= Bảng SANPHAM =================================
+SQL> -- [Đã chuyển đổi sang FUNCTION FN_LAY_DS_SANPHAM trong 03_Functions.sql]
+SQL> 
+SQL> -- ------------------------------------------------------------------------------------
+SQL> -- 2. QUẢN LÝ ĐƠN HÀNG & HUỶ ĐƠN
+SQL> -- ------------------------------------------------------------------------------------
+SQL> CREATE OR REPLACE PROCEDURE SP_HUY_DH (
+  2  	 p_MaDH IN VARCHAR2,
+  3  	 p_LyDoHuy IN NVARCHAR2
+  4  ) IS
+  5  	 v_TrangThaiDH NVARCHAR2(50);
+  6  BEGIN
+  7  	 SELECT TrangThaiDH INTO v_TrangThaiDH FROM DONHANG WHERE MaDH = p_MaDH;
+  8  
+  9  	 IF v_TrangThaiDH IN ('Hoàn thành', 'Đã huỷ') THEN
+ 10  	     RAISE_APPLICATION_ERROR(-20030, 'Không thể huỷ đơn hàng đã hoàn thành hoặc đã huỷ!');
+ 11  	 END IF;
+ 12  
+ 13  	 UPDATE DONHANG
+ 14  	 SET TrangThaiDH = 'Đã huỷ',
+ 15  	     LyDoHuy = p_LyDoHuy
+ 16  	 WHERE MaDH = p_MaDH;
+ 17  
+ 18  	 UPDATE XUATKHO
+ 19  	 SET TrangThaiXK = 'Đã huỷ',
+ 20  	     TGCapNhat = SYSDATE
+ 21  	 WHERE MaDH = p_MaDH;
+ 22  
+ 23  	 COMMIT;
+ 24  EXCEPTION
+ 25  	 WHEN OTHERS THEN
+ 26  	     ROLLBACK;
+ 27  	     RAISE_APPLICATION_ERROR(-20031, 'Lỗi xử lý huỷ đơn hàng: ' || SQLERRM);
+ 28  END;
+ 29  /
+
+Procedure created.
+
+SQL> 
+SQL> -- ------------------------------------------------------------------------------------
+SQL> -- 3. QUẢN LÝ NHẬP KHO & XÁC NHẬN VỊ TRÍ
+SQL> -- ------------------------------------------------------------------------------------
+SQL> CREATE OR REPLACE PROCEDURE SP_YEUCAU_NHAPKHO (p_MaLH IN VARCHAR2) IS
+  2  	 v_TrangThaiLH NVARCHAR2(50);
+  3  BEGIN
+  4  	 SELECT TrangThaiLH INTO v_TrangThaiLH FROM LOHANG WHERE MaLH = p_MaLH;
+  5  	 IF v_TrangThaiLH IN ('Chờ nhập kho', 'Đã nhập kho') THEN
+  6  	     RAISE_APPLICATION_ERROR(-20022, 'Lô hàng này đã được yêu cầu hoặc đã hoàn tất nhập kho!');
+  7  	 END IF;
+  8  	 UPDATE LOHANG SET TrangThaiLH = 'Chờ nhập kho' WHERE MaLH = p_MaLH;
+  9  	 COMMIT;
+ 10  EXCEPTION
+ 11  	 WHEN OTHERS THEN ROLLBACK; RAISE;
+ 12  END;
+ 13  /
+
+Procedure created.
+
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE SP_XACNHAN_NHAPKHO (
+  2  	 p_MaLH IN VARCHAR2,
+  3  	 p_MaSP IN VARCHAR2,
+  4  	 p_MaKho IN VARCHAR2,
+  5  	 p_TGHetHan IN DATE,
+  6  	 p_ViTri IN NVARCHAR2
+  7  ) IS
+  8  	 v_SoLuong NUMBER(10,2);
+  9  	 v_BaoQuan NVARCHAR2(100);
+ 10  	 v_LoaiKho NVARCHAR2(100);
+ 11  	 v_TonTai NUMBER;
+ 12  	 v_ChuaXepXong NUMBER;
+ 13  BEGIN
+ 14  	 SELECT CTLH.SoLuong, SP.BaoQuan
+ 15  	 INTO v_SoLuong, v_BaoQuan
+ 16  	 FROM CHITIETLOHANG CTLH JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
+ 17  	 WHERE CTLH.MaLH = p_MaLH AND CTLH.MaSP = p_MaSP;
+ 18  
+ 19  	 SELECT LoaiKho INTO v_LoaiKho FROM KHO WHERE MaKho = p_MaKho;
+ 20  	 IF v_LoaiKho != v_BaoQuan THEN
+ 21  	     RAISE_APPLICATION_ERROR(-20028, 'Bảo quản sai quy cách! Yêu cầu [' || v_BaoQuan || '] nhưng chọn kho [' || v_LoaiKho || '].');
+ 22  	 END IF;
+ 23  
+ 24  	 SELECT COUNT(*) INTO v_TonTai FROM TONKHO WHERE MaLH = p_MaLH AND MaSP = p_MaSP;
+ 25  	 IF v_TonTai > 0 THEN
+ 26  	     RAISE_APPLICATION_ERROR(-20027, 'Chi tiết lô hàng này đã được nhập kho rồi!');
+ 27  	 END IF;
+ 28  
+ 29  	 INSERT INTO TONKHO (MaKho, MaLH, MaSP, SLConLai, SLKhaDung, TGNhapKho, TGHetHan, ViTri)
+ 30  	 VALUES (p_MaKho, p_MaLH, p_MaSP, v_SoLuong, v_SoLuong, SYSDATE, p_TGHetHan, p_ViTri);
+ 31  
+ 32  	 SELECT COUNT(*) INTO v_ChuaXepXong FROM CHITIETLOHANG C
+ 33  	 WHERE C.MaLH = p_MaLH AND (C.MaLH, C.MaSP) NOT IN (SELECT MaLH, MaSP FROM TONKHO);
+ 34  
+ 35  	 IF v_ChuaXepXong = 0 THEN
+ 36  	     UPDATE LOHANG SET TrangThaiLH = N'Đã nhập kho' WHERE MaLH = p_MaLH;
+ 37  	 END IF;
+ 38  	 COMMIT;
+ 39  END;
+ 40  /
+
+Procedure created.
+
+SQL> 
+SQL> -- ------------------------------------------------------------------------------------
+SQL> -- 4. QUẢN LÝ XUẤT KHO & GIAO HÀNG
+SQL> -- ------------------------------------------------------------------------------------
+SQL> CREATE OR REPLACE PROCEDURE SP_YEUCAU_XUATKHO (p_MaDH IN VARCHAR2) IS
+  2  	 v_SoLuongCan NUMBER;
+  3  	 v_SoLuongXuat NUMBER;
+  4  	 v_TrangThaiDH NVARCHAR2(50);
+  5  BEGIN
+  6  	 SELECT TrangThaiDH INTO v_TrangThaiDH FROM DONHANG WHERE MaDH = p_MaDH;
+  7  	 IF v_TrangThaiDH IN (N'Đang giao', N'Hoàn thành', N'Đã huỷ') THEN
+  8  	     RAISE_APPLICATION_ERROR(-20023, 'Trạng thái đơn hàng không hợp lệ!');
+  9  	 END IF;
+ 10  
+ 11  	 FOR rec_CTDH IN (SELECT MaSP, SoLuong FROM CHITIETDONHANG WHERE MaDH = p_MaDH) LOOP
+ 12  	     v_SoLuongCan := rec_CTDH.SoLuong;
+ 13  	     FOR rec_TK IN (
+ 14  		 SELECT TK.MaTonKho, TK.SLKhaDung FROM TONKHO TK
+ 15  		 WHERE TK.MaSP = rec_CTDH.MaSP AND TK.SLKhaDung > 0 AND TK.TGHetHan >= TRUNC(SYSDATE)
+ 16  		 ORDER BY TK.TGHetHan ASC, TK.TGNhapKho ASC FOR UPDATE
+ 17  	     ) LOOP
+ 18  		 EXIT WHEN v_SoLuongCan = 0;
+ 19  		 IF rec_TK.SLKhaDung >= v_SoLuongCan THEN
+ 20  		     v_SoLuongXuat := v_SoLuongCan; v_SoLuongCan := 0;
+ 21  		 ELSE
+ 22  		     v_SoLuongXuat := rec_TK.SLKhaDung; v_SoLuongCan := v_SoLuongCan - rec_TK.SLKhaDung;
+ 23  		 END IF;
+ 24  		 INSERT INTO XUATKHO (MaDH, MaSP, MaTonKho, MaNV, SLXuat, TGCapNhat, TrangThaiXK)
+ 25  		 VALUES (p_MaDH, rec_CTDH.MaSP, rec_TK.MaTonKho, NULL, v_SoLuongXuat, SYSDATE, N'Tạm giữ');
+ 26  	     END LOOP;
+ 27  	     IF v_SoLuongCan > 0 THEN RAISE_APPLICATION_ERROR(-20024, 'Kho không đủ hàng cho: ' || rec_CTDH.MaSP); END IF;
+ 28  	 END LOOP;
+ 29  	 COMMIT;
+ 30  EXCEPTION
+ 31  	 WHEN OTHERS THEN ROLLBACK; RAISE;
+ 32  END;
+ 33  /
+
+Procedure created.
+
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE SP_XACNHAN_XUATKHO (p_MaDH IN VARCHAR2, p_MaNV IN VARCHAR2) IS
+  2  BEGIN
+  3  	 UPDATE XUATKHO SET TrangThaiXK = N'Đã xuất', MaNV = p_MaNV, TGCapNhat = SYSDATE
+  4  	 WHERE MaDH = p_MaDH AND TrangThaiXK = N'Tạm giữ';
+  5  	 UPDATE DONHANG SET TrangThaiDH = N'Chờ giao hàng' WHERE MaDH = p_MaDH;
+  6  	 COMMIT;
+  7  EXCEPTION
+  8  	 WHEN OTHERS THEN ROLLBACK; RAISE;
+  9  END;
+ 10  /
+
+Procedure created.
+
+SQL> 
+SQL> -- ------------------------------------------------------------------------------------
+SQL> -- 5. QUẢN LÝ THÔNG BÁO & KIỂM TRA HỆ THỐNG
+SQL> -- ------------------------------------------------------------------------------------
+SQL> 
+SQL> -- ================================= KIỂM TRA HẾT HẠN HÀNG NGÀY =================================
+SQL> -- Procedure này quét toàn bộ kho để cập nhật trạng thái Hết hạn/Sắp hết hạn
+SQL> -- và sinh thông báo nếu cần. Nên được gọi khi khởi động ứng dụng.
+SQL> -- ================================= KIỂM TRA HẾT HẠN HÀNG NGÀY =================================
+SQL> CREATE OR REPLACE PROCEDURE SP_KIEMTRA_HETHAN_THONGBAO IS
+  2  	 v_SoNgayHSD NUMBER;
+  3  	 v_MinTonKho NUMBER;
+  4  	 v_NgayHienTai DATE := TRUNC(SYSDATE);
+  5  BEGIN
+  6  	 -- 1. Lấy cấu hình
+  7  	 BEGIN SELECT GiaTri INTO v_SoNgayHSD FROM THAMSO WHERE TenTS = 'CANHBAO_HETHAN'; EXCEPTION WHEN NO_DATA_FOUND THEN v_SoNgayHSD := 7; END;
+  8  	 BEGIN SELECT GiaTri INTO v_MinTonKho FROM THAMSO WHERE TenTS = 'MIN_TONKHO'; EXCEPTION WHEN NO_DATA_FOUND THEN v_MinTonKho := 20; END;
+  9  
+ 10  	 -- 2. Cập nhật HẾT HẠN
+ 11  	 UPDATE TONKHO SET TrangThai = N'Hết hạn', SLKhaDung = 0 WHERE TGHetHan < v_NgayHienTai AND TrangThai <> N'Hết hạn';
+ 12  	 -- 3. Cập nhật SẮP HẾT HẠN
+ 13  	 UPDATE TONKHO SET TrangThai = N'Sắp hết hạn' WHERE TGHetHan >= v_NgayHienTai AND (TGHetHan - v_NgayHienTai) <= v_SoNgayHSD AND TrangThai = N'Còn hạn';
+ 14  
+ 15  	 -- 4. Thông báo Hết hạn (Lô)
+ 16  	 FOR tk IN (
+ 17  	     SELECT TK.MaTonKho, SP.TenSP, TK.TGHetHan FROM TONKHO TK JOIN SANPHAM SP ON TK.MaSP = SP.MaSP WHERE TK.TrangThai = N'Hết hạn'
+ 18  	 ) LOOP
+ 19  	     DECLARE
+ 20  		 v_Msg NVARCHAR2(500) := N'Lô ' || tk.MaTonKho || N' của SP ' || tk.TenSP || N' đã HẾT HẠN vào ngày ' || TO_CHAR(tk.TGHetHan, 'DD/MM/YYYY');
+ 21  		 v_Count NUMBER;
+ 22  	     BEGIN
+ 23  		 SELECT COUNT(*) INTO v_Count FROM THONGBAO WHERE NoiDung = v_Msg;
+ 24  		 IF v_Count = 0 THEN INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan) VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Hết hạn', v_Msg, 0, SYSDATE, N'Nhân viên kho/thu mua'); END IF;
+ 25  	     END;
+ 26  	 END LOOP;
+ 27  
+ 28  	 -- 5. Thông báo Sắp hết hạn (Lô)
+ 29  	 FOR tk IN (
+ 30  	     SELECT TK.MaTonKho, SP.TenSP, TK.TGHetHan FROM TONKHO TK JOIN SANPHAM SP ON TK.MaSP = SP.MaSP WHERE TK.TrangThai = N'Sắp hết hạn'
+ 31  	 ) LOOP
+ 32  	     DECLARE
+ 33  		 v_Msg NVARCHAR2(500) := N'Lô ' || tk.MaTonKho || N' của SP ' || tk.TenSP || N' sẽ hết hạn vào ' || TO_CHAR(tk.TGHetHan, 'DD/MM/YYYY');
+ 34  		 v_Count NUMBER;
+ 35  	     BEGIN
+ 36  		 SELECT COUNT(*) INTO v_Count FROM THONGBAO WHERE NoiDung = v_Msg;
+ 37  		 IF v_Count = 0 THEN INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan) VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), N'Sắp hết hạn', v_Msg, 0, SYSDATE, N'Nhân viên kho/thu mua'); END IF;
+ 38  	     END;
+ 39  	 END LOOP;
+ 40  
+ 41  	 -- 6. TÍNH TỔNG TỒN KHO CHO MỖI SẢN PHẨM
+ 42  	 -- (Đã xóa bỏ logic ép hàng hết hạn về 0. Giờ hệ thống tính tổng theo số lượng vật lý thực tế)
+ 43  	 FOR rec IN (
+ 44  	     SELECT SP.MaSP, SP.TenSP,
+ 45  		    NVL(SUM(TK.SLConLai), 0) AS TongTon
+ 46  	     FROM SANPHAM SP
+ 47  	     LEFT JOIN TONKHO TK ON SP.MaSP = TK.MaSP
+ 48  	     GROUP BY SP.MaSP, SP.TenSP
+ 49  	 ) LOOP
+ 50  	     DECLARE
+ 51  		 v_Msg NVARCHAR2(500);
+ 52  		 v_Type NVARCHAR2(50);
+ 53  		 v_Count NUMBER;
+ 54  	     BEGIN
+ 55  		 IF rec.TongTon <= 0 THEN
+ 56  		     v_Type := N'Hết hàng';
+ 57  		     v_Msg := N'CẢNH BÁO: Sản phẩm [' || rec.TenSP || N'] đã HẾT HÀNG hoàn toàn. Yêu cầu nhập hàng mới ngay!';
+ 58  		 ELSIF rec.TongTon < v_MinTonKho THEN
+ 59  		     v_Type := N'Sắp hết hàng';
+ 60  		     v_Msg := N'Thông báo: Sản phẩm [' || rec.TenSP || N'] sắp hết hàng. Hiện chỉ còn ' || rec.TongTon || N' đơn vị. Yêu cầu nhập thêm hàng!';
+ 61  		 ELSE
+ 62  		     CONTINUE;
+ 63  		 END IF;
+ 64  
+ 65  		 -- Logic chống trùng lặp theo ngày
+ 66  		 SELECT COUNT(*) INTO v_Count
+ 67  		 FROM THONGBAO
+ 68  		 WHERE LoaiTB = v_Type
+ 69  		   AND NoiDung LIKE N'%[' || rec.TenSP || N']%'
+ 70  		   AND TRUNC(TGTao) = TRUNC(SYSDATE);
+ 71  
+ 72  		 IF v_Count = 0 THEN
+ 73  		     INSERT INTO THONGBAO (MaTB, LoaiTB, NoiDung, TrangThaiTB, TGTao, NguoiNhan)
+ 74  		     VALUES ('TB' || LPAD(SEQ_THONGBAO.NEXTVAL, 8, '0'), v_Type, v_Msg, 0, SYSDATE, N'Nhân viên kho/thu mua');
+ 75  		 END IF;
+ 76  	     END;
+ 77  	 END LOOP;
+ 78  
+ 79  	 COMMIT;
+ 80  END;
+ 81  /
+
+Procedure created.
+
+SQL> 
+SQL> -- ================================= Bảng KHACHHANG =================================
+SQL> CREATE OR REPLACE PROCEDURE SP_THEM_KH (
+  2  	 p_Username IN NVARCHAR2,
+  3  	 p_TenKH IN NVARCHAR2,
+  4  	 p_LoaiKH IN NVARCHAR2
+  5  ) IS
+  6  BEGIN
+  7  	 INSERT INTO KHACHHANG (Username, TenKH, LoaiKH)
+  8  	 VALUES (p_Username, p_TenKH, p_LoaiKH);
+  9  END;
+ 10  /
+
+Procedure created.
+
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE SP_CAPNHAT_KH (
+  2  	 p_MaKH IN VARCHAR2,
+  3  	 p_TenKH IN NVARCHAR2,
+  4  	 p_LoaiKH IN NVARCHAR2
+  5  ) IS
+  6  BEGIN
+  7  	 UPDATE KHACHHANG
+  8  	 SET TenKH = NVL(p_TenKH, TenKH),
+  9  	     LoaiKH = NVL(p_LoaiKH, LoaiKH)
+ 10  	 WHERE MaKH = p_MaKH;
+ 11  END;
+ 12  /
+
+Procedure created.
+
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE SP_THEM_NV (
+  2  	 p_Username IN NVARCHAR2,
+  3  	 p_TenNV IN NVARCHAR2,
+  4  	 p_ChucVu IN NVARCHAR2,
+  5  	 p_Luong IN NUMBER
+  6  ) IS
+  7  BEGIN
+  8  	 INSERT INTO NHANVIEN (Username, TenNV, ChucVu, Luong)
+  9  	 VALUES (p_Username, p_TenNV, p_ChucVu, p_Luong);
+ 10  END;
+ 11  /
+
+Procedure created.
+
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE SP_CAPNHAT_NV (
+  2  	 p_MaNV IN VARCHAR2,
+  3  	 p_TenNV IN NVARCHAR2,
+  4  	 p_ChucVu IN NVARCHAR2,
+  5  	 p_Luong IN NUMBER
+  6  ) IS
+  7  BEGIN
+  8  	 UPDATE NHANVIEN
+  9  	 SET TenNV = NVL(p_TenNV, TenNV),
+ 10  	     ChucVu = NVL(p_ChucVu, ChucVu),
+ 11  	     Luong = NVL(p_Luong, Luong)
+ 12  	 WHERE MaNV = p_MaNV;
+ 13  END;
+ 14  /
+
+Procedure created.
+
+SQL> -- ================================= Bảng TAIKHOAN =================================
+SQL> CREATE OR REPLACE PROCEDURE SP_THEM_TAIKHOAN (
+  2  	 p_Username IN NVARCHAR2,
+  3  	 p_Password IN VARCHAR2,
+  4  	 p_LoaiTK IN NUMBER,
+  5  	 p_DiaChi IN NVARCHAR2,
+  6  	 p_SDT IN VARCHAR2,
+  7  	 p_Email IN NVARCHAR2
+  8  ) IS
+  9  BEGIN
+ 10  	 -- Mặc định TrangThaiTK = 1 (Đang hoạt động)
+ 11  	 INSERT INTO TAIKHOAN (Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email)
+ 12  	 VALUES (p_Username, p_Password, p_LoaiTK, 1, p_DiaChi, p_SDT, p_Email);
+ 13  END;
+ 14  /
+
+Procedure created.
+
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE SP_CAPNHAT_TAIKHOAN (
+  2  	 p_Username IN NVARCHAR2,
+  3  	 p_DiaChi IN NVARCHAR2,
+  4  	 p_SDT IN VARCHAR2,
+  5  	 p_Email IN NVARCHAR2
+  6  ) IS
+  7  BEGIN
+  8  	 UPDATE TAIKHOAN
+  9  	 SET DiaChi = NVL(p_DiaChi, DiaChi),
+ 10  	     SDT = NVL(p_SDT, SDT),
+ 11  	     Email = NVL(p_Email, Email)
+ 12  	 WHERE Username = p_Username;
+ 13  END;
+ 14  /
+
+Procedure created.
+
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE SP_DANGKY_TAIKHOAN (
+  2  	 p_Username IN NVARCHAR2,
+  3  	 p_Password IN VARCHAR2,
+  4  	 p_LoaiTK IN NUMBER,	   -- 0: Quản lý, 1: Nhân viên, 2: Khách hàng
+  5  	 p_Ten IN NVARCHAR2,
+  6  	 p_DiaChi IN NVARCHAR2,
+  7  	 p_SDT IN VARCHAR2,
+  8  	 p_Email IN NVARCHAR2,
+  9  	 p_LoaiKHHoacChucVu IN NVARCHAR2, -- Nhận LoaiKH (Thường/VIP) hoặc ChucVu (Quản lý/NV kho...)
+ 10  	 p_Luong IN NUMBER	   -- Chỉ dùng cho nhân viên, KH truyền NULL
+ 11  )
+ 12  IS
+ 13  BEGIN
+ 14  	 -- 1. Gọi SP tạo tài khoản
+ 15  	 SP_THEM_TAIKHOAN(p_Username, p_Password, p_LoaiTK, p_DiaChi, p_SDT, p_Email);
+ 16  
+ 17  	 -- 2. Phân nhánh thêm thông tin chi tiết
+ 18  	 IF p_LoaiTK = 2 THEN
+ 19  	     -- Nếu là Khách hàng (Mặc định loại KH = 'Thường')
+ 20  	     SP_THEM_KH(p_Username, p_Ten, NVL(p_LoaiKHHoacChucVu, 'Thường'));
+ 21  	 ELSIF p_LoaiTK IN (0, 1) THEN
+ 22  	     -- Nếu là Quản lý hoặc Nhân viên
+ 23  	     SP_THEM_NV(p_Username, p_Ten, p_LoaiKHHoacChucVu, NVL(p_Luong, 0));
+ 24  	 END IF;
+ 25  
+ 26  	 COMMIT;
+ 27  EXCEPTION
+ 28  	 WHEN OTHERS THEN
+ 29  	     ROLLBACK;
+ 30  	     RAISE_APPLICATION_ERROR(-20040, 'Lỗi hệ thống khi đăng ký tài khoản: ' || SQLERRM);
+ 31  END;
+ 32  /
+
+Procedure created.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> -- Đổi mật khẩu
+SQL> CREATE OR REPLACE PROCEDURE SP_DOI_PASSWORD (
+  2  	 p_Username IN NVARCHAR2,
+  3  	 p_NewPassword IN VARCHAR2
+  4  ) IS
+  5  BEGIN
+  6  	 UPDATE TAIKHOAN SET Password = p_NewPassword WHERE Username = p_Username;
+  7  	 COMMIT;
+  8  END;
+  9  /
+
+Procedure created.
+
+SQL> 
+SQL> -- Khoá tài khoản
+SQL> CREATE OR REPLACE PROCEDURE SP_KHOA_TAIKHOAN (p_Username IN NVARCHAR2) IS
+  2  BEGIN
+  3  	 UPDATE TAIKHOAN SET TrangThaiTK = 0 WHERE Username = p_Username;
+  4  	 COMMIT;
+  5  END;
+  6  /
+
+Procedure created.
+
+SQL> 
+SQL> -- ================================= Giỏ hàng =================================
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE PROC_CLEANUP_GIOHANG IS
+  2  BEGIN
+  3  	 DELETE FROM GIOHANG
+  4  	 WHERE (SYSTIMESTAMP - TGCapNhat) > INTERVAL '12' HOUR;
+  5  
+  6  	 COMMIT;
+  7  EXCEPTION
+  8  	 WHEN OTHERS THEN
+  9  	     ROLLBACK;
+ 10  	     DBMS_OUTPUT.PUT_LINE('Lỗi PROC_CLEANUP_GIOHANG: ' || SQLERRM);
+ 11  END PROC_CLEANUP_GIOHANG;
+ 12  /
+
+Procedure created.
+
+SQL> 
+SQL> 
+SQL> BEGIN
+  2  	 BEGIN
+  3  	     DBMS_SCHEDULER.DROP_JOB(job_name => 'JOB_CLEANUP_GIOHANG', force => TRUE);
+  4  	 EXCEPTION
+  5  	     WHEN OTHERS THEN NULL;
+  6  	 END;
+  7  
+  8  	 DBMS_SCHEDULER.CREATE_JOB(
+  9  	     job_name	     => 'JOB_CLEANUP_GIOHANG',
+ 10  	     job_type	     => 'STORED_PROCEDURE',
+ 11  	     job_action      => 'PROC_CLEANUP_GIOHANG',
+ 12  	     start_date      => SYSTIMESTAMP,
+ 13  	     repeat_interval => 'FREQ=MINUTELY; INTERVAL=30',
+ 14  	     enabled	     => TRUE,
+ 15  	     auto_drop	     => FALSE,
+ 16  	     comments	     => 'Dọn sạch giỏ hàng bỏ quên quá 12 giờ'
+ 17  	 );
+ 18  END;
+ 19  /
+BEGIN
+*
+ERROR at line 1:
+ORA-27486: insufficient privileges 
+ORA-06512: at "SYS.DBMS_ISCHED", line 174 
+ORA-06512: at "SYS.DBMS_SCHEDULER", line 286 
+ORA-06512: at line 8 
+
+
+SQL> 
+SQL> -- Procedure Nhận đơn giao
+SQL> CREATE OR REPLACE PROCEDURE SP_XACNHAN_GIAOHANG (
+  2  	 p_MaDH IN VARCHAR2,
+  3  	 p_MaNV IN VARCHAR2
+  4  ) IS
+  5  BEGIN
+  6  	 UPDATE DONHANG
+  7  	 SET TrangThaiDH = N'Đang giao', MaNV = p_MaNV
+  8  	 WHERE MaDH = p_MaDH AND TrangThaiDH = N'Chờ giao hàng';
+  9  	 COMMIT;
+ 10  END;
+ 11  /
+
+Procedure created.
+
+SQL> 
+SQL> -- 2. Procedure Giao hàng thành công (Cập nhật Hoàn thành/Chờ thanh toán và thêm SYSDATE vào TGGIAOTT)
+SQL> CREATE OR REPLACE PROCEDURE SP_GIAOHANG_THANHCONG (
+  2  	 p_MaDH IN VARCHAR2,
+  3  	 p_MaNV IN VARCHAR2
+  4  ) IS
+  5  	 v_PhuongThucTT NVARCHAR2(50);
+  6  BEGIN
+  7  	 -- Lấy phương thức thanh toán của đơn hàng
+  8  	 SELECT PhuongThucTT INTO v_PhuongThucTT
+  9  	 FROM DONHANG
+ 10  	 WHERE MaDH = p_MaDH;
+ 11  
+ 12  	 IF v_PhuongThucTT = N'Ghi nợ' THEN
+ 13  	     -- Đơn hàng ghi nợ thì chuyển TrangThaiDH thành "Chờ thanh toán" (TrangThaiTT giữ nguyên là 0)
+ 14  	     UPDATE DONHANG
+ 15  	     SET TrangThaiDH = N'Chờ thanh toán',
+ 16  		 TGGiaoTT = SYSDATE
+ 17  	     WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = N'Đang giao';
+ 18  	 ELSE
+ 19  	     -- Các đơn hàng khác (COD, Chuyển khoản, Ví điện tử) thì chuyển TrangThaiDH thành "Hoàn thành"
+ 20  	     -- Với COD thì chuyển TrangThaiTT thành 1 (Chuyển khoản, Ví điện tử đã là 1 từ trước)
+ 21  	     UPDATE DONHANG
+ 22  	     SET TrangThaiDH = N'Hoàn thành',
+ 23  		 TGGiaoTT = SYSDATE,
+ 24  		 TrangThaiTT = 1
+ 25  	     WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = N'Đang giao';
+ 26  	 END IF;
+ 27  
+ 28  	 COMMIT;
+ 29  END;
+ 30  /
+
+Procedure created.
+
+SQL> 
+SQL> -- 3. Procedure Giao hàng thất bại (Cập nhật Đã huỷ và ghi nhận lý do huỷ)
+SQL> CREATE OR REPLACE PROCEDURE SP_GIAOHANG_THATBAI (
+  2  	 p_MaDH IN VARCHAR2,
+  3  	 p_MaNV IN VARCHAR2,
+  4  	 p_LyDo IN NVARCHAR2
+  5  ) IS
+  6  BEGIN
+  7  	 UPDATE DONHANG
+  8  	 SET TrangThaiDH = N'Đã huỷ',
+  9  	     TGGiaoTT = SYSDATE,
+ 10  	     LyDoHuy = p_LyDo
+ 11  	 WHERE MaDH = p_MaDH AND MaNV = p_MaNV AND TrangThaiDH = N'Đang giao';
+ 12  	 COMMIT;
+ 13  END;
+ 14  /
+
+Procedure created.
+
+SQL> 
+SQL> PROMPT --- DANG CHAY FILE 8: TAO VIEWS ---
+> @@08_Views.sql;
+> -- Lịch sử giá sản phẩm theo thời gian
+--- DANG CHAY FILE 8: TAO VIEWS -- -- Lịch sử giá sản phẩm theo thời gian
+SQL> CREATE OR REPLACE VIEW V_LICHSU_GIA_SANPHAM AS
+  2  SELECT
+  3  	 L.MaGia,
+  4  	 L.MaSP,
+  5  	 SP.TenSP,
+  6  	 TRUNC(L.TGApDung) AS TGApDung,
+  7  	 L.GiaMua,
+  8  	 L.GiaBan,
+  9  	 CASE WHEN L.GiaMua <> 0 THEN ROUND((L.GiaBan - L.GiaMua) / L.GiaMua * 100, 2) ELSE 0 END AS LoiNhuan
+ 10  FROM LICHSUGIA L
+ 11  JOIN SANPHAM SP ON L.MaSP = SP.MaSP;
+
+View created.
+
+SQL> 
+SQL> -- Chạy đoạn script này trong Oracle Database của bạn
+SQL> CREATE OR REPLACE VIEW V_THONGKE_NHANVIEN_CHITIET AS
+  2  -- 1. Thu mua (Lô hàng)
+  3  SELECT MaNV, TRUNC(TGNhap, 'MM') AS ThangThongKe, COUNT(MaLH) AS SoLuong, SUM(TongTien) AS TongGiaTri
+  4  FROM LOHANG
+  5  GROUP BY MaNV, TRUNC(TGNhap, 'MM')
+  6  UNION ALL
+  7  -- 2. Giao hàng (Đơn hàng) - Chỉ tính đơn hàng đã giao thành công (Hoàn thành)
+  8  SELECT MaNV, TRUNC(TGDat, 'MM') AS ThangThongKe, COUNT(MaDH) AS SoLuong, SUM(TongTien) AS TongGiaTri
+  9  FROM DONHANG
+ 10  WHERE TrangThaiDH = 'Hoàn thành'
+ 11  GROUP BY MaNV, TRUNC(TGDat, 'MM')
+ 12  UNION ALL
+ 13  -- 3. Kho (Xuất kho) - Chỉ tính số lần xuất kho thành công, tổng tiền = 0
+ 14  SELECT MaNV, TRUNC(TGCapNhat, 'MM') AS ThangThongKe, COUNT(MaXK) AS SoLuong, 0 AS TongGiaTri
+ 15  FROM XUATKHO
+ 16  WHERE TrangThaiXK = 'Đã xuất'
+ 17  GROUP BY MaNV, TRUNC(TGCapNhat, 'MM');
+
+View created.
+
+SQL> 
+SQL> CREATE OR REPLACE VIEW V_THONGKE_SP AS
+  2  SELECT
+  3  	 ct.MaSP,
+  4  	 sp.TenSP,
+  5  	 dh.TGDat AS NgayGD,
+  6  	 ct.SoLuong AS SoLuongBan,
+  7  	 (ct.SoLuong * ct.GiaBan) AS DoanhThu,
+  8  	 (ct.SoLuong * NVL(
+  9  	     (SELECT GiaMua FROM (
+ 10  		 SELECT GiaMua, MaSP, TGApDung FROM LICHSUGIA ORDER BY TGApDung DESC
+ 11  	     ) lg WHERE lg.MaSP = sp.MaSP AND ROWNUM = 1),
+ 12  	 ct.GiaBan * 0.7)) AS ChiPhi
+ 13  FROM CHITIETDONHANG ct
+ 14  JOIN DONHANG dh ON ct.MaDH = dh.MaDH
+ 15  JOIN SANPHAM sp ON ct.MaSP = sp.MaSP
+ 16  WHERE dh.TrangThaiDH NOT IN ('Đã hủy');
+
+View created.
+
+SQL> 
+SQL> CREATE OR REPLACE VIEW V_THONGKE_CONGNO AS
+  2  SELECT
+  3  	 kh.MaKH,
+  4  	 kh.TenKH,
+  5  	 COUNT(dh.MaDH) AS SoDonGhiNo,
+  6  	 SUM(dh.TongTien) AS TongTien,
+  7  	 SUM(CASE WHEN dh.TrangThaiTT = 1 THEN dh.TongTien ELSE 0 END) AS DaThanhToan,
+  8  	 SUM(CASE WHEN dh.TrangThaiTT = 0 AND dh.TrangThaiDH <> N'Đã huỷ' THEN dh.TongTien ELSE 0 END) AS ConNo
+  9  FROM KHACHHANG kh
+ 10  JOIN DONHANG dh ON kh.MaKH = dh.MaKH
+ 11  WHERE dh.PhuongThucTT = N'Ghi nợ'
+ 12  GROUP BY kh.MaKH, kh.TenKH;
+
+View created.
+
 SQL> 
 SQL> PROMPT --- DANG CHAY FILE 6: THEM DU LIEU CAN THIET ---
 > @@06_InsertData.sql;
---- DANG CHAY FILE 6: THEM DU LIEU CAN THIET -- @@06_InsertData.sql
+> -- ====================================================================================
+--- DANG CHAY FILE 6: THEM DU LIEU CAN THIET -- -- ====================================================================================
+SQL> -- 			     PHẦN 6: Thêm dữ liệu cần thiết
+SQL> -- ====================================================================================
+SQL> 
+SQL> -- Vô hiệu hoá khoá ngoại -> Xoá dữ liệu cũ -> Kích hoạt lại khoá ngoại -> Thêm dữ liệu mới
+SQL> BEGIN
+  2  	 -- Disable tất cả FK
+  3  	 FOR c IN (
+  4  	     SELECT table_name, constraint_name
+  5  	     FROM user_constraints
+  6  	     WHERE constraint_type = 'R'
+  7  	 ) LOOP
+  8  	     EXECUTE IMMEDIATE 'ALTER TABLE ' || c.table_name ||
+  9  			       ' DISABLE CONSTRAINT ' || c.constraint_name;
+ 10  	 END LOOP;
+ 11  
+ 12  	 -- Xoá dữ liệu tất cả bảng
+ 13  	 FOR t IN (
+ 14  	     SELECT table_name FROM user_tables
+ 15  	 ) LOOP
+ 16  	     EXECUTE IMMEDIATE 'DELETE FROM ' || t.table_name;
+ 17  	 END LOOP;
+ 18  
+ 19  	 -- Enable lại FK
+ 20  	 FOR c IN (
+ 21  	     SELECT table_name, constraint_name
+ 22  	     FROM user_constraints
+ 23  	     WHERE constraint_type = 'R'
+ 24  	 ) LOOP
+ 25  	     EXECUTE IMMEDIATE 'ALTER TABLE ' || c.table_name ||
+ 26  			       ' ENABLE CONSTRAINT ' || c.constraint_name;
+ 27  	 END LOOP;
+ 28  END;
+ 29  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- 1. THAMSO
+SQL> INSERT ALL
+  2  	 INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000001', 'MIN_TONKHO', 10, 'Số lượng tồn kho tối thiểu')
+  3  	 INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000002', 'CANHBAO_HETHAN', 7, 'Số ngày trước khi hết hạn sẽ hiện cảnh báo')
+  4  	 INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000003', 'MAX_TG_THANHTOAN', 24, 'Thời gian tối đa cho phép chờ thanh toán, nếu không sẽ huỷ đơn hàng')
+  5  	 INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000004', 'SHIP_THUONG', 500000, 'Phí vận chuyển cho khách hàng loại thường')
+  6  	 INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000008', 'SHIP_THANTHIET', 300000, 'Phí vận chuyển cho khách hàng loại thân thiết')
+  7  	 INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000009', 'SHIP_VIP', 100000, 'Phí vận chuyển cho khách hàng loại VIP')
+  8  	 INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000005', 'GG_THUONG', 0.00, 'Giảm giá cho khách hàng loại thường')
+  9  	 INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000006', 'GG_THANTHIET', 0.02, 'Giảm giá cho khách hàng loại thường')
+ 10  	 INTO THAMSO(MaTS, TenTS, GiaTri, MoTa) VALUES ('TS000007', 'GG_VIP', 0.05, 'Giảm giá cho khách hàng loại thường')
+ 11  SELECT * FROM dual;
+
+9 rows created.
+
+SQL> 
+SQL> -- 3. TAIKHOAN
+SQL> INSERT ALL
+  2  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('quanly01', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 0, 1, NULL, '0901234567', NULL)
+  3  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('quanly02', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 0, 1, NULL, '0901234568', NULL)
+  4  SELECT * FROM dual;
+
+2 rows created.
+
+SQL> 
+SQL> -- 5. NHANVIEN
+SQL> INSERT ALL
+  2  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000001', 'quanly01', N'Nguyễn ABC', N'Quản lý', 25000000)
+  3  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000002', 'quanly02', N'Nguyễn DEF', N'Quản lý', 25000000)
+  4  SELECT * FROM dual;
+
+2 rows created.
+
+SQL> 
+SQL> COMMIT;
+
+Commit complete.
+
 SQL> 
 SQL> PROMPT --- DANG CHAY FILE 7: THEM DU LIEU MAU ---
 > @@07_InsertDemoData.sql;
---- DANG CHAY FILE 7: THEM DU LIEU MAU -- @@07_InsertDemoData.sql
+> -- ====================================================================================
+--- DANG CHAY FILE 7: THEM DU LIEU MAU -- -- ====================================================================================
+SQL> -- 			  PHẦN 7: Thêm dữ liệu cho demo
+SQL> -- ====================================================================================
+SQL> 
+SQL> -- -------------------------------------------------------------------------
+SQL> -- 1. KHO (3 Kho theo đúng 3 loại quy định)
+SQL> -- -------------------------------------------------------------------------
+SQL> INSERT ALL
+  2  	 INTO KHO(MaKho, TenKho, LoaiKho, DiaChi, MoTa) VALUES ('KHO00001', N'Kho Mát Bình Dương', N'Mát', N'Dĩ An, Bình Dương', N'Kho nhiệt độ 15-20 độ C')
+  3  	 INTO KHO(MaKho, TenKho, LoaiKho, DiaChi, MoTa) VALUES ('KHO00002', N'Kho Lạnh Thủ Đức', N'Lạnh', N'Thủ Đức, TP.HCM', N'Kho nhiệt độ 0-5 độ C')
+  4  	 INTO KHO(MaKho, TenKho, LoaiKho, DiaChi, MoTa) VALUES ('KHO00003', N'Kho Đông Quận 7', N'Đông', N'Quận 7, TP.HCM', N'Kho nhiệt độ âm 18 độ C')
+  5  SELECT * FROM dual;
+
+3 rows created.
+
+SQL> 
+SQL> -- -------------------------------------------------------------------------
+SQL> -- 2. LOAISANPHAM (5 Loại nông/thủy sản)
+SQL> -- -------------------------------------------------------------------------
+SQL> INSERT ALL
+  2  	 INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00001', N'Thịt các loại', N'Thịt gia súc, gia cầm cần bảo quản đông')
+  3  	 INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00002', N'Thủy hải sản', N'Hải sản tươi sống và sơ chế bảo quản lạnh/đông')
+  4  	 INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00003', N'Rau củ quả', N'Rau củ tươi thu hoạch trong ngày')
+  5  	 INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00004', N'Trái cây', N'Trái cây nội địa và nhập khẩu')
+  6  	 INTO LOAISANPHAM(MaLSP, TenLSP, MoTa) VALUES ('LSP00005', N'Ngũ cốc và hạt', N'Các loại hạt sấy khô và ngũ cốc')
+  7  SELECT * FROM dual;
+
+5 rows created.
+
+SQL> 
+SQL> -- -------------------------------------------------------------------------
+SQL> -- 3. SANPHAM (Mỗi loại 5 sản phẩm -> 25 SP)
+SQL> -- -------------------------------------------------------------------------
+SQL> INSERT ALL
+  2  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000001', N'Thịt heo Iberico', 'LSP00001', N'Loại 1', 150000, 200000, 'Kg', N'Đông', 'SP000001.jpg')
+  3  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000002', N'Thịt bò Kobe', 'LSP00001', N'Loại 1', 1500000, 2200000, 'Kg', N'Đông', 'SP000001.jpg')
+  4  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000003', N'Thịt gà ta thả vườn', 'LSP00001', N'Loại 2', 90000, 130000, 'Kg', N'Lạnh', 'SP000001.jpg')
+  5  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000004', N'Đùi cừu Úc', 'LSP00001', N'Loại 1', 300000, 420000, 'Kg', N'Đông', 'SP000001.jpg')
+  6  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000005', N'Thịt vịt xiêm', 'LSP00001', N'Loại 2', 80000, 110000, 'Kg', N'Lạnh', 'SP000001.jpg')
+  7  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000006', N'Cá hồi NaUy nguyên con', 'LSP00002', N'Loại 1', 350000, 500000, 'Kg', N'Lạnh', 'SP000001.jpg')
+  8  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000007', N'Mực ống Trường Sa', 'LSP00002', N'Loại 1', 250000, 320000, 'Kg', N'Đông', 'SP000001.jpg')
+  9  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000008', N'Tôm sú Cà Mau', 'LSP00002', N'Loại 2', 200000, 280000, 'Kg', N'Đông', 'SP000001.jpg')
+ 10  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000009', N'Cua thịt Năm Căn', 'LSP00002', N'Loại 1', 400000, 550000, 'Kg', N'Mát', 'SP000001.jpg')
+ 11  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000010', N'Bạch tuộc sữa', 'LSP00002', N'Loại 3', 120000, 160000, 'Kg', N'Đông', 'SP000001.jpg')
+ 12  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000011', N'Cải bắp Đà Lạt', 'LSP00003', N'Loại 1', 15000, 25000, 'Kg', N'Mát', 'SP000001.jpg')
+ 13  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000012', N'Cà chua Cherry', 'LSP00003', N'Loại 1', 40000, 60000, 'Kg', N'Mát', 'SP000001.jpg')
+ 14  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000013', N'Súp lơ xanh', 'LSP00003', N'Loại 2', 20000, 35000, 'Kg', N'Mát', 'SP000001.jpg')
+ 15  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000014', N'Cà rốt Baby', 'LSP00003', N'Loại 1', 30000, 50000, 'Kg', N'Mát', 'SP000001.jpg')
+ 16  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000015', N'Khoai tây mầm', 'LSP00003', N'Loại 3', 10000, 18000, 'Kg', N'Mát', 'SP000001.jpg')
+ 17  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000016', N'Táo Envy Mỹ', 'LSP00004', N'Loại 1', 180000, 250000, 'Kg', N'Mát', 'SP000001.jpg')
+ 18  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000017', N'Nho mẫu đơn Hàn Quốc', 'LSP00004', N'Loại 1', 500000, 750000, 'Chùm', N'Mát', 'SP000001.jpg')
+ 19  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000018', N'Dâu tây Mộc Châu', 'LSP00004', N'Loại 2', 120000, 180000, 'Hộp', N'Mát', 'SP000001.jpg')
+ 20  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000019', N'Dưa lưới Taki', 'LSP00004', N'Loại 1', 60000, 95000, 'Kg', N'Mát', 'SP000001.jpg')
+ 21  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000020', N'Bơ sáp Đắk Lắk', 'LSP00004', N'Loại 2', 35000, 55000, 'Kg', N'Mát', 'SP000001.jpg')
+ 22  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000021', N'Hạt điều rang củi', 'LSP00005', N'Loại 1', 250000, 350000, 'Kg', N'Mát', 'SP000001.jpg')
+ 23  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000022', N'Hạt macca Úc', 'LSP00005', N'Loại 1', 300000, 420000, 'Kg', N'Mát', 'SP000001.jpg')
+ 24  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000023', N'Đậu phộng sấy', 'LSP00005', N'Loại 3', 50000, 80000, 'Kg', N'Mát', 'SP000001.jpg')
+ 25  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000024', N'Hạt dẻ cười Mỹ', 'LSP00005', N'Loại 1', 280000, 400000, 'Kg', N'Mát', 'SP000001.jpg')
+ 26  	 INTO SANPHAM(MaSP, TenSP, MaLSP, ChatLuong, GiaMua, GiaBan, DonViTinh, BaoQuan, HinhAnh) VALUES ('SP000025', N'Gạo ST25', 'LSP00005', N'Loại 1', 30000, 45000, 'Kg', N'Mát', 'SP000001.jpg')
+ 27  SELECT * FROM dual;
+
+25 rows created.
+
+SQL> 
+SQL> -- -------------------------------------------------------------------------
+SQL> -- 4. NHACUNGCAP (20 NCC)
+SQL> -- -------------------------------------------------------------------------
+SQL> INSERT ALL
+  2  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00001', N'HTX Rau sạch Đà Lạt', N'Phường 8, Đà Lạt, Lâm Đồng', '0901000001', 'dalat@rau.vn', 'VietGAP', 1)
+  3  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00002', N'Vựa hải sản Vân Đồn', N'Vân Đồn, Quảng Ninh', '0901000002', 'vandon@seafood.vn', 'ISO 9001', 1)
+  4  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00003', N'Công ty CP Chăn nuôi C.P', N'Biên Hòa, Đồng Nai', '0901000003', 'contact@cp.vn', 'GlobalGAP', 1)
+  5  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00004', N'Trang trại bò Úc MeatDeli', N'Củ Chi, TP.HCM', '0901000004', 'info@meatdeli.vn', 'HACCP', 1)
+  6  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00005', N'Vườn cây ăn trái Tiền Giang', N'Cái Bè, Tiền Giang', '0901000005', 'fruit@tiengiang.vn', 'VietGAP', 1)
+  7  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00006', N'Công ty TNHH Macca Đắk Nông', N'Gia Nghĩa, Đắk Nông', '0901000006', 'macca@daknong.vn', 'Organic', 1)
+  8  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00007', N'HTX Gạo Ông Cua', N'Trần Đề, Sóc Trăng', '0901000007', 'st25@ongcua.vn', 'VietGAP', 1)
+  9  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00008', N'Tập đoàn Vissan', N'Bình Thạnh, TP.HCM', '0901000008', 'sales@vissan.vn', 'ISO 22000', 1)
+ 10  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00009', N'Hải sản sạch Nha Trang', N'Nha Trang, Khánh Hòa', '0901000009', 'nhatrang@seafood.vn', 'HACCP', 1)
+ 11  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00010', N'Nhập khẩu trái cây Klever Fruit', N'Đống Đa, Hà Nội', '0901000010', 'import@klever.vn', 'GlobalGAP', 1)
+ 12  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00011', N'Trang trại heo sạch BaF', N'Bến Cát, Bình Dương', '0901000011', 'sale@baf.vn', 'VietGAP', 1)
+ 13  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00012', N'Nông sản sấy Vinamit', N'Bến Cát, Bình Dương', '0901000012', 'contact@vinamit.vn', 'ISO 9001', 1)
+ 14  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00013', N'HTX Nông nghiệp Cần Thơ', N'Ninh Kiều, Cần Thơ', '0901000013', 'agri@cantho.vn', 'VietGAP', 1)
+ 15  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00014', N'Vựa tôm Cà Mau Minh Phú', N'Cà Mau', '0901000014', 'shrimp@minhphu.vn', 'BAP', 1)
+ 16  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00015', N'Nông trại Mộc Châu', N'Mộc Châu, Sơn La', '0901000015', 'farm@mocchau.vn', 'GlobalGAP', 1)
+ 17  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00016', N'Hạt điều Bình Phước', N'Đồng Xoài, Bình Phước', '0901000016', 'cashew@binhphuoc.vn', 'ISO 22000', 1)
+ 18  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00017', N'Công ty rau quả xuất khẩu', N'Hải Phòng', '0901000017', 'export@veg.vn', 'HACCP', 0) -- NCC đang ngừng hợp tác
+ 19  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00018', N'Hải sản nhập khẩu Đại Dương', N'Quận 1, TP.HCM', '0901000018', 'ocean@import.vn', 'ISO 9001', 1)
+ 20  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00019', N'Trại nấm bào ngư Xanh', N'Hóc Môn, TP.HCM', '0901000019', 'mushroom@xanh.vn', 'VietGAP', 1)
+ 21  	 INTO NHACUNGCAP(MaNCC, TenNCC, DiaChi, SDT, Email, ChungNhanCL, TrangThaiHopTac) VALUES ('NCC00020', N'Nhà vườn sầu riêng Dona', N'Long Khánh, Đồng Nai', '0901000020', 'dona@fruit.vn', 'GlobalGAP', 1)
+ 22  SELECT * FROM dual;
+
+20 rows created.
+
+SQL> 
+SQL> -- -------------------------------------------------------------------------
+SQL> -- 5. TAIKHOAN (Tạo 13 TK Nhân viên và 20 TK Khách hàng)
+SQL> -- Ghi chú: LoaiTK (1: Nhân viên, 2: Khách hàng)
+SQL> -- -------------------------------------------------------------------------
+SQL> INSERT ALL
+  2  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvtm01', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0981112221', NULL)
+  3  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvtm02', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0981112222', NULL)
+  4  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvtm03', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0981112223', NULL)
+  5  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvtm04', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0981112224', NULL)
+  6  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvkho01', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0982223331', NULL)
+  7  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvkho02', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0982223332', NULL)
+  8  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvkho03', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0982223333', NULL)
+  9  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvkho04', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0982223334', NULL)
+ 10  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvgh01', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0983334441', NULL)
+ 11  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvgh02', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0983334442', NULL)
+ 12  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvgh03', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0983334443', NULL)
+ 13  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvgh04', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0983334444', NULL)
+ 14  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('nvgh05', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL, '0983334445', NULL)
+ 15  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh01', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 1, TP.HCM', '0912345001', 'tra.nguyen@gmail.com')
+ 16  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh02', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 3, TP.HCM', '0912345002', 'lap.tran@gmail.com')
+ 17  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh03', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Thủ Đức, TP.HCM', '0912345003', 'nam.le@yahoo.com')
+ 18  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh04', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Bình Thạnh, TP.HCM', '0912345004', 'dung.pham@gmail.com')
+ 19  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh05', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Gò Vấp, TP.HCM', '0912345005', 'yen.vo@hotmail.com')
+ 20  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh06', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Tân Bình, TP.HCM', '0912345006', 'son.dang@gmail.com')
+ 21  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh07', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 7, TP.HCM', '0912345007', 'hanh.bui@gmail.com')
+ 22  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh08', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 10, TP.HCM', '0912345008', 'nghia.do@gmail.com')
+ 23  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh09', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 4, TP.HCM', '0912345009', 'thao.ho@yahoo.com')
+ 24  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh10', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 5, TP.HCM', '0912345010', 'vuong.duong@gmail.com')
+ 25  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh11', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 8, TP.HCM', '0912345011', 'canh.vu@gmail.com')
+ 26  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh12', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 2, TP.HCM', '0912345012', 'cuong.ngo@gmail.com')
+ 27  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh13', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Bình Tân, TP.HCM', '0912345013', 'kiet.doan@hotmail.com')
+ 28  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh14', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Phú Nhuận, TP.HCM', '0912345014', 'ngoc.ly@gmail.com')
+ 29  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh15', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 12, TP.HCM', '0912345015', 'thang.nguyen@gmail.com')
+ 30  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh16', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Củ Chi, TP.HCM', '0912345016', 'cam.phan@gmail.com')
+ 31  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh17', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Hóc Môn, TP.HCM', '0912345017', 'bach.trinh@yahoo.com')
+ 32  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh18', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Bình Chánh, TP.HCM', '0912345018', 'muoi.dinh@gmail.com')
+ 33  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh19', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 11, TP.HCM', '0912345019', 'tuyet.lam@gmail.com')
+ 34  	 INTO TAIKHOAN(Username, Password, LoaiTK, TrangThaiTK, DiaChi, SDT, Email) VALUES ('kh20', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 2, 1, N'Quận 6, TP.HCM', '0912345020', 'thong.ta@hotmail.com')
+ 35  SELECT * FROM dual;
+
+33 rows created.
+
+SQL> 
+SQL> -- -------------------------------------------------------------------------
+SQL> -- 6. NHANVIEN (13 Nhân viên mới)
+SQL> -- -------------------------------------------------------------------------
+SQL> INSERT ALL
+  2  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000003', 'nvtm01', N'Trần Hữu Trọng', N'NV thu mua', 12000000)
+  3  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000004', 'nvtm02', N'Phạm Tấn Tài', N'NV thu mua', 12500000)
+  4  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000005', 'nvtm03', N'Lê Tú Anh', N'NV thu mua', 11000000)
+  5  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000006', 'nvtm04', N'Đinh Hoàng Hải', N'NV thu mua', 13000000)
+  6  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000007', 'nvkho01', N'Nguyễn Hữu Quyết', N'NV kho', 10000000)
+  7  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000008', 'nvkho02', N'Lâm Tiến Đạt', N'NV kho', 9500000)
+  8  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000009', 'nvkho03', N'Phan Công Minh', N'NV kho', 10500000)
+  9  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000010', 'nvkho04', N'Bùi Trọng Đạo', N'NV kho', 11000000)
+ 10  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000011', 'nvgh01', N'Võ Thanh Hùng', N'NV giao hàng', 8000000)
+ 11  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000012', 'nvgh02', N'Đỗ Quốc Cường', N'NV giao hàng', 8500000)
+ 12  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000013', 'nvgh03', N'Lê Thanh Sang', N'NV giao hàng', 9000000)
+ 13  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000014', 'nvgh04', N'Nguyễn Văn Tuấn', N'NV giao hàng', 8000000)
+ 14  	 INTO NHANVIEN(MaNV, Username, TenNV, ChucVu, Luong) VALUES ('NV000015', 'nvgh05', N'Trần Đình Bảo', N'NV giao hàng', 8500000)
+ 15  SELECT * FROM dual;
+
+13 rows created.
+
+SQL> 
+SQL> -- -------------------------------------------------------------------------
+SQL> -- 7. KHACHHANG (20 Khách hàng)
+SQL> -- -------------------------------------------------------------------------
+SQL> INSERT ALL
+  2  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000001', 'kh01', N'Nguyễn Thu Trà', N'VIP')
+  3  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000002', 'kh02', N'Trần Bích Lập', N'Thường')
+  4  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000003', 'kh03', N'Lê Hoàng Nam', N'Thân thiết')
+  5  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000004', 'kh04', N'Phạm Quang Dũng', N'Thường')
+  6  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000005', 'kh05', N'Võ Thị Yến', N'Thường')
+  7  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000006', 'kh06', N'Đặng Thái Sơn', N'VIP')
+  8  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000007', 'kh07', N'Bùi Thúy Hạnh', N'Thường')
+  9  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000008', 'kh08', N'Đỗ Hữu Nghĩa', N'Thân thiết')
+ 10  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000009', 'kh09', N'Hồ Thanh Thảo', N'Thường')
+ 11  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000010', 'kh10', N'Dương Quốc Vượng', N'Thân thiết')
+ 12  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000011', 'kh11', N'Vũ Đức Cảnh', N'Thường')
+ 13  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000012', 'kh12', N'Ngô Nhật Cường', N'VIP')
+ 14  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000013', 'kh13', N'Đoàn Tuấn Kiệt', N'Thường')
+ 15  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000014', 'kh14', N'Lý Thảo Ngọc', N'Thân thiết')
+ 16  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000015', 'kh15', N'Nguyễn Bá Thắng', N'Thường')
+ 17  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000016', 'kh16', N'Phan Thị Cẩm', N'Thường')
+ 18  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000017', 'kh17', N'Trịnh Xuân Bách', N'Thân thiết')
+ 19  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000018', 'kh18', N'Đinh Thị Mười', N'Thường')
+ 20  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000019', 'kh19', N'Lâm Ánh Tuyết', N'VIP')
+ 21  	 INTO KHACHHANG(MaKH, Username, TenKH, LoaiKH) VALUES ('KH000020', 'kh20', N'Tạ Văn Thông', N'Thường')
+ 22  SELECT * FROM dual;
+
+20 rows created.
+
+SQL> 
+SQL> COMMIT;
+
+Commit complete.
+
+SQL> 
+SQL> -- ====================================================================================
+SQL> --        PHẦN 8: DATA ENRICHMENT - Sinh dữ liệu (11/2025 - 05/2026)
+SQL> -- ====================================================================================
+SQL> 
+SQL> SET DEFINE OFF;
+SQL> DECLARE
+  2  	 -- ===== Variables for loop control =====
+  3  	 v_month_date DATE;
+  4  	 v_month_start DATE;
+  5  	 v_month_end DATE;
+  6  	 v_days_in_month NUMBER;
+  7  	 v_day_offset NUMBER;
+  8  	 v_simulated_date DATE;
+  9  
+ 10  	 -- ===== Variables for IDs =====
+ 11  	 v_MaKH VARCHAR2(10);
+ 12  	 v_MaNV_ThuMua VARCHAR2(10);
+ 13  	 v_MaNV_GiaoHang VARCHAR2(10);
+ 14  	 v_MaNCC VARCHAR2(10);
+ 15  	 v_MaSP VARCHAR2(10);
+ 16  	 v_MaKho VARCHAR2(10);
+ 17  	 v_MaLH VARCHAR2(10);
+ 18  	 v_MaDH VARCHAR2(10);
+ 19  	 v_DiaChiGiao NVARCHAR2(255);
+ 20  	 v_PhuongThucTT NVARCHAR2(50);
+ 21  
+ 22  	 -- ===== Variables for pricing & quantities =====
+ 23  	 v_GiaMua NUMBER(15,2);
+ 24  	 v_GiaBan_New NUMBER(15,2);
+ 25  	 v_margin NUMBER := 0;
+ 26  	 v_SoLuong_import NUMBER := 0;
+ 27  	 v_SoLuong_export NUMBER := 0;
+ 28  	 v_BaoQuan NVARCHAR2(100);
+ 29  
+ 30  	 -- ===== Counters & Control =====
+ 31  	 v_import_sp_idx NUMBER := 1;
+ 32  	 v_num_items NUMBER := 0;
+ 33  
+ 34  	 -- ===== Arrays =====
+ 35  	 -- Tất cả 25 sản phẩm
+ 36  	 TYPE t_sp_all IS TABLE OF VARCHAR2(10);
+ 37  	 v_all_products t_sp_all := t_sp_all(
+ 38  	     'SP000001', 'SP000002', 'SP000003', 'SP000004', 'SP000005',
+ 39  	     'SP000006', 'SP000007', 'SP000008', 'SP000009', 'SP000010',
+ 40  	     'SP000011', 'SP000012', 'SP000013', 'SP000014', 'SP000015',
+ 41  	     'SP000016', 'SP000017', 'SP000018', 'SP000019', 'SP000020',
+ 42  	     'SP000021', 'SP000022', 'SP000023', 'SP000024', 'SP000025'
+ 43  	 );
+ 44  
+ 45  	 -- Danh sách sản phẩm cho mỗi loại (để cập nhật biến động giá 1-2 lần/tháng cho mỗi loại)
+ 46  	 TYPE t_sp_array IS TABLE OF VARCHAR2(10);
+ 47  	 -- Cập nhật giá nhóm 1 (tuần 1)
+ 48  	 v_sp_week1 t_sp_array := t_sp_array('SP000002', 'SP000007', 'SP000012', 'SP000017', 'SP000022');
+ 49  	 -- Cập nhật giá nhóm 2 (tuần 3)
+ 50  	 v_sp_week3 t_sp_array := t_sp_array('SP000004', 'SP000009', 'SP000014', 'SP000019', 'SP000024');
+ 51  
+ 52  	 -- Helper procedure to perform price update and shift TGApDung
+ 53  	 PROCEDURE P_UPDATE_PRICE_SIMULATED(p_MaSP IN VARCHAR2, p_Date IN DATE) IS
+ 54  	     v_current_GiaMua NUMBER(15,2);
+ 55  	     v_new_GiaMua NUMBER(15,2);
+ 56  	     v_new_GiaBan NUMBER(15,2);
+ 57  	     v_rand_margin NUMBER;
+ 58  	 BEGIN
+ 59  	     SELECT GiaMua INTO v_current_GiaMua FROM SANPHAM WHERE MaSP = p_MaSP;
+ 60  	     -- Dao động từ -3% đến +5%
+ 61  	     v_new_GiaMua := ROUND(v_current_GiaMua * (1 + DBMS_RANDOM.VALUE(-0.03, 0.05)), -3);
+ 62  	     -- Biên lợi nhuận 30% - 50%
+ 63  	     v_rand_margin := 0.30 + DBMS_RANDOM.VALUE(0, 0.20);
+ 64  	     v_new_GiaBan := ROUND(v_new_GiaMua * (1 + v_rand_margin), -3);
+ 65  
+ 66  	     -- Gọi procedure hệ thống để cập nhật bảng SANPHAM (tự kích hoạt trigger thêm vào LICHSUGIA với TGApDung = SYSDATE)
+ 67  	     SP_CAPNHAT_GIA(p_MaSP, v_new_GiaMua, v_new_GiaBan);
+ 68  
+ 69  	     -- Cập nhật lại TGApDung của dòng lịch sử giá vừa tạo thành ngày mô phỏng
+ 70  	     UPDATE LICHSUGIA
+ 71  	     SET TGApDung = p_Date
+ 72  	     WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = p_MaSP ORDER BY MaGia DESC) WHERE ROWNUM = 1)
+ 73  	       AND TRUNC(TGApDung) = TRUNC(SYSDATE);
+ 74  	 EXCEPTION
+ 75  	     WHEN OTHERS THEN
+ 76  		 DBMS_OUTPUT.PUT_LINE('Lỗi cập nhật giá ' || p_MaSP || ': ' || SQLERRM);
+ 77  	 END;
+ 78  
+ 79  BEGIN
+ 80  	 DBMS_OUTPUT.PUT_LINE('BẮT ĐẦU CHẠY DATA ENRICHMENT - GIAI ĐOẠN 11/2025 - 05/2026');
+ 81  
+ 82  	 -- Xoá dữ liệu cũ của các bảng liên quan đến giao dịch trước khi nạp demo
+ 83  	 -- (Để tránh trùng lặp nếu chạy lại script)
+ 84  	 DELETE FROM XUATKHO;
+ 85  	 DELETE FROM TONKHO;
+ 86  	 DELETE FROM CHITIETDONHANG;
+ 87  	 DELETE FROM DONHANG;
+ 88  	 DELETE FROM CHITIETLOHANG;
+ 89  	 DELETE FROM LOHANG;
+ 90  	 DELETE FROM THONGBAO;
+ 91  	 DELETE FROM LICHSUGIA;
+ 92  
+ 93  	 -- Khởi tạo lại giá trị ban đầu cho LICHSUGIA từ bảng SANPHAM để đồng bộ
+ 94  	 FOR r IN (SELECT MaSP, GiaMua, GiaBan FROM SANPHAM) LOOP
+ 95  	     INSERT INTO LICHSUGIA (MaSP, GiaMua, GiaBan, TGApDung)
+ 96  	     VALUES (r.MaSP, r.GiaMua, r.GiaBan, TO_DATE('2025-10-15', 'YYYY-MM-DD'));
+ 97  	 END LOOP;
+ 98  
+ 99  	 -- Lặp qua 7 tháng (11/2025 - 05/2026, tương ứng offset 0..6)
+100  	 FOR v_month_offset IN 0..6 LOOP
+101  	     v_month_date := ADD_MONTHS(TO_DATE('2025-11-01', 'YYYY-MM-DD'), v_month_offset);
+102  	     v_month_start := TRUNC(v_month_date, 'MM');
+103  	     v_month_end := LAST_DAY(v_month_date);
+104  	     v_days_in_month := TO_NUMBER(TO_CHAR(v_month_end, 'DD'));
+105  
+106  	     -- =================================================================
+107  	     -- 1. BIẾN ĐỘNG GIÁ SẢN PHẨM TRONG THÁNG
+108  	     -- =================================================================
+109  	     -- 1.1 Sản phẩm SP000001 (Thịt heo Iberico) biến động giá 4 lần/tháng (vào ngày 3, 10, 17, 24)
+110  	     P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 2);	-- Ngày 3
+111  	     P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 9);	-- Ngày 10
+112  	     P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 16);	-- Ngày 17
+113  	     P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 23);	-- Ngày 24
+114  
+115  	     -- 1.2 Mỗi danh mục sản phẩm (LSP00001 - LSP00005) đều có biến động giá 2 lần/tháng
+116  	     -- Lần 1 vào ngày 5 (các sản phẩm thuộc v_sp_week1)
+117  	     FOR i IN 1..v_sp_week1.COUNT LOOP
+118  		 P_UPDATE_PRICE_SIMULATED(v_sp_week1(i), v_month_start + 4);
+119  	     END LOOP;
+120  
+121  	     -- Lần 2 vào ngày 20 (các sản phẩm thuộc v_sp_week3)
+122  	     FOR i IN 1..v_sp_week3.COUNT LOOP
+123  		 P_UPDATE_PRICE_SIMULATED(v_sp_week3(i), v_month_start + 19);
+124  	     END LOOP;
+125  
+126  	     -- =================================================================
+127  	     -- 2. NHẬP HÀNG (LOHANG, CHITIETLOHANG)
+128  	     -- =================================================================
+129  	     -- 6 đợt nhập hàng mỗi tháng vào các ngày 3, 8, 13, 18, 23, 28 (ít nhất 1 lần/tuần)
+130  	     FOR d IN 1..6 LOOP
+131  		 v_day_offset := CASE d
+132  		     WHEN 1 THEN 2   -- Ngày 3
+133  		     WHEN 2 THEN 7   -- Ngày 8
+134  		     WHEN 3 THEN 12  -- Ngày 13
+135  		     WHEN 4 THEN 17  -- Ngày 18
+136  		     WHEN 5 THEN 22  -- Ngày 23
+137  		     ELSE 27	     -- Ngày 28
+138  		 END;
+139  		 v_simulated_date := v_month_start + v_day_offset;
+140  
+141  		 SELECT MaNCC INTO v_MaNCC FROM (SELECT MaNCC FROM NHACUNGCAP WHERE TrangThaiHopTac = 1 ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+142  		 SELECT MaNV INTO v_MaNV_ThuMua FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV thu mua' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+143  
+144  		 v_MaLH := 'LH' || LPAD(SEQ_LOHANG.NEXTVAL, 6, '0');
+145  
+146  		 INSERT INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH)
+147  		 VALUES (v_MaLH, v_MaNCC, v_MaNV_ThuMua, v_simulated_date, 'Chờ kiểm duyệt');
+148  
+149  		 -- Số lượng sản phẩm trong lô hàng:
+150  		 -- 1-2 SP (đợt 1, 2, 4, 5) hoặc 3-4 SP (đợt 3, 6) -> phần lớn là 1-2 sản phẩm
+151  		 IF d IN (1, 2, 4, 5) THEN
+152  		     v_num_items := TRUNC(DBMS_RANDOM.VALUE(1, 3)); -- 1 hoặc 2
+153  		 ELSE
+154  		     v_num_items := TRUNC(DBMS_RANDOM.VALUE(3, 5)); -- 3 hoặc 4
+155  		 END IF;
+156  
+157  		 DECLARE
+158  		     TYPE t_sp_temp IS TABLE OF VARCHAR2(10);
+159  		     v_used_sps t_sp_temp := t_sp_temp();
+160  		 BEGIN
+161  		     FOR j IN 1..v_num_items LOOP
+162  			 -- Chọn sản phẩm tuần tự (round-robin) từ danh sách 25 sản phẩm để đảm bảo nạp đều tất cả sản phẩm
+163  			 v_MaSP := v_all_products(v_import_sp_idx);
+164  			 v_import_sp_idx := MOD(v_import_sp_idx, 25) + 1;
+165  
+166  			 v_SoLuong_import := TRUNC(DBMS_RANDOM.VALUE(1500, 3501)); -- 1500 đến 3500 đơn vị (B2B nhập)
+167  
+168  			 INSERT INTO CHITIETLOHANG (MaLH, MaSP, SoLuong)
+169  			 VALUES (v_MaLH, v_MaSP, v_SoLuong_import);
+170  
+171  			 -- Xác định kho phù hợp với tính chất bảo quản của sản phẩm
+172  			 SELECT BaoQuan INTO v_BaoQuan FROM SANPHAM WHERE MaSP = v_MaSP;
+173  			 SELECT MaKho INTO v_MaKho FROM (SELECT MaKho FROM KHO WHERE LoaiKho = v_BaoQuan ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+174  
+175  			 -- Kiểm tra trạng thái lô hàng phù hợp theo dòng thời gian
+176  			 -- Tháng 11/2025 -> 4/2026 và các đợt 1,2,3 của tháng 5/2026 sẽ được nhập kho đầy đủ
+177  			 IF v_month_date < TO_DATE('2026-05-01', 'YYYY-MM-DD') OR d <= 3 THEN
+178  			     -- Xác nhận nhập kho bằng procedure (sinh bản ghi TONKHO)
+179  			     SP_XACNHAN_NHAPKHO(v_MaLH, v_MaSP, v_MaKho, v_simulated_date + 365, 'Kệ A' || TRUNC(DBMS_RANDOM.VALUE(1, 11)));
+180  			     -- Cập nhật ngày nhập kho của TONKHO thành ngày mô phỏng
+181  			     UPDATE TONKHO SET TGNhapKho = v_simulated_date WHERE MaLH = v_MaLH AND MaSP = v_MaSP;
+182  			 END IF;
+183  		     END LOOP;
+184  
+185  		     -- Đối với tháng 5/2026 (tháng hiện tại), phân bổ trạng thái LOHANG phù hợp:
+186  		     IF v_month_date >= TO_DATE('2026-05-01', 'YYYY-MM-DD') THEN
+187  			 IF d = 4 THEN
+188  			     -- Đợt 4: chuyển sang trạng thái "Chờ nhập kho"
+189  			     SP_YEUCAU_NHAPKHO(v_MaLH);
+190  			 -- Đợt 5 và 6 giữ trạng thái "Chờ kiểm duyệt"
+191  			 END IF;
+192  		     END IF;
+193  		 END;
+194  	     END LOOP;
+195  
+196  	     -- =================================================================
+197  	     -- 3. BÁN HÀNG (DONHANG, CHITIETDONHANG)
+198  	     -- =================================================================
+199  	     -- Sinh 14 đơn hàng mỗi tháng trải đều các ngày (khoảng 10-20 lần bán, ít nhất 2 lần/tuần)
+200  	     FOR j IN 1..14 LOOP
+201  		 -- Trải đều các ngày trong tháng (ít nhất 2 lần/tuần)
+202  		 v_day_offset := TRUNC(((j - 1) / 14) * v_days_in_month) + 1;
+203  		 IF v_day_offset > v_days_in_month THEN v_day_offset := v_days_in_month; END IF;
+204  		 v_simulated_date := v_month_start + (v_day_offset - 1);
+205  
+206  		 -- Chọn khách hàng ngẫu nhiên
+207  		 SELECT MaKH INTO v_MaKH FROM (SELECT MaKH FROM KHACHHANG ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+208  		 -- Chọn nhân viên giao hàng ngẫu nhiên
+209  		 SELECT MaNV INTO v_MaNV_GiaoHang FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV giao hàng' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+210  
+211  		 -- Xác định phương thức thanh toán: 60% Ghi nợ, 40% phương thức khác
+212  		 IF j IN (1, 3, 5, 7, 9, 11, 13) THEN
+213  		     v_PhuongThucTT := N'Ghi nợ';
+214  		 ELSE
+215  		     v_PhuongThucTT := CASE TRUNC(DBMS_RANDOM.VALUE(0, 3))
+216  			 WHEN 0 THEN N'COD'
+217  			 WHEN 1 THEN N'Chuyển khoản'
+218  			 ELSE N'Ví điện tử'
+219  		     END;
+220  		 END IF;
+221  
+222  		 v_MaDH := 'DH' || LPAD(SEQ_DONHANG.NEXTVAL, 6, '0');
+223  		 v_DiaChiGiao := N'TP.HCM - Quận ' || TRUNC(DBMS_RANDOM.VALUE(1, 13));
+224  
+225  		 -- Khởi tạo đơn hàng với trạng thái 'Đã đặt'
+226  		 INSERT INTO DONHANG (MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, TrangThaiDH, TrangThaiTT, PhuongThucTT)
+227  		 VALUES (v_MaDH, v_MaKH, v_MaNV_GiaoHang, v_simulated_date, v_simulated_date + 2, v_DiaChiGiao, 'Đã đặt', 0, v_PhuongThucTT);
+228  
+229  		 -- Xác định số lượng sản phẩm trong đơn hàng:
+230  		 -- 1-2 SP (15%), 3-5 SP (65%), 6-10 SP (20%) -> phần lớn từ 3-5 sản phẩm
+231  		 v_num_items := CASE
+232  		     WHEN j IN (1, 8) THEN TRUNC(DBMS_RANDOM.VALUE(1, 3))	-- 1 đến 2 sản phẩm
+233  		     WHEN j IN (2, 3, 5, 6, 7, 10, 11, 12, 13) THEN TRUNC(DBMS_RANDOM.VALUE(3, 6)) -- 3 đến 5 sản phẩm
+234  		     ELSE TRUNC(DBMS_RANDOM.VALUE(6, 11))			-- 6 đến 10 sản phẩm
+235  		 END;
+236  
+237  		 DECLARE
+238  		     TYPE t_sp_temp IS TABLE OF VARCHAR2(10);
+239  		     v_used_sps t_sp_temp := t_sp_temp();
+240  		     v_is_sp_dup BOOLEAN;
+241  		 BEGIN
+242  		     FOR k IN 1..v_num_items LOOP
+243  			 -- Đảm bảo không trùng lặp sản phẩm trong một đơn hàng
+244  			 LOOP
+245  			     v_MaSP := v_all_products(TRUNC(DBMS_RANDOM.VALUE(1, 26)));
+246  			     v_is_sp_dup := FALSE;
+247  			     IF v_used_sps.COUNT > 0 THEN
+248  				 FOR idx IN 1..v_used_sps.COUNT LOOP
+249  				     IF v_used_sps(idx) = v_MaSP THEN
+250  					 v_is_sp_dup := TRUE;
+251  					 EXIT;
+252  				     END IF;
+253  				 END LOOP;
+254  			     END IF;
+255  			     EXIT WHEN NOT v_is_sp_dup;
+256  			 END LOOP;
+257  			 v_used_sps.EXTEND;
+258  			 v_used_sps(v_used_sps.COUNT) := v_MaSP;
+259  
+260  			 -- Số lượng bán B2B hợp lý: vài chục kg (từ 20 đến 120 kg/sp) và ít hơn nhiều so với lượng nhập lô hàng
+261  			 v_SoLuong_export := TRUNC(DBMS_RANDOM.VALUE(20, 121));
+262  
+263  			 INSERT INTO CHITIETDONHANG (MaDH, MaSP, SoLuong)
+264  			 VALUES (v_MaDH, v_MaSP, v_SoLuong_export);
+265  		     END LOOP;
+266  		 END;
+267  
+268  		 -- Chạy nghiệp vụ tạo yêu cầu xuất kho (Tạm giữ tồn kho và điền bảng XUATKHO)
+269  		 BEGIN
+270  		     SP_YEUCAU_XUATKHO(v_MaDH);
+271  		     -- Đồng bộ thời gian trong XUATKHO
+272  		     UPDATE XUATKHO SET TGCapNhat = v_simulated_date WHERE MaDH = v_MaDH;
+273  		 EXCEPTION
+274  		     WHEN OTHERS THEN
+275  			 DBMS_OUTPUT.PUT_LINE('Lỗi tạo yêu cầu xuất kho ' || v_MaDH || ': ' || SQLERRM);
+276  		 END;
+277  
+278  		 -- Phân bổ trạng thái đơn hàng theo dòng thời gian:
+279  		 -- 1. Với các tháng trước tháng 5/2026 (Quá khứ hoàn tất):
+280  		 IF v_month_date < TO_DATE('2026-05-01', 'YYYY-MM-DD') THEN
+281  		     BEGIN
+282  			 -- Xác nhận xuất kho (chuyển XUATKHO thành "Đã xuất", trừ tồn kho thực tế, và đổi TrangThaiDH = "Chờ giao hàng")
+283  			 SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
+284  
+285  			 -- Đổi trạng thái sang "Đang giao"
+286  			 SP_XACNHAN_GIAOHANG(v_MaDH, v_MaNV_GiaoHang);
+287  
+288  			 -- Xác nhận giao thành công
+289  			 SP_GIAOHANG_THANHCONG(v_MaDH, v_MaNV_GiaoHang);
+290  
+291  			 -- Xử lý cụ thể đối với đơn hàng Ghi nợ:
+292  			 -- 70% đã thanh toán (Hoàn thành, TrangThaiTT = 1), 30% vẫn nợ (Chờ thanh toán, TrangThaiTT = 0)
+293  			 IF v_PhuongThucTT = N'Ghi nợ' THEN
+294  			     IF j IN (1, 5, 9, 13) THEN
+295  				 -- Chuyển trạng thái nợ thành đã thanh toán thành công
+296  				 UPDATE DONHANG
+297  				 SET TrangThaiTT = 1,
+298  				     TrangThaiDH = N'Hoàn thành',
+299  				     TGGiaoTT = v_simulated_date + 1
+300  				 WHERE MaDH = v_MaDH;
+301  			     ELSE
+302  				 -- Giữ nguyên trạng thái chưa thanh toán (Chờ thanh toán)
+303  				 UPDATE DONHANG
+304  				 SET TrangThaiTT = 0,
+305  				     TrangThaiDH = N'Chờ thanh toán',
+306  				     TGGiaoTT = v_simulated_date + 1
+307  				 WHERE MaDH = v_MaDH;
+308  			     END IF;
+309  			 ELSE
+310  			     -- Các đơn thường thì đã hoàn thành và thanh toán
+311  			     UPDATE DONHANG
+312  			     SET TGGiaoTT = v_simulated_date + 1
+313  			     WHERE MaDH = v_MaDH;
+314  			 END IF;
+315  
+316  			 -- Đồng bộ hóa ngày đặt, giao yêu cầu và giao thực tế
+317  			 UPDATE DONHANG
+318  			 SET TGDat = v_simulated_date,
+319  			     TGGiaoYC = v_simulated_date + 2
+320  			 WHERE MaDH = v_MaDH;
+321  
+322  			 UPDATE XUATKHO SET TGCapNhat = v_simulated_date WHERE MaDH = v_MaDH;
+323  
+324  		     EXCEPTION WHEN OTHERS THEN NULL;
+325  		     END;
+326  
+327  		 -- 2. Đối với tháng 5/2026 (Mô phỏng động cho tháng hiện tại):
+328  		 ELSE
+329  		     BEGIN
+330  			 IF j <= 6 THEN
+331  			     -- Đơn 1 đến 6: Đã giao thành công (Hoàn thành / Chờ thanh toán)
+332  			     SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
+333  			     SP_XACNHAN_GIAOHANG(v_MaDH, v_MaNV_GiaoHang);
+334  			     SP_GIAOHANG_THANHCONG(v_MaDH, v_MaNV_GiaoHang);
+335  			     IF v_PhuongThucTT = N'Ghi nợ' AND j IN (1, 5) THEN
+336  				 UPDATE DONHANG SET TrangThaiTT = 1, TrangThaiDH = N'Hoàn thành', TGGiaoTT = v_simulated_date + 1 WHERE MaDH = v_MaDH;
+337  			     ELSE
+338  				 UPDATE DONHANG SET TGGiaoTT = v_simulated_date + 1 WHERE MaDH = v_MaDH;
+339  			     END IF;
+340  
+341  			 ELSIF j IN (7, 8) THEN
+342  			     -- Đơn 7 và 8: Đang giao hàng
+343  			     SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
+344  			     SP_XACNHAN_GIAOHANG(v_MaDH, v_MaNV_GiaoHang);
+345  
+346  			 ELSIF j IN (9, 10) THEN
+347  			     -- Đơn 9 và 10: Chờ giao hàng (đã xuất kho nhưng shipper chưa nhận)
+348  			     SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
+349  
+350  			 ELSIF j IN (11, 12) THEN
+351  			     -- Đơn 11 và 12: Đặt hàng thành công, đang giữ kho tạm thời (Đã đặt) -> XUATKHO giữ trạng thái 'Tạm giữ'
+352  			     NULL;
+353  
+354  			 ELSIF j = 13 THEN
+355  			     -- Đơn 13: Đã hủy đơn hàng (hoàn lại kho qua SP_HUY_DH)
+356  			     SP_HUY_DH(v_MaDH, N'Khách hàng báo hủy do thay đổi kế hoạch sản xuất B2B');
+357  
+358  			 ELSIF j = 14 THEN
+359  			     -- Đơn 14: Giữ nguyên trạng thái mới đặt (Đã đặt)
+360  			     NULL;
+361  			 END IF;
+362  
+363  			 -- Đồng bộ hóa ngày đặt, giao yêu cầu và giao thực tế
+364  			 UPDATE DONHANG
+365  			 SET TGDat = v_simulated_date,
+366  			     TGGiaoYC = v_simulated_date + 2
+367  			 WHERE MaDH = v_MaDH;
+368  
+369  			 UPDATE XUATKHO SET TGCapNhat = v_simulated_date WHERE MaDH = v_MaDH;
+370  		     EXCEPTION WHEN OTHERS THEN NULL;
+371  		     END;
+372  		 END IF;
+373  
+374  	     END LOOP;
+375  	 END LOOP;
+376  
+377  	 COMMIT;
+378  	 DBMS_OUTPUT.PUT_LINE('HOÀN TẤT SINH DATA KÈM LỊCH SỬ BIẾN ĐỘNG GIÁ MUA & BÁN!');
+379  EXCEPTION WHEN OTHERS THEN ROLLBACK; DBMS_OUTPUT.PUT_LINE('LỖI: ' || SQLERRM);
+380  END;
+381  /
+BẮT ĐẦU CHẠY DATA ENRICHMENT - GIAI ĐOẠN 11/2025 - 05/2026            
+Lỗi tạo yêu cầu xuất kho DH000100: ORA-20024: Kho không đủ hàng   
+cho: SP000013                                                                   
+Lỗi tạo yêu cầu xuất kho DH000101: ORA-20024: Kho không đủ hàng   
+cho: SP000013                                                                   
+Lỗi tạo yêu cầu xuất kho DH000102: ORA-20024: Kho không đủ hàng   
+cho: SP000015                                                                   
+Lỗi tạo yêu cầu xuất kho DH000103: ORA-20024: Kho không đủ hàng   
+cho: SP000022                                                                   
+Lỗi tạo yêu cầu xuất kho DH000104: ORA-20024: Kho không đủ hàng   
+cho: SP000016                                                                   
+Lỗi tạo yêu cầu xuất kho DH000105: ORA-20024: Kho không đủ hàng   
+cho: SP000017                                                                   
+Lỗi tạo yêu cầu xuất kho DH000106: ORA-20024: Kho không đủ hàng   
+cho: SP000019                                                                   
+Lỗi tạo yêu cầu xuất kho DH000107: ORA-20024: Kho không đủ hàng   
+cho: SP000020                                                                   
+Lỗi tạo yêu cầu xuất kho DH000108: ORA-20024: Kho không đủ hàng   
+cho: SP000023                                                                   
+Lỗi tạo yêu cầu xuất kho DH000109: ORA-20024: Kho không đủ hàng   
+cho: SP000015                                                                   
+Lỗi tạo yêu cầu xuất kho DH000110: ORA-20024: Kho không đủ hàng   
+cho: SP000016                                                                   
+Lỗi tạo yêu cầu xuất kho DH000111: ORA-20024: Kho không đủ hàng   
+cho: SP000022                                                                   
+Lỗi tạo yêu cầu xuất kho DH000112: ORA-20024: Kho không đủ hàng   
+cho: SP000016                                                                   
+Lỗi tạo yêu cầu xuất kho DH000113: ORA-20024: Kho không đủ hàng   
+cho: SP000022                                                                   
+HOÀN TẤT SINH DATA KÈM LỊCH SỬ BIẾN ĐỘNG GIÁ MUA & BÁN!          
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- ===== CÁC CÂU LỆNH TRUY VẤN XÁC MINH DỮ LIỆU SAU KHI CHẠY =====
+SQL> PROMPT
+
+SQL> PROMPT ====================================================================================
+====================================================================================
+SQL> PROMPT			KẾT QUẢ KIỂM TRA & XÁC MINH DỮ LIỆU DEMO
+KẾT QUẢ KIỂM TRA & XÁC MINH DỮ LIỆU DEMO
+SQL> PROMPT ====================================================================================
+====================================================================================
+SQL> PROMPT
+
+SQL> 
+SQL> -- 1. Tổng số lượng bản ghi trong các bảng giao dịch chính
+SQL> SELECT 'LOHANG (Lô hàng)' AS "Bảng", COUNT(*) AS "Số bản ghi" FROM LOHANG
+  2  UNION ALL
+  3  SELECT 'CHITIETLOHANG (Chi tiết lô)', COUNT(*) FROM CHITIETLOHANG
+  4  UNION ALL
+  5  SELECT 'DONHANG (Đơn hàng)', COUNT(*) FROM DONHANG
+  6  UNION ALL
+  7  SELECT 'CHITIETDONHANG (Chi tiết đơn)', COUNT(*) FROM CHITIETDONHANG
+  8  UNION ALL
+  9  SELECT 'TONKHO (Lưu kho thực tế)', COUNT(*) FROM TONKHO
+ 10  UNION ALL
+ 11  SELECT 'XUATKHO (Xuất kho chi tiết)', COUNT(*) FROM XUATKHO
+ 12  UNION ALL
+ 13  SELECT 'LICHSUGIA (Biến động giá)', COUNT(*) FROM LICHSUGIA;
+
+Bảng                                      Số bản ghi                      
+------------------------------------------- --------------                      
+LOHANG (Lô hàng)                                      42                      
+CHITIETLOHANG (Chi tiết lô)                          90                      
+DONHANG (Đơn hàng)                                   84                      
+CHITIETDONHANG (Chi tiết đơn)                      368                      
+TONKHO (Lưu kho thực tế)                           84                      
+XUATKHO (Xuất kho chi tiết)                        368                      
+LICHSUGIA (Biến động giá)                        122                      
+
+7 rows selected.
+
+SQL> 
+SQL> -- 2. Phân bổ các trạng thái đơn hàng (Xác nhận tính đa dạng và logic thời gian)
+SQL> PROMPT
+
+SQL> PROMPT ====================================================================================
+====================================================================================
+SQL> PROMPT 2. Thống kê số lượng đơn hàng theo Trạng thái đơn và Trạng thái thanh toán:
+2. Thống kê số lượng đơn hàng theo Trạng thái đơn và Trạng thái thanh toán:
+SQL> PROMPT ====================================================================================
+====================================================================================
+SQL> SELECT TrangThaiDH AS "Trạng thái Đơn",
+  2  	    TrangThaiTT AS "TT Thanh Toán",
+  3  	    PhuongThucTT AS "Phương thức",
+  4  	    COUNT(*) AS "Số đơn hàng",
+  5  	    SUM(TongTien) AS "Tổng doanh thu"
+  6  FROM DONHANG
+  7  GROUP BY TrangThaiDH, TrangThaiTT, PhuongThucTT
+  8  ORDER BY TrangThaiDH, TrangThaiTT;
+
+Trạng thái Đơn                                TT Thanh Toán               
+-------------------------------------------------- --------------               
+Phương thức                                    Số đơn hàng             
+-------------------------------------------------- ----------------             
+Tổng doanh thu                                                                
+----------------                                                                
+Chờ giao hàng                                                0               
+Chuyển khoản                                                  1             
+        77499000                                                                
+                                                                                
+Chờ giao hàng                                                0               
+Ghi nợ                                                          1             
+       198637000                                                                
+
+Trạng thái Đơn                                TT Thanh Toán               
+-------------------------------------------------- --------------               
+Phương thức                                    Số đơn hàng             
+-------------------------------------------------- ----------------             
+Tổng doanh thu                                                                
+----------------                                                                
+                                                                                
+Chờ thanh toán                                               0               
+Ghi nợ                                                         16             
+      1798939340                                                                
+                                                                                
+Hoàn thành                                                    1               
+COD                                                              15             
+
+Trạng thái Đơn                                TT Thanh Toán               
+-------------------------------------------------- --------------               
+Phương thức                                    Số đơn hàng             
+-------------------------------------------------- ----------------             
+Tổng doanh thu                                                                
+----------------                                                                
+      1321877700                                                                
+                                                                                
+Hoàn thành                                                    1               
+Chuyển khoản                                                 13             
+      1449079980                                                                
+                                                                                
+Hoàn thành                                                    1               
+
+Trạng thái Đơn                                TT Thanh Toán               
+-------------------------------------------------- --------------               
+Phương thức                                    Số đơn hàng             
+-------------------------------------------------- ----------------             
+Tổng doanh thu                                                                
+----------------                                                                
+Ghi nợ                                                         22             
+      2107500560                                                                
+                                                                                
+Hoàn thành                                                    1               
+Ví điện tử                                                 10             
+       728312500                                                                
+                                                                                
+
+Trạng thái Đơn                                TT Thanh Toán               
+-------------------------------------------------- --------------               
+Phương thức                                    Số đơn hàng             
+-------------------------------------------------- ----------------             
+Tổng doanh thu                                                                
+----------------                                                                
+Đang giao                                                      0               
+Ghi nợ                                                          1             
+       203631260                                                                
+                                                                                
+Đang giao                                                      0               
+Ví điện tử                                                  1             
+        17212000                                                                
+
+Trạng thái Đơn                                TT Thanh Toán               
+-------------------------------------------------- --------------               
+Phương thức                                    Số đơn hàng             
+-------------------------------------------------- ----------------             
+Tổng doanh thu                                                                
+----------------                                                                
+                                                                                
+Đã huỷ                                                      0               
+Ghi nợ                                                          1             
+        67597460                                                                
+                                                                                
+Đã đặt                                                     0               
+COD                                                               1             
+
+Trạng thái Đơn                                TT Thanh Toán               
+-------------------------------------------------- --------------               
+Phương thức                                    Số đơn hàng             
+-------------------------------------------------- ----------------             
+Tổng doanh thu                                                                
+----------------                                                                
+        20886740                                                                
+                                                                                
+Đã đặt                                                     0               
+Ghi nợ                                                          1             
+        89838650                                                                
+                                                                                
+Đã đặt                                                     0               
+
+Trạng thái Đơn                                TT Thanh Toán               
+-------------------------------------------------- --------------               
+Phương thức                                    Số đơn hàng             
+-------------------------------------------------- ----------------             
+Tổng doanh thu                                                                
+----------------                                                                
+Ví điện tử                                                  1             
+       122361000                                                                
+                                                                                
+
+13 rows selected.
+
+SQL> 
+SQL> -- 3. Phân bổ các trạng thái lô hàng nhập kho
+SQL> PROMPT
+
+SQL> PROMPT ====================================================================================
+====================================================================================
+SQL> PROMPT 3. Thống kê số lượng lô hàng nhập theo trạng thái:
+3. Thống kê số lượng lô hàng nhập theo trạng thái:
+SQL> PROMPT ====================================================================================
+====================================================================================
+SQL> SELECT TrangThaiLH AS "Trạng thái Lô hàng", COUNT(*) AS "Số lô hàng", SUM(TongTien) AS "Tổng giá trị nhập"
+  2  FROM LOHANG
+  3  GROUP BY TrangThaiLH;
+
+Trạng thái Lô hàng                            Số lô hàng               
+-------------------------------------------------- --------------               
+Tổng giá trị nhập                                                        
+------------------------                                                        
+Đã nhập kho                                                39               
+              5.2826E+10                                                        
+                                                                                
+Chờ nhập kho                                                1               
+               286680000                                                        
+                                                                                
+Chờ kiểm duyệt                                            2               
+               349171000                                                        
+                                                                                
+
+3 rows selected.
+
+SQL> 
+SQL> -- 4. Xác minh tổng số lượng nhập kho của từng sản phẩm trong 25 sản phẩm
+SQL> -- (Đảm bảo 100 < số lượng < 10000)
+SQL> PROMPT
+
+SQL> PROMPT ====================================================================================
+====================================================================================
+SQL> PROMPT 4. Tổng số lượng nhập kho của từng sản phẩm trong 25 sản phẩm (Định mức 100 - 10000):
+4. Tổng số lượng nhập kho của từng sản phẩm trong 25 sản phẩm (Định mức 100 - 10000):
+SQL> PROMPT ====================================================================================
+====================================================================================
+SQL> SELECT sp.MaSP, sp.TenSP, NVL(SUM(ctl.SoLuong), 0) AS "Tổng SL Nhập"
+  2  FROM SANPHAM sp
+  3  LEFT JOIN CHITIETLOHANG ctl ON sp.MaSP = ctl.MaSP
+  4  GROUP BY sp.MaSP, sp.TenSP
+  5  ORDER BY sp.MaSP;
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+SP000001                                                                        
+Thịt heo Iberico                                                              
+            7814                                                                
+                                                                                
+SP000002                                                                        
+Thịt bò Kobe                                                                 
+           10805                                                                
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+                                                                                
+SP000003                                                                        
+Thịt gà ta thả vườn                                                     
+            9159                                                                
+                                                                                
+SP000004                                                                        
+Đùi cừu Úc                                                                 
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+           11587                                                                
+                                                                                
+SP000005                                                                        
+Thịt vịt xiêm                                                              
+           10128                                                                
+                                                                                
+SP000006                                                                        
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+Cá hồi NaUy nguyên con                                                      
+            8099                                                                
+                                                                                
+SP000007                                                                        
+Mực ống Trường Sa                                                        
+            9866                                                                
+                                                                                
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+SP000008                                                                        
+Tôm sú Cà Mau                                                                
+           11651                                                                
+                                                                                
+SP000009                                                                        
+Cua thịt Năm Căn                                                            
+           11869                                                                
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+                                                                                
+SP000010                                                                        
+Bạch tuộc sữa                                                             
+            9694                                                                
+                                                                                
+SP000011                                                                        
+Cải bắp Đà Lạt                                                          
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+           10890                                                                
+                                                                                
+SP000012                                                                        
+Cà chua Cherry                                                                 
+            9144                                                                
+                                                                                
+SP000013                                                                        
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+Súp lơ xanh                                                                   
+            9930                                                                
+                                                                                
+SP000014                                                                        
+Cà rốt Baby                                                                  
+            8802                                                                
+                                                                                
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+SP000015                                                                        
+Khoai tây mầm                                                                
+           10589                                                                
+                                                                                
+SP000016                                                                        
+Táo Envy Mỹ                                                                  
+            8190                                                                
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+                                                                                
+SP000017                                                                        
+Nho mẫu đơn Hàn Quốc                                                     
+            7302                                                                
+                                                                                
+SP000018                                                                        
+Dâu tây Mộc Châu                                                           
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+            7629                                                                
+                                                                                
+SP000019                                                                        
+Dưa lưới Taki                                                               
+            8944                                                                
+                                                                                
+SP000020                                                                        
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+Bơ sáp Đắk Lắk                                                           
+            7268                                                                
+                                                                                
+SP000021                                                                        
+Hạt điều rang củi                                                        
+            7330                                                                
+                                                                                
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+SP000022                                                                        
+Hạt macca Úc                                                                 
+            7725                                                                
+                                                                                
+SP000023                                                                        
+Đậu phộng sấy                                                            
+            6106                                                                
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+                                                                                
+SP000024                                                                        
+Hạt dẻ cười Mỹ                                                         
+            9420                                                                
+                                                                                
+SP000025                                                                        
+Gạo ST25                                                                      
+
+MASP                                                                            
+----------                                                                      
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tổng SL Nhập                                                                
+----------------                                                                
+            8172                                                                
+                                                                                
+
+25 rows selected.
+
+SQL> 
+SQL> -- 5. Xác minh số lần biến động giá của sản phẩm đặc biệt SP000001 (chi tiết)
+SQL> PROMPT
+
+SQL> PROMPT ====================================================================================
+====================================================================================
+SQL> PROMPT 5. Số lần biến động giá của sản phẩm chi tiết SP000001 (Yêu cầu ít nhất 4 lần/tháng):
+5. Số lần biến động giá của sản phẩm chi tiết SP000001 (Yêu cầu ít nhất 4 lần/tháng):
+SQL> PROMPT ====================================================================================
+====================================================================================
+SQL> SELECT TO_CHAR(TGApDung, 'MM-YYYY') AS "Tháng-Năm", COUNT(*) AS "Số lần biến động"
+  2  FROM LICHSUGIA
+  3  WHERE MaSP = 'SP000001'
+  4  GROUP BY TO_CHAR(TGApDung, 'MM-YYYY')
+  5  ORDER BY TO_CHAR(TGApDung, 'MM-YYYY');
+
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+01-2026                         4                                               
+02-2026                         4                                               
+03-2026                         4                                               
+04-2026                         4                                               
+05-2026                         4                                               
+10-2025                         1                                               
+11-2025                         4                                               
+12-2025                         4                                               
+
+8 rows selected.
+
+SQL> 
+SQL> -- 6. Xác minh số lần biến động giá của các nhóm loại sản phẩm mỗi tháng
+SQL> PROMPT
+
+SQL> PROMPT ====================================================================================
+====================================================================================
+SQL> PROMPT 6. Số lần biến động giá trung bình theo từng Loại Sản Phẩm mỗi tháng (Yêu cầu 1-2 lần/tháng):
+6. Số lần biến động giá trung bình theo từng Loại Sản Phẩm mỗi tháng (Yêu cầu 1-2 lần/tháng):
+SQL> PROMPT ====================================================================================
+====================================================================================
+SQL> SELECT lsp.TenLSP AS "Loại Sản Phẩm", TO_CHAR(lsg.TGApDung, 'MM-YYYY') AS "Tháng-Năm", COUNT(*) AS "Số lần biến động"
+  2  FROM LICHSUGIA lsg
+  3  JOIN SANPHAM sp ON lsg.MaSP = sp.MaSP
+  4  JOIN LOAISANPHAM lsp ON sp.MaLSP = lsp.MaLSP
+  5  GROUP BY lsp.TenLSP, TO_CHAR(lsg.TGApDung, 'MM-YYYY')
+  6  ORDER BY TO_CHAR(lsg.TGApDung, 'MM-YYYY'), lsp.TenLSP;
+
+Loại Sản Phẩm                                                             
+--------------------------------------------------------------------------------
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+Ngũ cốc và hạt                                                            
+01-2026                         2                                               
+                                                                                
+Rau củ quả                                                                  
+01-2026                         2                                               
+                                                                                
+Thủy hải sản                                                              
+01-2026                         2                                               
+                                                                                
+
+Loại Sản Phẩm                                                             
+--------------------------------------------------------------------------------
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+Thịt các loại                                                              
+01-2026                         6                                               
+                                                                                
+Trái cây                                                                      
+01-2026                         2                                               
+                                                                                
+Ngũ cốc và hạt                                                            
+02-2026                         2                                               
+                                                                                
+
+Loại Sản Phẩm                                                             
+--------------------------------------------------------------------------------
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+Rau củ quả                                                                  
+02-2026                         2                                               
+                                                                                
+Thủy hải sản                                                              
+02-2026                         2                                               
+                                                                                
+Thịt các loại                                                              
+02-2026                         6                                               
+                                                                                
+
+Loại Sản Phẩm                                                             
+--------------------------------------------------------------------------------
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+Trái cây                                                                      
+02-2026                         2                                               
+                                                                                
+Ngũ cốc và hạt                                                            
+03-2026                         2                                               
+                                                                                
+Rau củ quả                                                                  
+03-2026                         2                                               
+                                                                                
+
+Loại Sản Phẩm                                                             
+--------------------------------------------------------------------------------
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+Thủy hải sản                                                              
+03-2026                         2                                               
+                                                                                
+Thịt các loại                                                              
+03-2026                         6                                               
+                                                                                
+Trái cây                                                                      
+03-2026                         2                                               
+                                                                                
+
+Loại Sản Phẩm                                                             
+--------------------------------------------------------------------------------
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+Ngũ cốc và hạt                                                            
+04-2026                         2                                               
+                                                                                
+Rau củ quả                                                                  
+04-2026                         1                                               
+                                                                                
+Thủy hải sản                                                              
+04-2026                         2                                               
+                                                                                
+
+Loại Sản Phẩm                                                             
+--------------------------------------------------------------------------------
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+Thịt các loại                                                              
+04-2026                         6                                               
+                                                                                
+Trái cây                                                                      
+04-2026                         2                                               
+                                                                                
+Ngũ cốc và hạt                                                            
+05-2026                         2                                               
+                                                                                
+
+Loại Sản Phẩm                                                             
+--------------------------------------------------------------------------------
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+Rau củ quả                                                                  
+05-2026                         2                                               
+                                                                                
+Thủy hải sản                                                              
+05-2026                         2                                               
+                                                                                
+Thịt các loại                                                              
+05-2026                         6                                               
+                                                                                
+
+Loại Sản Phẩm                                                             
+--------------------------------------------------------------------------------
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+Trái cây                                                                      
+05-2026                         2                                               
+                                                                                
+Ngũ cốc và hạt                                                            
+10-2025                         5                                               
+                                                                                
+Rau củ quả                                                                  
+10-2025                         5                                               
+                                                                                
+
+Loại Sản Phẩm                                                             
+--------------------------------------------------------------------------------
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+Thủy hải sản                                                              
+10-2025                         5                                               
+                                                                                
+Thịt các loại                                                              
+10-2025                         5                                               
+                                                                                
+Trái cây                                                                      
+10-2025                         5                                               
+                                                                                
+
+Loại Sản Phẩm                                                             
+--------------------------------------------------------------------------------
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+Ngũ cốc và hạt                                                            
+11-2025                         2                                               
+                                                                                
+Rau củ quả                                                                  
+11-2025                         2                                               
+                                                                                
+Thủy hải sản                                                              
+11-2025                         2                                               
+                                                                                
+
+Loại Sản Phẩm                                                             
+--------------------------------------------------------------------------------
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+Thịt các loại                                                              
+11-2025                         6                                               
+                                                                                
+Trái cây                                                                      
+11-2025                         2                                               
+                                                                                
+Ngũ cốc và hạt                                                            
+12-2025                         2                                               
+                                                                                
+
+Loại Sản Phẩm                                                             
+--------------------------------------------------------------------------------
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+Rau củ quả                                                                  
+12-2025                         2                                               
+                                                                                
+Thủy hải sản                                                              
+12-2025                         2                                               
+                                                                                
+Thịt các loại                                                              
+12-2025                         6                                               
+                                                                                
+
+Loại Sản Phẩm                                                             
+--------------------------------------------------------------------------------
+Tháng- Số lần biến động                                               
+------- -------------------------                                               
+Trái cây                                                                      
+12-2025                         2                                               
+                                                                                
+
+40 rows selected.
+
+SQL> 
+SQL> -- 7. Xác minh tính nhất quán giữa tồn kho khả dụng và số lượng tạm giữ
+SQL> PROMPT
+
+SQL> PROMPT ====================================================================================
+====================================================================================
+SQL> PROMPT 7. Kiểm tra tính đồng bộ giữa SL tồn kho thực tế, SL khả dụng và SL tạm giữ trong XUATKHO:
+7. Kiểm tra tính đồng bộ giữa SL tồn kho thực tế, SL khả dụng và SL tạm giữ trong XUATKHO:
+SQL> PROMPT ====================================================================================
+====================================================================================
+SQL> SELECT tk.MaTonKho, tk.MaSP, sp.TenSP, tk.SLConLai AS "Tồn kho thực tế (ConLai)", tk.SLKhaDung AS "SL Khả dụng (KhaDung)",
+  2  	    (tk.SLConLai - tk.SLKhaDung) AS "Chênh lệch (Tạm giữ)",
+  3  	    NVL((SELECT SUM(SLXuat) FROM XUATKHO WHERE MaTonKho = tk.MaTonKho AND TrangThaiXK = 'Tạm giữ'), 0) AS "Tạm giữ ở XUATKHO"
+  4  FROM TONKHO tk
+  5  JOIN SANPHAM sp ON tk.MaSP = sp.MaSP
+  6  WHERE tk.SLConLai <> tk.SLKhaDung OR (tk.SLConLai - tk.SLKhaDung) <> 0
+  7  ORDER BY tk.MaTonKho;
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000100   SP000001                                                             
+Thịt heo Iberico                                                              
+                           683                       640                        
+                         43                      43                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000102   SP000003                                                             
+Thịt gà ta thả vườn                                                     
+                          2081                      1983                        
+                         98                      98                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000104   SP000005                                                             
+Thịt vịt xiêm                                                              
+                          1052                       968                        
+                         84                      84                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000105   SP000006                                                             
+Cá hồi NaUy nguyên con                                                      
+                          1704                      1591                        
+                        113                     113                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000107   SP000008                                                             
+Tôm sú Cà Mau                                                                
+                          1497                      1402                        
+                         95                      95                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000111   SP000012                                                             
+Cà chua Cherry                                                                 
+                          1245                      1191                        
+                         54                      54                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000112   SP000013                                                             
+Súp lơ xanh                                                                   
+                           731                       545                        
+                        186                     186                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000114   SP000015                                                             
+Khoai tây mầm                                                                
+                          1643                      1540                        
+                        103                     103                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000115   SP000016                                                             
+Táo Envy Mỹ                                                                  
+                          2309                      2251                        
+                         58                      58                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000116   SP000017                                                             
+Nho mẫu đơn Hàn Quốc                                                     
+                           520                       491                        
+                         29                      29                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000117   SP000018                                                             
+Dâu tây Mộc Châu                                                           
+                          2345                      2288                        
+                         57                      57                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000118   SP000019                                                             
+Dưa lưới Taki                                                               
+                          1570                      1550                        
+                         20                      20                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000119   SP000020                                                             
+Bơ sáp Đắk Lắk                                                           
+                          2095                      2014                        
+                         81                      81                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000121   SP000022                                                             
+Hạt macca Úc                                                                 
+                           830                       765                        
+                         65                      65                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000122   SP000023                                                             
+Đậu phộng sấy                                                            
+                          1483                      1311                        
+                        172                     172                             
+                                                                                
+
+MATONKHO   MASP                                                                 
+---------- ----------                                                           
+TENSP                                                                           
+--------------------------------------------------------------------------------
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
+------------------------------ -------------------------                        
+Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
+--------------------------- -----------------------                             
+TK000123   SP000024                                                             
+Hạt dẻ cười Mỹ                                                         
+                          2258                      2231                        
+                         27                      27                             
+                                                                                
+
+16 rows selected.
+
 SQL> 
 SQL> SPOOL OFF;
