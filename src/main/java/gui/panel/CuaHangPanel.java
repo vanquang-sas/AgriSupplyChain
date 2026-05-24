@@ -42,6 +42,8 @@ public class CuaHangPanel extends JPanel {
     private JScrollPane scrollPane;
 
     private SwingWorker<List<SanPhamDTO>, Void> activeFilterWorker;
+    private List<SanPhamDTO> allProducts = new java.util.ArrayList<>();
+    private boolean ignoreFilter = false;
 
     public CuaHangPanel(MainFrame parentFrame) {
 
@@ -326,10 +328,13 @@ public class CuaHangPanel extends JPanel {
                 if (isCancelled()) return;
                 try {
                     List<SanPhamDTO> result = get();
+                    allProducts = result;
                     if (categories != null) {
+                        ignoreFilter = true;
                         for (dto.LoaiSanPhamDTO cat : categories) {
                             cboLoai.addItem(new CategoryItem(cat.getMaLSP(), cat.getTenLSP()));
                         }
+                        ignoreFilter = false;
                     }
                     loadData(result);
                 } catch (Exception e) {
@@ -359,7 +364,12 @@ public class CuaHangPanel extends JPanel {
     // FILTER
     // =========================================
     private void filterSanPham() {
-        String keyword = txtTimKiem.getText().trim();
+        if (ignoreFilter) return;
+        if (allProducts == null || allProducts.isEmpty()) {
+            return;
+        }
+
+        String keyword = txtTimKiem.getText().trim().toLowerCase();
         Object selected = cboLoai.getSelectedItem();
         String loaiTemp = "Tất cả";
         if (selected instanceof CategoryItem) {
@@ -369,38 +379,17 @@ public class CuaHangPanel extends JPanel {
         }
         final String loai = loaiTemp;
 
-        if (activeFilterWorker != null && !activeFilterWorker.isDone()) {
-            activeFilterWorker.cancel(true);
+        List<SanPhamDTO> filteredList = new java.util.ArrayList<>();
+        for (SanPhamDTO sp : allProducts) {
+            boolean matchesCategory = loai.equals("Tất cả") || sp.getMaLSP().equals(loai);
+            boolean matchesKeyword = keyword.isEmpty() || sp.getTenSP().toLowerCase().contains(keyword);
+
+            if (matchesCategory && matchesKeyword) {
+                filteredList.add(sp);
+            }
         }
 
-        activeFilterWorker = new SwingWorker<>() {
-            @Override
-            protected List<SanPhamDTO> doInBackground() throws Exception {
-                if (!keyword.isEmpty()) {
-                    List<SanPhamDTO> list = bus.timKiem(keyword);
-                    if (!loai.equals("Tất cả")) {
-                        list.removeIf(sp -> !sp.getMaLSP().equals(loai));
-                    }
-                    return list;
-                } else if (!loai.equals("Tất cả")) {
-                    return bus.locTheoLoai(loai);
-                } else {
-                    return bus.getAllSanPham();
-                }
-            }
-
-            @Override
-            protected void done() {
-                if (isCancelled()) return;
-                try {
-                    List<SanPhamDTO> result = get();
-                    loadData(result);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        activeFilterWorker.execute();
+        loadData(filteredList);
     }
 
     public static class CategoryItem {

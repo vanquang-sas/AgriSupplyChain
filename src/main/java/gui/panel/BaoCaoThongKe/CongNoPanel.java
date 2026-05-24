@@ -43,6 +43,7 @@ public class CongNoPanel extends JPanel {
 
     // Components UI
     private JTextField txtSearch;
+    private JComboBox<String> cboTime;
     private JLabel lblTotalDebt;
     private JLabel lblCustomerCount;
     private JLabel lblPaymentRate;
@@ -94,6 +95,18 @@ public class CongNoPanel extends JPanel {
         pnlSearch.add(lblSearch);
         pnlSearch.add(txtSearch);
 
+        JLabel lblTime = new JLabel("Thời gian:");
+        lblTime.setFont(new Font("Segoe UI", Font.BOLD, 13));
+
+        cboTime = new JComboBox<>(new String[]{"Tất cả", "1 tháng", "3 tháng", "6 tháng", "1 năm"});
+        cboTime.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cboTime.setPreferredSize(new Dimension(120, 30));
+        cboTime.addActionListener(e -> loadData());
+
+        pnlSearch.add(Box.createHorizontalStrut(15));
+        pnlSearch.add(lblTime);
+        pnlSearch.add(cboTime);
+
         // Các nút thao tác ở bên phải
         JPanel pnlActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         pnlActions.setBackground(Color.WHITE);
@@ -102,6 +115,9 @@ public class CongNoPanel extends JPanel {
         styleButton(btnRefresh, AppColor.PRIMARY);
         btnRefresh.addActionListener(e -> {
             txtSearch.setText("");
+            if (cboTime != null) {
+                cboTime.setSelectedIndex(0);
+            }
             loadData();
         });
 
@@ -159,7 +175,15 @@ public class CongNoPanel extends JPanel {
     }
 
     private void loadData() {
-        allData = thongKeBUS.getThongKeCongNo();
+        int months = 0;
+        if (cboTime != null) {
+            String selected = (String) cboTime.getSelectedItem();
+            if ("1 tháng".equals(selected)) months = 1;
+            else if ("3 tháng".equals(selected)) months = 3;
+            else if ("6 tháng".equals(selected)) months = 6;
+            else if ("1 năm".equals(selected)) months = 12;
+        }
+        allData = thongKeBUS.getThongKeCongNo(months);
         filterData();
     }
 
@@ -290,7 +314,7 @@ public class CongNoPanel extends JPanel {
         }
 
         barChart = ChartFactory.createBarChart(
-                "Top 5 khách nợ nhiều nhất",
+                "Top 5 khách có công nợ lớn nhất",
                 "Khách hàng",
                 "Số tiền nợ (VNĐ)",
                 barDataset,

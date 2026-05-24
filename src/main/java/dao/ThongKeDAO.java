@@ -256,20 +256,37 @@ public class ThongKeDAO {
 
     // ============================= THỐNG KÊ CÔNG NỢ KHÁCH HÀNG =============================
     public List<ThongKeDTO.CongNo> getThongKeCongNo() {
+        return getThongKeCongNo(0);
+    }
+
+    public List<ThongKeDTO.CongNo> getThongKeCongNo(int months) {
         List<ThongKeDTO.CongNo> list = new ArrayList<>();
-        String sql = "SELECT * FROM V_THONGKE_CONGNO WHERE ConNo > 0 ORDER BY ConNo DESC";
+        String sql = "SELECT kh.MaKH, kh.TenKH, COUNT(dh.MaDH) AS SoDonGhiNo, " +
+                     "SUM(dh.TongTien) AS TongTien, " +
+                     "SUM(CASE WHEN dh.TrangThaiTT = 1 THEN dh.TongTien ELSE 0 END) AS DaThanhToan, " +
+                     "SUM(CASE WHEN dh.TrangThaiTT = 0 AND dh.TrangThaiDH <> N'Đã huỷ' THEN dh.TongTien ELSE 0 END) AS ConNo " +
+                     "FROM KHACHHANG kh " +
+                     "JOIN DONHANG dh ON kh.MaKH = dh.MaKH " +
+                     "WHERE dh.PhuongThucTT = N'Ghi nợ' " +
+                     "  AND (? <= 0 OR dh.TGDat >= ADD_MONTHS(SYSDATE, -?)) " +
+                     "GROUP BY kh.MaKH, kh.TenKH " +
+                     "HAVING SUM(CASE WHEN dh.TrangThaiTT = 0 AND dh.TrangThaiDH <> N'Đã huỷ' THEN dh.TongTien ELSE 0 END) > 0 " +
+                     "ORDER BY ConNo DESC";
         try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(new ThongKeDTO.CongNo(
-                    rs.getString("MaKH"),
-                    rs.getString("TenKH"),
-                    rs.getInt("SoDonGhiNo"),
-                    rs.getDouble("TongTien"),
-                    rs.getDouble("DaThanhToan"),
-                    rs.getDouble("ConNo")
-                ));
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, months);
+            ps.setInt(2, months);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new ThongKeDTO.CongNo(
+                        rs.getString("MaKH"),
+                        rs.getString("TenKH"),
+                        rs.getInt("SoDonGhiNo"),
+                        rs.getDouble("TongTien"),
+                        rs.getDouble("DaThanhToan"),
+                        rs.getDouble("ConNo")
+                    ));
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

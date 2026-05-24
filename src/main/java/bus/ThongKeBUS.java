@@ -51,4 +51,8 @@ public class ThongKeBUS {
     public List<ThongKeDTO.CongNo> getThongKeCongNo() {
         return thongKeDAO.getThongKeCongNo();
     }
+
+    public List<ThongKeDTO.CongNo> getThongKeCongNo(int months) {
+        return thongKeDAO.getThongKeCongNo(months);
+    }
 }
