@@ -2,7 +2,6 @@ package gui.dialog;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import gui.MainFrame;
-import util.Session;
 import dto.DonHangDTO;
 import dto.ChiTietDonHangDTO;
 import dao.DonHangDAO;
@@ -199,7 +198,8 @@ public class HienThiQRForm extends JDialog {
                 donHang.setTrangThaiTT(1);
                 if (isPayingDebt) {
                     donHang.setTrangThaiDH("Hoàn thành");
-                    JOptionPane.showMessageDialog(this, "Thanh toán nợ thành công cho đơn hàng: " + donHang.getMaDH() + "\nPhương thức thanh toán đã chuyển thành: " + donHang.getPhuongThucTT(), "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                    donHang.setPhuongThucTT("Ghi nợ");
+                    JOptionPane.showMessageDialog(this, "Thanh toán nợ thành công cho đơn hàng: " + donHang.getMaDH() + "\nPhương thức thanh toán giữ nguyên là: Ghi nợ", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(this, "Hệ thống ghi nhận đặt hàng & thanh toán thành công!\nMã đơn hàng: " + donHang.getMaDH(), "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 }

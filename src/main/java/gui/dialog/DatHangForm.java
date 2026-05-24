@@ -501,7 +501,7 @@ public class DatHangForm extends JDialog {
             donHang.setGiamGia(giamGia.doubleValue());
             donHang.setTongTien(tongThanhToan.doubleValue());
             donHang.setTrangThaiDH("Đã đặt");
-            donHang.setTrangThaiTT(0); // Trạng thái thanh toán ban đầu là 0 (Chưa thanh toán)
+            donHang.setTrangThaiTT(0); 
 
             List<ChiTietDonHangDTO> chiTietList = new ArrayList<>();
             for (GioHangDTO item : Session.cartCache) {

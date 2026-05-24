@@ -46,4 +46,9 @@ public class ThongKeBUS {
     public List<ThongKeDTO.HieuSuatChiTiet> getHieuSuatNhanVien(String maNV, int months) {
         return thongKeDAO.getHieuSuatNhanVien(maNV, months);
     }
+
+    // ============================= THỐNG KÊ CÔNG NỢ KHÁCH HÀNG =============================
+    public List<ThongKeDTO.CongNo> getThongKeCongNo() {
+        return thongKeDAO.getThongKeCongNo();
+    }
 }

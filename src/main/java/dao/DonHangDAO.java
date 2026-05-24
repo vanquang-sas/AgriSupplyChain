@@ -246,10 +246,9 @@ public class DonHangDAO {
         boolean result = false;
         try {
             conn = DBConnection.getConnection();
-            String sql = "UPDATE DONHANG SET TrangThaiTT = 1, TrangThaiDH = N'Hoàn thành', PhuongThucTT = ? WHERE MaDH = ?";
+            String sql = "UPDATE DONHANG SET TrangThaiTT = 1, TrangThaiDH = N'Hoàn thành' WHERE MaDH = ?";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, phuongThucTT);
-            pstmt.setString(2, maDH);
+            pstmt.setString(1, maDH);
             int rows = pstmt.executeUpdate();
             result = rows > 0;
         } catch (SQLException e) {

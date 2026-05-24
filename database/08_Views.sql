@@ -47,3 +47,15 @@ JOIN DONHANG dh ON ct.MaDH = dh.MaDH
 JOIN SANPHAM sp ON ct.MaSP = sp.MaSP
 WHERE dh.TrangThaiDH NOT IN ('Đã hủy');
 
+CREATE OR REPLACE VIEW V_THONGKE_CONGNO AS
+SELECT 
+    kh.MaKH,
+    kh.TenKH,
+    COUNT(dh.MaDH) AS SoDonGhiNo,
+    SUM(dh.TongTien) AS TongTien,
+    SUM(CASE WHEN dh.TrangThaiTT = 1 THEN dh.TongTien ELSE 0 END) AS DaThanhToan,
+    SUM(CASE WHEN dh.TrangThaiTT = 0 AND dh.TrangThaiDH <> N'Đã huỷ' THEN dh.TongTien ELSE 0 END) AS ConNo
+FROM KHACHHANG kh
+JOIN DONHANG dh ON kh.MaKH = dh.MaKH
+WHERE dh.PhuongThucTT = N'Ghi nợ'
+GROUP BY kh.MaKH, kh.TenKH;

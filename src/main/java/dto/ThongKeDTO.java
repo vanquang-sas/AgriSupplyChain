@@ -95,4 +95,25 @@ public class ThongKeDTO {
             this.tgApDung = tgApDung;
         }
     }
+
+    // Inner class cho Quản lý công nợ
+    public static class CongNo {
+        public String maKH;
+        public String tenKH;
+        public int soDonGhiNo;
+        public double tongTien;
+        public double daThanhToan;
+        public double conNo;
+
+        public CongNo() {}
+
+        public CongNo(String maKH, String tenKH, int soDonGhiNo, double tongTien, double daThanhToan, double conNo) {
+            this.maKH = maKH;
+            this.tenKH = tenKH;
+            this.soDonGhiNo = soDonGhiNo;
+            this.tongTien = tongTien;
+            this.daThanhToan = daThanhToan;
+            this.conNo = conNo;
+        }
+    }
 }

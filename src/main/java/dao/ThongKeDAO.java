@@ -253,4 +253,27 @@ public class ThongKeDAO {
         } catch (Exception e) { e.printStackTrace(); }
         return list;
     }
+
+    // ============================= THỐNG KÊ CÔNG NỢ KHÁCH HÀNG =============================
+    public List<ThongKeDTO.CongNo> getThongKeCongNo() {
+        List<ThongKeDTO.CongNo> list = new ArrayList<>();
+        String sql = "SELECT * FROM V_THONGKE_CONGNO WHERE ConNo > 0 ORDER BY ConNo DESC";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(new ThongKeDTO.CongNo(
+                    rs.getString("MaKH"),
+                    rs.getString("TenKH"),
+                    rs.getInt("SoDonGhiNo"),
+                    rs.getDouble("TongTien"),
+                    rs.getDouble("DaThanhToan"),
+                    rs.getDouble("ConNo")
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }
