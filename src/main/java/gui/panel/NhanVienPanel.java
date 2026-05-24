@@ -95,19 +95,19 @@ public class NhanVienPanel extends JPanel {
     // STAT CARDS
     // ─────────────────────────────────────────────────────────────────────────
     private JPanel buildStats() {
-        JPanel row = new JPanel(new GridLayout(1, 3, 16, 0));
-        row.setOpaque(false);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
-        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JPanel cardTomTat = new JPanel(new GridLayout(1, 3, 16, 0));
+        cardTomTat.setOpaque(false);
+        cardTomTat.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+        cardTomTat.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         lblTongNV   = new JLabel("0");
         lblHoatDong = new JLabel("0");
         lblDaKhoa   = new JLabel("0");
 
-        row.add(createStatCard("Tổng nhân viên", lblTongNV,   new Color(0x3B82F6), "👥"));
-        row.add(createStatCard("Đang hoạt động", lblHoatDong, new Color(0x10B981), "🟢"));
-        row.add(createStatCard("Đã khóa",        lblDaKhoa,   new Color(0xEF4444), "🔒"));
-        return row;
+        cardTomTat.add(createStatCard("Tổng nhân viên", lblTongNV,   new Color(0x3B82F6), "👥"));
+        cardTomTat.add(createStatCard("Đang hoạt động", lblHoatDong, new Color(0x10B981), "🟢"));
+        cardTomTat.add(createStatCard("Đã khóa",        lblDaKhoa,   new Color(0xEF4444), "🔒"));
+        return cardTomTat;
     }
 
     private JPanel createStatCard(String cardTitle, JLabel valueLabel, Color accent, String icon) {

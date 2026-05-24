@@ -88,22 +88,21 @@ public class KhoPanel extends JPanel {
     }
 
     private JPanel buildStats() {
-        // Form kho bãi có 4 loại thẻ nên ta dùng GridLayout 1x4
-        JPanel row = new JPanel(new GridLayout(1, 4, 16, 0));
-        row.setOpaque(false);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
-        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JPanel cardTomTat = new JPanel(new GridLayout(1, 4, 16, 0));
+        cardTomTat.setOpaque(false);
+        cardTomTat.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+        cardTomTat.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         lblTongKho = new JLabel("0");
         lblKhoMat  = new JLabel("0");
         lblKhoLanh = new JLabel("0");
         lblKhoDong = new JLabel("0");
 
-        row.add(createStatCard("Tổng số kho", lblTongKho, new Color(0x3B82F6), "🏢"));
-        row.add(createStatCard("Kho Mát",     lblKhoMat,  new Color(0x0369A1), "🌿"));
-        row.add(createStatCard("Kho Lạnh",    lblKhoLanh, new Color(0x1D4ED8), "❄"));
-        row.add(createStatCard("Kho Đông",    lblKhoDong, new Color(0x6D28D9), "🧊"));
-        return row;
+        cardTomTat.add(createStatCard("Tổng số kho", lblTongKho, new Color(0x3B82F6), "🏢"));
+        cardTomTat.add(createStatCard("Kho Mát",     lblKhoMat,  new Color(0x0369A1), "🌿"));
+        cardTomTat.add(createStatCard("Kho Lạnh",    lblKhoLanh, new Color(0x1D4ED8), "❄"));
+        cardTomTat.add(createStatCard("Kho Đông",    lblKhoDong, new Color(0x6D28D9), "🧊"));
+        return cardTomTat;
     }
 
     private JPanel createStatCard(String cardTitle, JLabel valueLabel, Color accent, String icon) {

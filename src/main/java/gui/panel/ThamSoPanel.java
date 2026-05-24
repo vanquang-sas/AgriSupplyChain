@@ -343,25 +343,25 @@ public class ThamSoPanel extends JPanel {
     }
 
     private JButton createIconButton(String svgPath) {
-        JButton btn = new JButton();
+        JButton btnRefresh = new JButton();
         try {
-            btn.setIcon(new com.formdev.flatlaf.extras.FlatSVGIcon(svgPath, 18, 18));
+            btnRefresh.setIcon(new com.formdev.flatlaf.extras.FlatSVGIcon(svgPath, 18, 18));
         } catch (Throwable ex) {
-            btn.setText("↻");
-            btn.setFont(new Font("Segoe UI", Font.BOLD, 18));
+            btnRefresh.setText("↻");
+            btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 18));
         }
-        btn.setPreferredSize(new Dimension(42, 42)); 
-        btn.setContentAreaFilled(false);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnRefresh.setPreferredSize(new Dimension(42, 42)); 
+        btnRefresh.setContentAreaFilled(false);
+        btnRefresh.setFocusPainted(false);
+        btnRefresh.setBorderPainted(false);
+        btnRefresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         
-        btn.addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e) { btn.putClientProperty("hover", true); btn.repaint(); }
-            @Override public void mouseExited(MouseEvent e) { btn.putClientProperty("hover", false); btn.repaint(); }
+        btnRefresh.addMouseListener(new MouseAdapter() {
+            @Override public void mouseEntered(MouseEvent e) { btnRefresh.putClientProperty("hover", true); btnRefresh.repaint(); }
+            @Override public void mouseExited(MouseEvent e) { btnRefresh.putClientProperty("hover", false); btnRefresh.repaint(); }
         });
         
-        btn.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+        btnRefresh.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
             @Override
             public void paint(Graphics g, JComponent c) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -379,7 +379,7 @@ public class ThamSoPanel extends JPanel {
                 super.paint(g, c);
             }
         });
-        return btn;
+        return btnRefresh;
     }
 
     private String getDisplayName(String tenTS) {
@@ -388,7 +388,7 @@ public class ThamSoPanel extends JPanel {
             case "CANHBAO_HETHAN":      return "Cảnh báo hạn sử dụng";
             case "MAX_TG_THANHTOAN":    return "Thời gian chờ thanh toán";
             case "SHIP_THUONG":         return "Phí ship Khách Thường";
-            case "SHIP_THANTHIET":     return "Phí ship Khách Thân thiết";
+            case "SHIP_THANTHIET":      return "Phí ship Khách Thân thiết";
             case "SHIP_VIP":            return "Phí ship Khách VIP";
             case "GG_THUONG":           return "Ưu đãi Khách Thường";
             case "GG_THANTHIET":        return "Ưu đãi Khách Thân thiết";

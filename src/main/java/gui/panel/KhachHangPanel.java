@@ -89,19 +89,19 @@ public class KhachHangPanel extends JPanel {
     }
 
     private JPanel buildStats() {
-        JPanel row = new JPanel(new GridLayout(1, 3, 16, 0));
-        row.setOpaque(false);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
-        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JPanel cardTomTat = new JPanel(new GridLayout(1, 3, 16, 0));
+        cardTomTat.setOpaque(false);
+        cardTomTat.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+        cardTomTat.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         lblTongKH      = new JLabel("0");
         lblKHVIP       = new JLabel("0");
         lblKHThanThiet = new JLabel("0");
 
-        row.add(createStatCard("Tổng khách hàng", lblTongKH,      new Color(0x3B82F6), "👥"));
-        row.add(createStatCard("Khách VIP",        lblKHVIP,       new Color(0xF59E0B), "⭐"));
-        row.add(createStatCard("Khách thân thiết", lblKHThanThiet, new Color(0x10B981), "💚"));
-        return row;
+        cardTomTat.add(createStatCard("Tổng khách hàng", lblTongKH,      new Color(0x3B82F6), "👥"));
+        cardTomTat.add(createStatCard("Khách VIP",        lblKHVIP,       new Color(0xF59E0B), "⭐"));
+        cardTomTat.add(createStatCard("Khách thân thiết", lblKHThanThiet, new Color(0x10B981), "💚"));
+        return cardTomTat;
     }
 
     private JPanel createStatCard(String cardTitle, JLabel valueLabel, Color accent, String icon) {

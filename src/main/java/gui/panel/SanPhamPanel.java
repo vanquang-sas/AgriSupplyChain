@@ -74,21 +74,21 @@ public class SanPhamPanel extends JPanel {
     }
 
     private JPanel buildStats() {
-        JPanel row = new JPanel(new GridLayout(1, 4, 16, 0));
-        row.setOpaque(false);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
-        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JPanel cardTomTat = new JPanel(new GridLayout(1, 4, 16, 0));
+        cardTomTat.setOpaque(false);
+        cardTomTat.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+        cardTomTat.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         lblTongSP  = new JLabel("0");
         lblSPLoai1 = new JLabel("0");
         lblSPLoai2 = new JLabel("0");
         lblSPLoai3 = new JLabel("0");
 
-        row.add(createStatCard("Tổng sản phẩm", lblTongSP,  new Color(0x3B82F6), "📦"));
-        row.add(createStatCard("SP Loại 1",     lblSPLoai1, new Color(0x10B981), "⭐"));
-        row.add(createStatCard("SP Loại 2",     lblSPLoai2, new Color(0xF59E0B), "✨"));
-        row.add(createStatCard("SP Loại 3",     lblSPLoai3, new Color(0xEF4444), "🏷️"));
-        return row;
+        cardTomTat.add(createStatCard("Tổng sản phẩm", lblTongSP,  new Color(0x3B82F6), "📦"));
+        cardTomTat.add(createStatCard("SP Loại 1",     lblSPLoai1, new Color(0x10B981), "⭐"));
+        cardTomTat.add(createStatCard("SP Loại 2",     lblSPLoai2, new Color(0xF59E0B), "✨"));
+        cardTomTat.add(createStatCard("SP Loại 3",     lblSPLoai3, new Color(0xEF4444), "🏷️"));
+        return cardTomTat;
     }
 
     private JPanel createStatCard(String cardTitle, JLabel valueLabel, Color accent, String icon) {

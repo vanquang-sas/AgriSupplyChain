@@ -141,7 +141,7 @@ BEGIN
         FROM CHITIETLOHANG CTLH
         JOIN SANPHAM SP ON CTLH.MaSP = SP.MaSP
         JOIN LOHANG LH ON CTLH.MaLH = LH.MaLH
-        WHERE LH.TrangThaiLH IN (N'Chờ nhập kho', N'Chờ kiểm duyệt');
+        WHERE LH.TrangThaiLH = N'Chờ nhập kho';
     RETURN v_cursor;
 END;
 /
