@@ -307,7 +307,7 @@ BEGIN
         CostData AS (
             SELECT TRUNC(TGNhap, 'MM') AS ThoiGian, SUM(TongTien) AS ChiPhi
             FROM LOHANG
-            WHERE TrangThaiLH = 'Đã nhập kho' 
+            WHERE TrangThaiLH = N'Đã nhập kho' 
               AND TGNhap >= ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -p_Period + 1)
             GROUP BY TRUNC(TGNhap, 'MM')
         )
@@ -337,7 +337,7 @@ BEGIN
         CostData AS (
             SELECT TRUNC(TGNhap) AS ThoiGian, SUM(TongTien) AS ChiPhi
             FROM LOHANG
-            WHERE TrangThaiLH = 'Đã nhập kho' 
+            WHERE TrangThaiLH = N'Đã nhập kho' 
               AND TGNhap >= TRUNC(v_AnchorDate) - p_Period + 1
             GROUP BY TRUNC(TGNhap)
         )

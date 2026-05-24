@@ -105,10 +105,10 @@ CREATE OR REPLACE PROCEDURE SP_YEUCAU_NHAPKHO (p_MaLH IN VARCHAR2) IS
     v_TrangThaiLH NVARCHAR2(50);
 BEGIN
     SELECT TrangThaiLH INTO v_TrangThaiLH FROM LOHANG WHERE MaLH = p_MaLH;
-    IF v_TrangThaiLH IN ('Chờ nhập kho', 'Đã nhập kho') THEN
+    IF v_TrangThaiLH IN (N'Chờ nhập kho', N'Đã nhập kho') THEN
         RAISE_APPLICATION_ERROR(-20022, 'Lô hàng này đã được yêu cầu hoặc đã hoàn tất nhập kho!');
     END IF;
-    UPDATE LOHANG SET TrangThaiLH = 'Chờ nhập kho' WHERE MaLH = p_MaLH;
+    UPDATE LOHANG SET TrangThaiLH = N'Chờ nhập kho' WHERE MaLH = p_MaLH;
     COMMIT;
 EXCEPTION 
     WHEN OTHERS THEN ROLLBACK; RAISE;

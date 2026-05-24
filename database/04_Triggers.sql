@@ -222,7 +222,7 @@ CREATE OR REPLACE TRIGGER TRG_LH_XOA
 BEFORE DELETE ON LOHANG
 FOR EACH ROW
 BEGIN
-    IF :OLD.TrangThaiLH = 'Đã nhập kho' THEN
+    IF :OLD.TrangThaiLH = N'Đã nhập kho' THEN
         RAISE_APPLICATION_ERROR(-20021, 'Không thể xoá lô hàng đã nhập kho!');
     END IF;
 END;

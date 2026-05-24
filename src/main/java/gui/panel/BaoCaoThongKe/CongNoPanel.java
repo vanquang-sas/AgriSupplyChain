@@ -140,7 +140,7 @@ public class CongNoPanel extends JPanel {
         pnlCards.setBackground(AppColor.BACKGROUND);
         pnlCards.add(createCardPanel("TỔNG CÔNG NỢ HIỆN TẠI", lblTotalDebt, AppColor.ERROR));
         pnlCards.add(createCardPanel("SỐ KHÁCH HÀNG CÒN NỢ", lblCustomerCount, AppColor.PRIMARY));
-        pnlCards.add(createCardPanel("TỶ LỆ ĐÃ THANH TOÁN (LŨY KẾ)", lblPaymentRate, AppColor.INFO));
+        pnlCards.add(createCardPanel("TỶ LỆ ĐÃ THANH TOÁN", lblPaymentRate, AppColor.INFO));
 
         // --- 3. KHU VỰC BIỂU ĐỒ (SPLIT SIDE-BY-SIDE) ---
         chartContainer = new JPanel(new GridLayout(1, 2, 15, 0));

@@ -89,11 +89,11 @@ CREATE TABLE SANPHAM (
     MaSP VARCHAR2(10) PRIMARY KEY,
     TenSP NVARCHAR2(100),
     MaLSP VARCHAR2(10),
-    ChatLuong NVARCHAR2(100) CHECK (ChatLuong IN ('Loại 1', 'Loại 2', 'Loại 3')),
+    ChatLuong NVARCHAR2(100) CHECK (ChatLuong IN (N'Loại 1', N'Loại 2', N'Loại 3')),
     GiaMua NUMBER(15,2),
     GiaBan NUMBER(15,2),
     DonViTinh NVARCHAR2(20),
-    BaoQuan NVARCHAR2(100) CHECK (BaoQuan IN ('Mát', 'Lạnh', 'Đông')),
+    BaoQuan NVARCHAR2(100) CHECK (BaoQuan IN (N'Mát', N'Lạnh', N'Đông')),
     HinhAnh NVARCHAR2(200),
     CONSTRAINT FK_SP_LSP FOREIGN KEY (MaLSP) REFERENCES LOAISANPHAM(MaLSP)
 );
@@ -102,7 +102,7 @@ CREATE TABLE SANPHAM (
 CREATE TABLE KHO (
     MaKho VARCHAR2(10) PRIMARY KEY,
     TenKho NVARCHAR2(100),
-    LoaiKho NVARCHAR2(100) CHECK (LoaiKho IN ('Mát', 'Lạnh', 'Đông')),
+    LoaiKho NVARCHAR2(100) CHECK (LoaiKho IN (N'Mát', N'Lạnh', N'Đông')),
     DiaChi NVARCHAR2(255),
     MoTa NVARCHAR2(500)
 );
@@ -124,7 +124,7 @@ CREATE TABLE LOHANG (
     MaNV VARCHAR2(10),
     TGNhap DATE DEFAULT SYSDATE,
     TongTien NUMBER(15,2) DEFAULT 0 CHECK (TongTien >= 0),
-    TrangThaiLH NVARCHAR2(50) DEFAULT 'Chờ kiểm duyệt' CHECK (TrangThaiLH IN ('Chờ kiểm duyệt', 'Chờ nhập kho', 'Đã nhập kho')),
+    TrangThaiLH NVARCHAR2(50) DEFAULT N'Chờ kiểm duyệt' CHECK (TrangThaiLH IN (N'Chờ kiểm duyệt', N'Chờ nhập kho', N'Đã nhập kho')),
     CONSTRAINT FK_LH_NCC FOREIGN KEY (MaNCC) REFERENCES NHACUNGCAP(MaNCC),
     CONSTRAINT FK_LH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
 );
@@ -174,9 +174,9 @@ CREATE TABLE DONHANG (
     TongTienHang NUMBER(15,2) DEFAULT 0 CHECK (TongTienHang >= 0),
     GiamGia NUMBER(15,2) DEFAULT 0 CHECK (GiamGia >= 0),
     TongTien NUMBER(15,2) DEFAULT 0 CHECK (TongTien >= 0),
-    TrangThaiDH NVARCHAR2(50) DEFAULT 'Đã đặt' CHECK (TrangThaiDH IN ('Đã đặt', 'Chờ xử lý', 'Chờ thanh toán', 'Chờ giao hàng', 'Đang giao', 'Hoàn thành', 'Đã huỷ')),
+    TrangThaiDH NVARCHAR2(50) DEFAULT N'Đã đặt' CHECK (TrangThaiDH IN (N'Đã đặt', N'Chờ xử lý', N'Chờ thanh toán', N'Chờ giao hàng', N'Đang giao', N'Hoàn thành', N'Đã huỷ')),
     TrangThaiTT NUMBER(1) DEFAULT 0 CHECK (TrangThaiTT IN (0, 1)),
-    PhuongThucTT NVARCHAR2(50) DEFAULT 'COD' CHECK (PhuongThucTT IN ('COD', 'Chuyển khoản', 'Ví điện tử', 'Ghi nợ')),
+    PhuongThucTT NVARCHAR2(50) DEFAULT N'COD' CHECK (PhuongThucTT IN (N'COD', N'Chuyển khoản', N'Ví điện tử', N'Ghi nợ')),
     CONSTRAINT FK_DH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
     CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV),
     CONSTRAINT CK_TGGiaoYC CHECK (TGGiaoYC >= TGDat),

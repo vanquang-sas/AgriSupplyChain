@@ -117,11 +117,11 @@ SQL> CREATE TABLE SANPHAM (
   2  	 MaSP VARCHAR2(10) PRIMARY KEY,
   3  	 TenSP NVARCHAR2(100),
   4  	 MaLSP VARCHAR2(10),
-  5  	 ChatLuong NVARCHAR2(100) CHECK (ChatLuong IN ('Loại 1', 'Loại 2', 'Loại 3')),
+  5  	 ChatLuong NVARCHAR2(100) CHECK (ChatLuong IN (N'Loại 1', N'Loại 2', N'Loại 3')),
   6  	 GiaMua NUMBER(15,2),
   7  	 GiaBan NUMBER(15,2),
   8  	 DonViTinh NVARCHAR2(20),
-  9  	 BaoQuan NVARCHAR2(100) CHECK (BaoQuan IN ('Mát', 'Lạnh', 'Đông')),
+  9  	 BaoQuan NVARCHAR2(100) CHECK (BaoQuan IN (N'Mát', N'Lạnh', N'Đông')),
  10  	 HinhAnh NVARCHAR2(200),
  11  	 CONSTRAINT FK_SP_LSP FOREIGN KEY (MaLSP) REFERENCES LOAISANPHAM(MaLSP)
  12  );
@@ -133,7 +133,7 @@ SQL> -- 9. Bảng KHO
 SQL> CREATE TABLE KHO (
   2  	 MaKho VARCHAR2(10) PRIMARY KEY,
   3  	 TenKho NVARCHAR2(100),
-  4  	 LoaiKho NVARCHAR2(100) CHECK (LoaiKho IN ('Mát', 'Lạnh', 'Đông')),
+  4  	 LoaiKho NVARCHAR2(100) CHECK (LoaiKho IN (N'Mát', N'Lạnh', N'Đông')),
   5  	 DiaChi NVARCHAR2(255),
   6  	 MoTa NVARCHAR2(500)
   7  );
@@ -161,7 +161,7 @@ SQL> CREATE TABLE LOHANG (
   4  	 MaNV VARCHAR2(10),
   5  	 TGNhap DATE DEFAULT SYSDATE,
   6  	 TongTien NUMBER(15,2) DEFAULT 0 CHECK (TongTien >= 0),
-  7  	 TrangThaiLH NVARCHAR2(50) DEFAULT 'Chờ kiểm duyệt' CHECK (TrangThaiLH IN ('Chờ kiểm duyệt', 'Chờ nhập kho', 'Đã nhập kho')),
+  7  	 TrangThaiLH NVARCHAR2(50) DEFAULT N'Chờ kiểm duyệt' CHECK (TrangThaiLH IN (N'Chờ kiểm duyệt', N'Chờ nhập kho', N'Đã nhập kho')),
   8  	 CONSTRAINT FK_LH_NCC FOREIGN KEY (MaNCC) REFERENCES NHACUNGCAP(MaNCC),
   9  	 CONSTRAINT FK_LH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
  10  );
@@ -220,9 +220,9 @@ SQL> CREATE TABLE DONHANG (
  11  	 TongTienHang NUMBER(15,2) DEFAULT 0 CHECK (TongTienHang >= 0),
  12  	 GiamGia NUMBER(15,2) DEFAULT 0 CHECK (GiamGia >= 0),
  13  	 TongTien NUMBER(15,2) DEFAULT 0 CHECK (TongTien >= 0),
- 14  	 TrangThaiDH NVARCHAR2(50) DEFAULT 'Đã đặt' CHECK (TrangThaiDH IN ('Đã đặt', 'Chờ xử lý', 'Chờ thanh toán', 'Chờ giao hàng', 'Đang giao', 'Hoàn thành', 'Đã huỷ')),
+ 14  	 TrangThaiDH NVARCHAR2(50) DEFAULT N'Đã đặt' CHECK (TrangThaiDH IN (N'Đã đặt', N'Chờ xử lý', N'Chờ thanh toán', N'Chờ giao hàng', N'Đang giao', N'Hoàn thành', N'Đã huỷ')),
  15  	 TrangThaiTT NUMBER(1) DEFAULT 0 CHECK (TrangThaiTT IN (0, 1)),
- 16  	 PhuongThucTT NVARCHAR2(50) DEFAULT 'COD' CHECK (PhuongThucTT IN ('COD', 'Chuyển khoản', 'Ví điện tử', 'Ghi nợ')),
+ 16  	 PhuongThucTT NVARCHAR2(50) DEFAULT N'COD' CHECK (PhuongThucTT IN (N'COD', N'Chuyển khoản', N'Ví điện tử', N'Ghi nợ')),
  17  	 CONSTRAINT FK_DH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
  18  	 CONSTRAINT FK_DH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV),
  19  	 CONSTRAINT CK_TGGiaoYC CHECK (TGGiaoYC >= TGDat),
@@ -967,7 +967,7 @@ SQL> CREATE OR REPLACE FUNCTION FN_THONGKE_TAICHINH (
  23  	     CostData AS (
  24  		 SELECT TRUNC(TGNhap, 'MM') AS ThoiGian, SUM(TongTien) AS ChiPhi
  25  		 FROM LOHANG
- 26  		 WHERE TrangThaiLH = 'Đã nhập kho'
+ 26  		 WHERE TrangThaiLH = N'Đã nhập kho'
  27  		   AND TGNhap >= ADD_MONTHS(TRUNC(v_AnchorDate, 'MM'), -p_Period + 1)
  28  		 GROUP BY TRUNC(TGNhap, 'MM')
  29  	     )
@@ -997,7 +997,7 @@ SQL> CREATE OR REPLACE FUNCTION FN_THONGKE_TAICHINH (
  53  	     CostData AS (
  54  		 SELECT TRUNC(TGNhap) AS ThoiGian, SUM(TongTien) AS ChiPhi
  55  		 FROM LOHANG
- 56  		 WHERE TrangThaiLH = 'Đã nhập kho'
+ 56  		 WHERE TrangThaiLH = N'Đã nhập kho'
  57  		   AND TGNhap >= TRUNC(v_AnchorDate) - p_Period + 1
  58  		 GROUP BY TRUNC(TGNhap)
  59  	     )
@@ -1318,7 +1318,7 @@ SQL> CREATE OR REPLACE TRIGGER TRG_LH_XOA
   2  BEFORE DELETE ON LOHANG
   3  FOR EACH ROW
   4  BEGIN
-  5  	 IF :OLD.TrangThaiLH = 'Đã nhập kho' THEN
+  5  	 IF :OLD.TrangThaiLH = N'Đã nhập kho' THEN
   6  	     RAISE_APPLICATION_ERROR(-20021, 'Không thể xoá lô hàng đã nhập kho!');
   7  	 END IF;
   8  END;
@@ -1759,10 +1759,10 @@ SQL> CREATE OR REPLACE PROCEDURE SP_YEUCAU_NHAPKHO (p_MaLH IN VARCHAR2) IS
   2  	 v_TrangThaiLH NVARCHAR2(50);
   3  BEGIN
   4  	 SELECT TrangThaiLH INTO v_TrangThaiLH FROM LOHANG WHERE MaLH = p_MaLH;
-  5  	 IF v_TrangThaiLH IN ('Chờ nhập kho', 'Đã nhập kho') THEN
+  5  	 IF v_TrangThaiLH IN (N'Chờ nhập kho', N'Đã nhập kho') THEN
   6  	     RAISE_APPLICATION_ERROR(-20022, 'Lô hàng này đã được yêu cầu hoặc đã hoàn tất nhập kho!');
   7  	 END IF;
-  8  	 UPDATE LOHANG SET TrangThaiLH = 'Chờ nhập kho' WHERE MaLH = p_MaLH;
+  8  	 UPDATE LOHANG SET TrangThaiLH = N'Chờ nhập kho' WHERE MaLH = p_MaLH;
   9  	 COMMIT;
  10  EXCEPTION
  11  	 WHEN OTHERS THEN ROLLBACK; RAISE;
@@ -2164,14 +2164,8 @@ SQL> BEGIN
  17  	 );
  18  END;
  19  /
-BEGIN
-*
-ERROR at line 1:
-ORA-27486: insufficient privileges 
-ORA-06512: at "SYS.DBMS_ISCHED", line 174 
-ORA-06512: at "SYS.DBMS_SCHEDULER", line 286 
-ORA-06512: at line 8 
 
+PL/SQL procedure successfully completed.
 
 SQL> 
 SQL> -- Procedure Nhận đơn giao
@@ -2631,389 +2625,568 @@ SQL> DECLARE
  28  	 v_BaoQuan NVARCHAR2(100);
  29  
  30  	 -- ===== Counters & Control =====
- 31  	 v_import_sp_idx NUMBER := 1;
- 32  	 v_num_items NUMBER := 0;
- 33  
- 34  	 -- ===== Arrays =====
- 35  	 -- Tất cả 25 sản phẩm
- 36  	 TYPE t_sp_all IS TABLE OF VARCHAR2(10);
- 37  	 v_all_products t_sp_all := t_sp_all(
- 38  	     'SP000001', 'SP000002', 'SP000003', 'SP000004', 'SP000005',
- 39  	     'SP000006', 'SP000007', 'SP000008', 'SP000009', 'SP000010',
- 40  	     'SP000011', 'SP000012', 'SP000013', 'SP000014', 'SP000015',
- 41  	     'SP000016', 'SP000017', 'SP000018', 'SP000019', 'SP000020',
- 42  	     'SP000021', 'SP000022', 'SP000023', 'SP000024', 'SP000025'
- 43  	 );
- 44  
- 45  	 -- Danh sách sản phẩm cho mỗi loại (để cập nhật biến động giá 1-2 lần/tháng cho mỗi loại)
- 46  	 TYPE t_sp_array IS TABLE OF VARCHAR2(10);
- 47  	 -- Cập nhật giá nhóm 1 (tuần 1)
- 48  	 v_sp_week1 t_sp_array := t_sp_array('SP000002', 'SP000007', 'SP000012', 'SP000017', 'SP000022');
- 49  	 -- Cập nhật giá nhóm 2 (tuần 3)
- 50  	 v_sp_week3 t_sp_array := t_sp_array('SP000004', 'SP000009', 'SP000014', 'SP000019', 'SP000024');
- 51  
- 52  	 -- Helper procedure to perform price update and shift TGApDung
- 53  	 PROCEDURE P_UPDATE_PRICE_SIMULATED(p_MaSP IN VARCHAR2, p_Date IN DATE) IS
- 54  	     v_current_GiaMua NUMBER(15,2);
- 55  	     v_new_GiaMua NUMBER(15,2);
- 56  	     v_new_GiaBan NUMBER(15,2);
- 57  	     v_rand_margin NUMBER;
- 58  	 BEGIN
- 59  	     SELECT GiaMua INTO v_current_GiaMua FROM SANPHAM WHERE MaSP = p_MaSP;
- 60  	     -- Dao động từ -3% đến +5%
- 61  	     v_new_GiaMua := ROUND(v_current_GiaMua * (1 + DBMS_RANDOM.VALUE(-0.03, 0.05)), -3);
- 62  	     -- Biên lợi nhuận 30% - 50%
- 63  	     v_rand_margin := 0.30 + DBMS_RANDOM.VALUE(0, 0.20);
- 64  	     v_new_GiaBan := ROUND(v_new_GiaMua * (1 + v_rand_margin), -3);
- 65  
- 66  	     -- Gọi procedure hệ thống để cập nhật bảng SANPHAM (tự kích hoạt trigger thêm vào LICHSUGIA với TGApDung = SYSDATE)
- 67  	     SP_CAPNHAT_GIA(p_MaSP, v_new_GiaMua, v_new_GiaBan);
- 68  
- 69  	     -- Cập nhật lại TGApDung của dòng lịch sử giá vừa tạo thành ngày mô phỏng
- 70  	     UPDATE LICHSUGIA
- 71  	     SET TGApDung = p_Date
- 72  	     WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = p_MaSP ORDER BY MaGia DESC) WHERE ROWNUM = 1)
- 73  	       AND TRUNC(TGApDung) = TRUNC(SYSDATE);
- 74  	 EXCEPTION
- 75  	     WHEN OTHERS THEN
- 76  		 DBMS_OUTPUT.PUT_LINE('Lỗi cập nhật giá ' || p_MaSP || ': ' || SQLERRM);
- 77  	 END;
+ 31  	 v_num_items NUMBER := 0;
+ 32  
+ 33  	 -- ===== Arrays =====
+ 34  	 -- Tất cả 25 sản phẩm
+ 35  	 TYPE t_sp_all IS TABLE OF VARCHAR2(10);
+ 36  	 v_all_products t_sp_all := t_sp_all(
+ 37  	     'SP000001', 'SP000002', 'SP000003', 'SP000004', 'SP000005',
+ 38  	     'SP000006', 'SP000007', 'SP000008', 'SP000009', 'SP000010',
+ 39  	     'SP000011', 'SP000012', 'SP000013', 'SP000014', 'SP000015',
+ 40  	     'SP000016', 'SP000017', 'SP000018', 'SP000019', 'SP000020',
+ 41  	     'SP000021', 'SP000022', 'SP000023', 'SP000024', 'SP000025'
+ 42  	 );
+ 43  
+ 44  	 -- Danh sách sản phẩm cho mỗi loại (để cập nhật biến động giá 1-2 lần/tháng cho mỗi loại)
+ 45  	 TYPE t_sp_array IS TABLE OF VARCHAR2(10);
+ 46  	 -- Cập nhật giá nhóm 1 (tuần 1)
+ 47  	 v_sp_week1 t_sp_array := t_sp_array('SP000002', 'SP000007', 'SP000012', 'SP000017', 'SP000022');
+ 48  	 -- Cập nhật giá nhóm 2 (tuần 3)
+ 49  	 v_sp_week3 t_sp_array := t_sp_array('SP000004', 'SP000009', 'SP000014', 'SP000019', 'SP000024');
+ 50  
+ 51  	 -- ===== Mảng cấu trúc cho Match In-Memory (Doanh thu > Chi phí & Tránh hết hàng) =====
+ 52  	 TYPE t_order_rec IS RECORD (
+ 53  	     MaDH VARCHAR2(10),
+ 54  	     MaKH VARCHAR2(10),
+ 55  	     MaNV_GiaoHang VARCHAR2(10),
+ 56  	     TGDat DATE,
+ 57  	     TGGiaoYC DATE,
+ 58  	     DiaChiGiao NVARCHAR2(255),
+ 59  	     PhuongThucTT NVARCHAR2(50),
+ 60  	     TrangThaiDH NVARCHAR2(50),
+ 61  	     TrangThaiTT NUMBER,
+ 62  	     TGGiaoTT DATE
+ 63  	 );
+ 64  	 TYPE t_order_list IS TABLE OF t_order_rec;
+ 65  	 v_monthly_orders t_order_list;
+ 66  
+ 67  	 TYPE t_order_detail_rec IS RECORD (
+ 68  	     MaDH VARCHAR2(10),
+ 69  	     MaSP VARCHAR2(10),
+ 70  	     SoLuong NUMBER
+ 71  	 );
+ 72  	 TYPE t_order_detail_list IS TABLE OF t_order_detail_rec;
+ 73  	 v_monthly_order_details t_order_detail_list;
+ 74  
+ 75  	 -- Mảng lưu số lượng bán ra tích lũy của từng sản phẩm trong tháng
+ 76  	 TYPE t_sales_qty IS TABLE OF NUMBER INDEX BY VARCHAR2(10);
+ 77  	 v_sales_qty t_sales_qty;
  78  
- 79  BEGIN
- 80  	 DBMS_OUTPUT.PUT_LINE('BẮT ĐẦU CHẠY DATA ENRICHMENT - GIAI ĐOẠN 11/2025 - 05/2026');
+ 79  	 TYPE t_product_list IS TABLE OF VARCHAR2(10);
+ 80  	 v_products_to_import t_product_list;
  81  
- 82  	 -- Xoá dữ liệu cũ của các bảng liên quan đến giao dịch trước khi nạp demo
- 83  	 -- (Để tránh trùng lặp nếu chạy lại script)
- 84  	 DELETE FROM XUATKHO;
- 85  	 DELETE FROM TONKHO;
- 86  	 DELETE FROM CHITIETDONHANG;
- 87  	 DELETE FROM DONHANG;
- 88  	 DELETE FROM CHITIETLOHANG;
- 89  	 DELETE FROM LOHANG;
- 90  	 DELETE FROM THONGBAO;
- 91  	 DELETE FROM LICHSUGIA;
- 92  
- 93  	 -- Khởi tạo lại giá trị ban đầu cho LICHSUGIA từ bảng SANPHAM để đồng bộ
- 94  	 FOR r IN (SELECT MaSP, GiaMua, GiaBan FROM SANPHAM) LOOP
- 95  	     INSERT INTO LICHSUGIA (MaSP, GiaMua, GiaBan, TGApDung)
- 96  	     VALUES (r.MaSP, r.GiaMua, r.GiaBan, TO_DATE('2025-10-15', 'YYYY-MM-DD'));
- 97  	 END LOOP;
- 98  
- 99  	 -- Lặp qua 7 tháng (11/2025 - 05/2026, tương ứng offset 0..6)
-100  	 FOR v_month_offset IN 0..6 LOOP
-101  	     v_month_date := ADD_MONTHS(TO_DATE('2025-11-01', 'YYYY-MM-DD'), v_month_offset);
-102  	     v_month_start := TRUNC(v_month_date, 'MM');
-103  	     v_month_end := LAST_DAY(v_month_date);
-104  	     v_days_in_month := TO_NUMBER(TO_CHAR(v_month_end, 'DD'));
-105  
-106  	     -- =================================================================
-107  	     -- 1. BIẾN ĐỘNG GIÁ SẢN PHẨM TRONG THÁNG
-108  	     -- =================================================================
-109  	     -- 1.1 Sản phẩm SP000001 (Thịt heo Iberico) biến động giá 4 lần/tháng (vào ngày 3, 10, 17, 24)
-110  	     P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 2);	-- Ngày 3
-111  	     P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 9);	-- Ngày 10
-112  	     P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 16);	-- Ngày 17
-113  	     P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 23);	-- Ngày 24
-114  
-115  	     -- 1.2 Mỗi danh mục sản phẩm (LSP00001 - LSP00005) đều có biến động giá 2 lần/tháng
-116  	     -- Lần 1 vào ngày 5 (các sản phẩm thuộc v_sp_week1)
-117  	     FOR i IN 1..v_sp_week1.COUNT LOOP
-118  		 P_UPDATE_PRICE_SIMULATED(v_sp_week1(i), v_month_start + 4);
-119  	     END LOOP;
-120  
-121  	     -- Lần 2 vào ngày 20 (các sản phẩm thuộc v_sp_week3)
-122  	     FOR i IN 1..v_sp_week3.COUNT LOOP
-123  		 P_UPDATE_PRICE_SIMULATED(v_sp_week3(i), v_month_start + 19);
-124  	     END LOOP;
+ 82  	 TYPE t_sp_in_lh IS TABLE OF VARCHAR2(10);
+ 83  	 TYPE t_lh_distribution IS TABLE OF t_sp_in_lh;
+ 84  	 v_lh_products t_lh_distribution;
+ 85  
+ 86  	 -- Helper procedure to perform price update and shift TGApDung
+ 87  	 PROCEDURE P_UPDATE_PRICE_SIMULATED(p_MaSP IN VARCHAR2, p_Date IN DATE) IS
+ 88  	     v_current_GiaMua NUMBER(15,2);
+ 89  	     v_new_GiaMua NUMBER(15,2);
+ 90  	     v_new_GiaBan NUMBER(15,2);
+ 91  	     v_rand_margin NUMBER;
+ 92  	 BEGIN
+ 93  	     SELECT GiaMua INTO v_current_GiaMua FROM SANPHAM WHERE MaSP = p_MaSP;
+ 94  	     -- Dao động từ -3% đến +5%
+ 95  	     v_new_GiaMua := ROUND(v_current_GiaMua * (1 + DBMS_RANDOM.VALUE(-0.03, 0.05)), -3);
+ 96  	     -- Biên lợi nhuận 50% - 70% để đảm bảo Doanh thu > Chi phí một cách tuyệt đối
+ 97  	     v_rand_margin := 0.50 + DBMS_RANDOM.VALUE(0, 0.20);
+ 98  	     v_new_GiaBan := ROUND(v_new_GiaMua * (1 + v_rand_margin), -3);
+ 99  
+100  	     -- Gọi procedure hệ thống để cập nhật bảng SANPHAM (tự kích hoạt trigger thêm vào LICHSUGIA với TGApDung = SYSDATE)
+101  	     SP_CAPNHAT_GIA(p_MaSP, v_new_GiaMua, v_new_GiaBan);
+102  
+103  	     -- Cập nhật lại TGApDung của dòng lịch sử giá vừa tạo thành ngày mô phỏng
+104  	     UPDATE LICHSUGIA
+105  	     SET TGApDung = p_Date
+106  	     WHERE MaGia = (SELECT MaGia FROM (SELECT MaGia FROM LICHSUGIA WHERE MaSP = p_MaSP ORDER BY MaGia DESC) WHERE ROWNUM = 1)
+107  	       AND TRUNC(TGApDung) = TRUNC(SYSDATE);
+108  	 EXCEPTION
+109  	     WHEN OTHERS THEN
+110  		 DBMS_OUTPUT.PUT_LINE('Lỗi cập nhật giá ' || p_MaSP || ': ' || SQLERRM);
+111  	 END;
+112  
+113  BEGIN
+114  	 DBMS_OUTPUT.PUT_LINE('BẮT ĐẦU CHẠY DATA ENRICHMENT CAO CẤP - MATCH IN-MEMORY FINANCIALS');
+115  
+116  	 -- Xoá dữ liệu cũ của các bảng liên quan đến giao dịch trước khi nạp demo
+117  	 DELETE FROM XUATKHO;
+118  	 DELETE FROM TONKHO;
+119  	 DELETE FROM CHITIETDONHANG;
+120  	 DELETE FROM DONHANG;
+121  	 DELETE FROM CHITIETLOHANG;
+122  	 DELETE FROM LOHANG;
+123  	 DELETE FROM THONGBAO;
+124  	 DELETE FROM LICHSUGIA;
 125  
-126  	     -- =================================================================
-127  	     -- 2. NHẬP HÀNG (LOHANG, CHITIETLOHANG)
-128  	     -- =================================================================
-129  	     -- 6 đợt nhập hàng mỗi tháng vào các ngày 3, 8, 13, 18, 23, 28 (ít nhất 1 lần/tuần)
-130  	     FOR d IN 1..6 LOOP
-131  		 v_day_offset := CASE d
-132  		     WHEN 1 THEN 2   -- Ngày 3
-133  		     WHEN 2 THEN 7   -- Ngày 8
-134  		     WHEN 3 THEN 12  -- Ngày 13
-135  		     WHEN 4 THEN 17  -- Ngày 18
-136  		     WHEN 5 THEN 22  -- Ngày 23
-137  		     ELSE 27	     -- Ngày 28
-138  		 END;
-139  		 v_simulated_date := v_month_start + v_day_offset;
-140  
-141  		 SELECT MaNCC INTO v_MaNCC FROM (SELECT MaNCC FROM NHACUNGCAP WHERE TrangThaiHopTac = 1 ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
-142  		 SELECT MaNV INTO v_MaNV_ThuMua FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV thu mua' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
-143  
-144  		 v_MaLH := 'LH' || LPAD(SEQ_LOHANG.NEXTVAL, 6, '0');
-145  
-146  		 INSERT INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH)
-147  		 VALUES (v_MaLH, v_MaNCC, v_MaNV_ThuMua, v_simulated_date, 'Chờ kiểm duyệt');
-148  
-149  		 -- Số lượng sản phẩm trong lô hàng:
-150  		 -- 1-2 SP (đợt 1, 2, 4, 5) hoặc 3-4 SP (đợt 3, 6) -> phần lớn là 1-2 sản phẩm
-151  		 IF d IN (1, 2, 4, 5) THEN
-152  		     v_num_items := TRUNC(DBMS_RANDOM.VALUE(1, 3)); -- 1 hoặc 2
-153  		 ELSE
-154  		     v_num_items := TRUNC(DBMS_RANDOM.VALUE(3, 5)); -- 3 hoặc 4
-155  		 END IF;
-156  
-157  		 DECLARE
-158  		     TYPE t_sp_temp IS TABLE OF VARCHAR2(10);
-159  		     v_used_sps t_sp_temp := t_sp_temp();
-160  		 BEGIN
-161  		     FOR j IN 1..v_num_items LOOP
-162  			 -- Chọn sản phẩm tuần tự (round-robin) từ danh sách 25 sản phẩm để đảm bảo nạp đều tất cả sản phẩm
-163  			 v_MaSP := v_all_products(v_import_sp_idx);
-164  			 v_import_sp_idx := MOD(v_import_sp_idx, 25) + 1;
-165  
-166  			 v_SoLuong_import := TRUNC(DBMS_RANDOM.VALUE(1500, 3501)); -- 1500 đến 3500 đơn vị (B2B nhập)
-167  
-168  			 INSERT INTO CHITIETLOHANG (MaLH, MaSP, SoLuong)
-169  			 VALUES (v_MaLH, v_MaSP, v_SoLuong_import);
-170  
-171  			 -- Xác định kho phù hợp với tính chất bảo quản của sản phẩm
-172  			 SELECT BaoQuan INTO v_BaoQuan FROM SANPHAM WHERE MaSP = v_MaSP;
-173  			 SELECT MaKho INTO v_MaKho FROM (SELECT MaKho FROM KHO WHERE LoaiKho = v_BaoQuan ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
-174  
-175  			 -- Kiểm tra trạng thái lô hàng phù hợp theo dòng thời gian
-176  			 -- Tháng 11/2025 -> 4/2026 và các đợt 1,2,3 của tháng 5/2026 sẽ được nhập kho đầy đủ
-177  			 IF v_month_date < TO_DATE('2026-05-01', 'YYYY-MM-DD') OR d <= 3 THEN
-178  			     -- Xác nhận nhập kho bằng procedure (sinh bản ghi TONKHO)
-179  			     SP_XACNHAN_NHAPKHO(v_MaLH, v_MaSP, v_MaKho, v_simulated_date + 365, 'Kệ A' || TRUNC(DBMS_RANDOM.VALUE(1, 11)));
-180  			     -- Cập nhật ngày nhập kho của TONKHO thành ngày mô phỏng
-181  			     UPDATE TONKHO SET TGNhapKho = v_simulated_date WHERE MaLH = v_MaLH AND MaSP = v_MaSP;
-182  			 END IF;
-183  		     END LOOP;
-184  
-185  		     -- Đối với tháng 5/2026 (tháng hiện tại), phân bổ trạng thái LOHANG phù hợp:
-186  		     IF v_month_date >= TO_DATE('2026-05-01', 'YYYY-MM-DD') THEN
-187  			 IF d = 4 THEN
-188  			     -- Đợt 4: chuyển sang trạng thái "Chờ nhập kho"
-189  			     SP_YEUCAU_NHAPKHO(v_MaLH);
-190  			 -- Đợt 5 và 6 giữ trạng thái "Chờ kiểm duyệt"
-191  			 END IF;
-192  		     END IF;
-193  		 END;
-194  	     END LOOP;
+126  	 -- Khởi tạo lại giá trị ban đầu cho LICHSUGIA từ bảng SANPHAM để đồng bộ
+127  	 FOR r IN (SELECT MaSP, GiaMua, GiaBan FROM SANPHAM) LOOP
+128  	     INSERT INTO LICHSUGIA (MaSP, GiaMua, GiaBan, TGApDung)
+129  	     VALUES (r.MaSP, r.GiaMua, r.GiaBan, TO_DATE('2025-10-15', 'YYYY-MM-DD'));
+130  	 END LOOP;
+131  
+132  	 -- Lặp qua 7 tháng (11/2025 - 05/2026, tương ứng offset 0..6)
+133  	 FOR v_month_offset IN 0..6 LOOP
+134  	     v_month_date := ADD_MONTHS(TO_DATE('2025-11-01', 'YYYY-MM-DD'), v_month_offset);
+135  	     v_month_start := TRUNC(v_month_date, 'MM');
+136  	     v_month_end := LAST_DAY(v_month_date);
+137  	     v_days_in_month := TO_NUMBER(TO_CHAR(v_month_end, 'DD'));
+138  
+139  	     -- =================================================================
+140  	     -- 1. BIẾN ĐỘNG GIÁ SẢN PHẨM TRONG THÁNG
+141  	     -- =================================================================
+142  	     -- 1.1 Sản phẩm SP000001 (Thịt heo Iberico) biến động giá 4 lần/tháng (vào ngày 3, 10, 17, 24)
+143  	     P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 2);	-- Ngày 3
+144  	     P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 9);	-- Ngày 10
+145  	     P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 16);	-- Ngày 17
+146  	     P_UPDATE_PRICE_SIMULATED('SP000001', v_month_start + 23);	-- Ngày 24
+147  
+148  	     -- 1.2 Mỗi danh mục sản phẩm (LSP00001 - LSP00005) đều có biến động giá 2 lần/tháng
+149  	     -- Lần 1 vào ngày 5 (các sản phẩm thuộc v_sp_week1)
+150  	     FOR i IN 1..v_sp_week1.COUNT LOOP
+151  		 P_UPDATE_PRICE_SIMULATED(v_sp_week1(i), v_month_start + 4);
+152  	     END LOOP;
+153  
+154  	     -- Lần 2 vào ngày 20 (các sản phẩm thuộc v_sp_week3)
+155  	     FOR i IN 1..v_sp_week3.COUNT LOOP
+156  		 P_UPDATE_PRICE_SIMULATED(v_sp_week3(i), v_month_start + 19);
+157  	     END LOOP;
+158  
+159  	     -- Khởi tạo mảng số lượng bán tích lũy của từng sản phẩm về 0
+160  	     FOR i IN 1..v_all_products.COUNT LOOP
+161  		 v_sales_qty(v_all_products(i)) := 0;
+162  	     END LOOP;
+163  
+164  	     v_monthly_orders := t_order_list();
+165  	     v_monthly_order_details := t_order_detail_list();
+166  
+167  	     -- =================================================================
+168  	     -- 2. MÔ PHỎNG ĐƠN HÀNG BÁN TRƯỚC (IN-MEMORY)
+169  	     -- =================================================================
+170  	     -- Sinh 14 đơn bán hàng
+171  	     FOR j IN 1..14 LOOP
+172  		 -- Trải đều các ngày trong tháng (ít nhất 2 lần/tuần)
+173  		 v_day_offset := TRUNC(((j - 1) / 14) * v_days_in_month) + 1;
+174  		 IF v_day_offset > v_days_in_month THEN v_day_offset := v_days_in_month; END IF;
+175  		 v_simulated_date := v_month_start + (v_day_offset - 1);
+176  
+177  		 -- Chọn khách hàng ngẫu nhiên
+178  		 SELECT MaKH INTO v_MaKH FROM (SELECT MaKH FROM KHACHHANG ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+179  		 -- Chọn nhân viên giao hàng ngẫu nhiên
+180  		 SELECT MaNV INTO v_MaNV_GiaoHang FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV giao hàng' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+181  
+182  		 -- Xác định phương thức thanh toán: 50% Ghi nợ (7/14 đơn)
+183  		 IF j IN (1, 3, 5, 7, 9, 11, 13) THEN
+184  		     v_PhuongThucTT := N'Ghi nợ';
+185  		 ELSE
+186  		     v_PhuongThucTT := CASE TRUNC(DBMS_RANDOM.VALUE(0, 3))
+187  			 WHEN 0 THEN N'COD'
+188  			 WHEN 1 THEN N'Chuyển khoản'
+189  			 ELSE N'Ví điện tử'
+190  		     END;
+191  		 END IF;
+192  
+193  		 v_MaDH := 'DH' || LPAD(SEQ_DONHANG.NEXTVAL, 6, '0');
+194  		 v_DiaChiGiao := N'TP.HCM - Quận ' || TRUNC(DBMS_RANDOM.VALUE(1, 13));
 195  
-196  	     -- =================================================================
-197  	     -- 3. BÁN HÀNG (DONHANG, CHITIETDONHANG)
-198  	     -- =================================================================
-199  	     -- Sinh 14 đơn hàng mỗi tháng trải đều các ngày (khoảng 10-20 lần bán, ít nhất 2 lần/tuần)
-200  	     FOR j IN 1..14 LOOP
-201  		 -- Trải đều các ngày trong tháng (ít nhất 2 lần/tuần)
-202  		 v_day_offset := TRUNC(((j - 1) / 14) * v_days_in_month) + 1;
-203  		 IF v_day_offset > v_days_in_month THEN v_day_offset := v_days_in_month; END IF;
-204  		 v_simulated_date := v_month_start + (v_day_offset - 1);
+196  		 -- Thêm vào mảng đơn hàng
+197  		 v_monthly_orders.EXTEND;
+198  		 v_monthly_orders(v_monthly_orders.COUNT).MaDH := v_MaDH;
+199  		 v_monthly_orders(v_monthly_orders.COUNT).MaKH := v_MaKH;
+200  		 v_monthly_orders(v_monthly_orders.COUNT).MaNV_GiaoHang := v_MaNV_GiaoHang;
+201  		 v_monthly_orders(v_monthly_orders.COUNT).TGDat := v_simulated_date;
+202  		 v_monthly_orders(v_monthly_orders.COUNT).TGGiaoYC := v_simulated_date + 2;
+203  		 v_monthly_orders(v_monthly_orders.COUNT).DiaChiGiao := v_DiaChiGiao;
+204  		 v_monthly_orders(v_monthly_orders.COUNT).PhuongThucTT := v_PhuongThucTT;
 205  
-206  		 -- Chọn khách hàng ngẫu nhiên
-207  		 SELECT MaKH INTO v_MaKH FROM (SELECT MaKH FROM KHACHHANG ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
-208  		 -- Chọn nhân viên giao hàng ngẫu nhiên
-209  		 SELECT MaNV INTO v_MaNV_GiaoHang FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV giao hàng' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
-210  
-211  		 -- Xác định phương thức thanh toán: 60% Ghi nợ, 40% phương thức khác
-212  		 IF j IN (1, 3, 5, 7, 9, 11, 13) THEN
-213  		     v_PhuongThucTT := N'Ghi nợ';
-214  		 ELSE
-215  		     v_PhuongThucTT := CASE TRUNC(DBMS_RANDOM.VALUE(0, 3))
-216  			 WHEN 0 THEN N'COD'
-217  			 WHEN 1 THEN N'Chuyển khoản'
-218  			 ELSE N'Ví điện tử'
-219  		     END;
-220  		 END IF;
-221  
-222  		 v_MaDH := 'DH' || LPAD(SEQ_DONHANG.NEXTVAL, 6, '0');
-223  		 v_DiaChiGiao := N'TP.HCM - Quận ' || TRUNC(DBMS_RANDOM.VALUE(1, 13));
-224  
-225  		 -- Khởi tạo đơn hàng với trạng thái 'Đã đặt'
-226  		 INSERT INTO DONHANG (MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, TrangThaiDH, TrangThaiTT, PhuongThucTT)
-227  		 VALUES (v_MaDH, v_MaKH, v_MaNV_GiaoHang, v_simulated_date, v_simulated_date + 2, v_DiaChiGiao, 'Đã đặt', 0, v_PhuongThucTT);
-228  
-229  		 -- Xác định số lượng sản phẩm trong đơn hàng:
-230  		 -- 1-2 SP (15%), 3-5 SP (65%), 6-10 SP (20%) -> phần lớn từ 3-5 sản phẩm
-231  		 v_num_items := CASE
-232  		     WHEN j IN (1, 8) THEN TRUNC(DBMS_RANDOM.VALUE(1, 3))	-- 1 đến 2 sản phẩm
-233  		     WHEN j IN (2, 3, 5, 6, 7, 10, 11, 12, 13) THEN TRUNC(DBMS_RANDOM.VALUE(3, 6)) -- 3 đến 5 sản phẩm
-234  		     ELSE TRUNC(DBMS_RANDOM.VALUE(6, 11))			-- 6 đến 10 sản phẩm
-235  		 END;
-236  
-237  		 DECLARE
-238  		     TYPE t_sp_temp IS TABLE OF VARCHAR2(10);
-239  		     v_used_sps t_sp_temp := t_sp_temp();
-240  		     v_is_sp_dup BOOLEAN;
-241  		 BEGIN
-242  		     FOR k IN 1..v_num_items LOOP
-243  			 -- Đảm bảo không trùng lặp sản phẩm trong một đơn hàng
-244  			 LOOP
-245  			     v_MaSP := v_all_products(TRUNC(DBMS_RANDOM.VALUE(1, 26)));
-246  			     v_is_sp_dup := FALSE;
-247  			     IF v_used_sps.COUNT > 0 THEN
-248  				 FOR idx IN 1..v_used_sps.COUNT LOOP
-249  				     IF v_used_sps(idx) = v_MaSP THEN
-250  					 v_is_sp_dup := TRUE;
-251  					 EXIT;
-252  				     END IF;
-253  				 END LOOP;
-254  			     END IF;
-255  			     EXIT WHEN NOT v_is_sp_dup;
-256  			 END LOOP;
-257  			 v_used_sps.EXTEND;
-258  			 v_used_sps(v_used_sps.COUNT) := v_MaSP;
-259  
-260  			 -- Số lượng bán B2B hợp lý: vài chục kg (từ 20 đến 120 kg/sp) và ít hơn nhiều so với lượng nhập lô hàng
-261  			 v_SoLuong_export := TRUNC(DBMS_RANDOM.VALUE(20, 121));
-262  
-263  			 INSERT INTO CHITIETDONHANG (MaDH, MaSP, SoLuong)
-264  			 VALUES (v_MaDH, v_MaSP, v_SoLuong_export);
-265  		     END LOOP;
-266  		 END;
-267  
-268  		 -- Chạy nghiệp vụ tạo yêu cầu xuất kho (Tạm giữ tồn kho và điền bảng XUATKHO)
-269  		 BEGIN
-270  		     SP_YEUCAU_XUATKHO(v_MaDH);
-271  		     -- Đồng bộ thời gian trong XUATKHO
-272  		     UPDATE XUATKHO SET TGCapNhat = v_simulated_date WHERE MaDH = v_MaDH;
-273  		 EXCEPTION
-274  		     WHEN OTHERS THEN
-275  			 DBMS_OUTPUT.PUT_LINE('Lỗi tạo yêu cầu xuất kho ' || v_MaDH || ': ' || SQLERRM);
-276  		 END;
-277  
-278  		 -- Phân bổ trạng thái đơn hàng theo dòng thời gian:
-279  		 -- 1. Với các tháng trước tháng 5/2026 (Quá khứ hoàn tất):
-280  		 IF v_month_date < TO_DATE('2026-05-01', 'YYYY-MM-DD') THEN
-281  		     BEGIN
-282  			 -- Xác nhận xuất kho (chuyển XUATKHO thành "Đã xuất", trừ tồn kho thực tế, và đổi TrangThaiDH = "Chờ giao hàng")
-283  			 SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
-284  
-285  			 -- Đổi trạng thái sang "Đang giao"
-286  			 SP_XACNHAN_GIAOHANG(v_MaDH, v_MaNV_GiaoHang);
-287  
-288  			 -- Xác nhận giao thành công
-289  			 SP_GIAOHANG_THANHCONG(v_MaDH, v_MaNV_GiaoHang);
-290  
-291  			 -- Xử lý cụ thể đối với đơn hàng Ghi nợ:
-292  			 -- 70% đã thanh toán (Hoàn thành, TrangThaiTT = 1), 30% vẫn nợ (Chờ thanh toán, TrangThaiTT = 0)
-293  			 IF v_PhuongThucTT = N'Ghi nợ' THEN
-294  			     IF j IN (1, 5, 9, 13) THEN
-295  				 -- Chuyển trạng thái nợ thành đã thanh toán thành công
-296  				 UPDATE DONHANG
-297  				 SET TrangThaiTT = 1,
-298  				     TrangThaiDH = N'Hoàn thành',
-299  				     TGGiaoTT = v_simulated_date + 1
-300  				 WHERE MaDH = v_MaDH;
-301  			     ELSE
-302  				 -- Giữ nguyên trạng thái chưa thanh toán (Chờ thanh toán)
-303  				 UPDATE DONHANG
-304  				 SET TrangThaiTT = 0,
-305  				     TrangThaiDH = N'Chờ thanh toán',
-306  				     TGGiaoTT = v_simulated_date + 1
-307  				 WHERE MaDH = v_MaDH;
-308  			     END IF;
-309  			 ELSE
-310  			     -- Các đơn thường thì đã hoàn thành và thanh toán
-311  			     UPDATE DONHANG
-312  			     SET TGGiaoTT = v_simulated_date + 1
-313  			     WHERE MaDH = v_MaDH;
-314  			 END IF;
-315  
-316  			 -- Đồng bộ hóa ngày đặt, giao yêu cầu và giao thực tế
-317  			 UPDATE DONHANG
-318  			 SET TGDat = v_simulated_date,
-319  			     TGGiaoYC = v_simulated_date + 2
-320  			 WHERE MaDH = v_MaDH;
-321  
-322  			 UPDATE XUATKHO SET TGCapNhat = v_simulated_date WHERE MaDH = v_MaDH;
-323  
-324  		     EXCEPTION WHEN OTHERS THEN NULL;
-325  		     END;
-326  
-327  		 -- 2. Đối với tháng 5/2026 (Mô phỏng động cho tháng hiện tại):
-328  		 ELSE
-329  		     BEGIN
-330  			 IF j <= 6 THEN
-331  			     -- Đơn 1 đến 6: Đã giao thành công (Hoàn thành / Chờ thanh toán)
-332  			     SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
-333  			     SP_XACNHAN_GIAOHANG(v_MaDH, v_MaNV_GiaoHang);
-334  			     SP_GIAOHANG_THANHCONG(v_MaDH, v_MaNV_GiaoHang);
-335  			     IF v_PhuongThucTT = N'Ghi nợ' AND j IN (1, 5) THEN
-336  				 UPDATE DONHANG SET TrangThaiTT = 1, TrangThaiDH = N'Hoàn thành', TGGiaoTT = v_simulated_date + 1 WHERE MaDH = v_MaDH;
-337  			     ELSE
-338  				 UPDATE DONHANG SET TGGiaoTT = v_simulated_date + 1 WHERE MaDH = v_MaDH;
-339  			     END IF;
+206  		 -- Phân bổ trạng thái cuối cùng:
+207  		 IF v_month_date < TO_DATE('2026-05-01', 'YYYY-MM-DD') THEN
+208  		     -- Các tháng quá khứ
+209  		     IF v_PhuongThucTT = N'Ghi nợ' THEN
+210  			 -- 5/7 đơn ghi nợ đã thanh toán để có doanh thu tối đa (vượt chi phí)
+211  			 IF j IN (1, 3, 5, 9, 13) THEN
+212  			     v_monthly_orders(v_monthly_orders.COUNT).TrangThaiDH := N'Hoàn thành';
+213  			     v_monthly_orders(v_monthly_orders.COUNT).TrangThaiTT := 1;
+214  			 ELSE
+215  			     v_monthly_orders(v_monthly_orders.COUNT).TrangThaiDH := N'Chờ thanh toán';
+216  			     v_monthly_orders(v_monthly_orders.COUNT).TrangThaiTT := 0;
+217  			 END IF;
+218  		     ELSE
+219  			 v_monthly_orders(v_monthly_orders.COUNT).TrangThaiDH := N'Hoàn thành';
+220  			 v_monthly_orders(v_monthly_orders.COUNT).TrangThaiTT := 1;
+221  		     END IF;
+222  		     v_monthly_orders(v_monthly_orders.COUNT).TGGiaoTT := v_simulated_date + 1;
+223  		 ELSE
+224  		     -- Tháng 5/2026 (mô phỏng động):
+225  		     IF j <= 9 THEN
+226  			 -- Đơn 1..9: Hoàn thành / Chờ thanh toán
+227  			 IF v_PhuongThucTT = N'Ghi nợ' THEN
+228  			     -- j = 1, 3, 5, 9: Đã thanh toán (Hoàn thành)
+229  			     -- j = 7: Chưa thanh toán (Chờ thanh toán)
+230  			     IF j IN (1, 3, 5, 9) THEN
+231  				 v_monthly_orders(v_monthly_orders.COUNT).TrangThaiDH := N'Hoàn thành';
+232  				 v_monthly_orders(v_monthly_orders.COUNT).TrangThaiTT := 1;
+233  			     ELSE
+234  				 v_monthly_orders(v_monthly_orders.COUNT).TrangThaiDH := N'Chờ thanh toán';
+235  				 v_monthly_orders(v_monthly_orders.COUNT).TrangThaiTT := 0;
+236  			     END IF;
+237  			 ELSE
+238  			     v_monthly_orders(v_monthly_orders.COUNT).TrangThaiDH := N'Hoàn thành';
+239  			     v_monthly_orders(v_monthly_orders.COUNT).TrangThaiTT := 1;
+240  			 END IF;
+241  			 v_monthly_orders(v_monthly_orders.COUNT).TGGiaoTT := v_simulated_date + 1;
+242  		     ELSIF j = 10 THEN
+243  			 -- Đơn 10: Đang giao
+244  			 v_monthly_orders(v_monthly_orders.COUNT).TrangThaiDH := N'Đang giao';
+245  			 v_monthly_orders(v_monthly_orders.COUNT).TrangThaiTT := 0;
+246  			 v_monthly_orders(v_monthly_orders.COUNT).TGGiaoTT := NULL;
+247  		     ELSIF j IN (11, 12) THEN
+248  			 -- Đơn 11 và 12: Chờ giao hàng
+249  			 v_monthly_orders(v_monthly_orders.COUNT).TrangThaiDH := N'Chờ giao hàng';
+250  			 v_monthly_orders(v_monthly_orders.COUNT).TrangThaiTT := 0;
+251  			 v_monthly_orders(v_monthly_orders.COUNT).TGGiaoTT := NULL;
+252  		     ELSIF j = 13 THEN
+253  			 -- Đơn 13: Đã huỷ
+254  			 v_monthly_orders(v_monthly_orders.COUNT).TrangThaiDH := N'Đã huỷ';
+255  			 v_monthly_orders(v_monthly_orders.COUNT).TrangThaiTT := 0;
+256  			 v_monthly_orders(v_monthly_orders.COUNT).TGGiaoTT := NULL;
+257  		     ELSIF j = 14 THEN
+258  			 -- Đơn 14: Đã đặt
+259  			 v_monthly_orders(v_monthly_orders.COUNT).TrangThaiDH := N'Đã đặt';
+260  			 v_monthly_orders(v_monthly_orders.COUNT).TrangThaiTT := 0;
+261  			 v_monthly_orders(v_monthly_orders.COUNT).TGGiaoTT := NULL;
+262  		     END IF;
+263  		 END IF;
+264  
+265  		 -- Xác định số lượng sản phẩm trong đơn hàng
+266  		 v_num_items := CASE
+267  		     WHEN j IN (1, 8) THEN TRUNC(DBMS_RANDOM.VALUE(1, 3))	-- 1 đến 2 sản phẩm
+268  		     WHEN j IN (2, 3, 5, 6, 7, 10, 11, 12, 13) THEN TRUNC(DBMS_RANDOM.VALUE(3, 6)) -- 3 đến 5 sản phẩm
+269  		     ELSE TRUNC(DBMS_RANDOM.VALUE(6, 11))			-- 6 đến 10 sản phẩm
+270  		 END;
+271  
+272  		 DECLARE
+273  		     TYPE t_sp_temp IS TABLE OF VARCHAR2(10);
+274  		     v_used_sps t_sp_temp := t_sp_temp();
+275  		     v_is_sp_dup BOOLEAN;
+276  		 BEGIN
+277  		     FOR k IN 1..v_num_items LOOP
+278  			 -- Đảm bảo không trùng lặp sản phẩm trong một đơn hàng
+279  			 LOOP
+280  			     v_MaSP := v_all_products(TRUNC(DBMS_RANDOM.VALUE(1, 26)));
+281  			     v_is_sp_dup := FALSE;
+282  			     IF v_used_sps.COUNT > 0 THEN
+283  				 FOR idx IN 1..v_used_sps.COUNT LOOP
+284  				       IF v_used_sps(idx) = v_MaSP THEN
+285  					   v_is_sp_dup := TRUE;
+286  					   EXIT;
+287  				       END IF;
+288  				 END LOOP;
+289  			     END IF;
+290  			     EXIT WHEN NOT v_is_sp_dup;
+291  			 END LOOP;
+292  			 v_used_sps.EXTEND;
+293  			 v_used_sps(v_used_sps.COUNT) := v_MaSP;
+294  
+295  			 -- Số lượng bán B2B hợp lý: vài chục kg (từ 20 đến 120 kg/sp)
+296  			 v_SoLuong_export := TRUNC(DBMS_RANDOM.VALUE(20, 121));
+297  
+298  			 -- Thêm vào mảng chi tiết đơn hàng
+299  			 v_monthly_order_details.EXTEND;
+300  			 v_monthly_order_details(v_monthly_order_details.COUNT).MaDH := v_MaDH;
+301  			 v_monthly_order_details(v_monthly_order_details.COUNT).MaSP := v_MaSP;
+302  			 v_monthly_order_details(v_monthly_order_details.COUNT).SoLuong := v_SoLuong_export;
+303  
+304  			 -- Cộng dồn vào lượng bán tích lũy
+305  			 v_sales_qty(v_MaSP) := v_sales_qty(v_MaSP) + v_SoLuong_export;
+306  		     END LOOP;
+307  		 END;
+308  	     END LOOP;
+309  
+310  	     -- =================================================================
+311  	     -- 3. THIẾT LẬP DANH SÁCH SẢN PHẨM CẦN NHẬP & PHÂN BỔ VÀO 6 LÔ HÀNG
+312  	     -- =================================================================
+313  	     v_products_to_import := t_product_list();
+314  	     v_lh_products := t_lh_distribution(
+315  		 t_sp_in_lh(), t_sp_in_lh(), t_sp_in_lh(), t_sp_in_lh(), t_sp_in_lh(), t_sp_in_lh()
+316  	     );
+317  
+318  	     IF v_month_offset = 0 THEN
+319  		 -- Tháng đầu tiên: nhập toàn bộ 25 sản phẩm để tạo kho nền
+320  		 FOR i IN 1..v_all_products.COUNT LOOP
+321  		     v_products_to_import.EXTEND;
+322  		     v_products_to_import(v_products_to_import.COUNT) := v_all_products(i);
+323  		 END LOOP;
+324  
+325  		 -- Chia đều 25 sản phẩm vào 6 lô hàng
+326  		 FOR idx IN 1..v_products_to_import.COUNT LOOP
+327  		     v_day_offset := MOD(idx - 1, 6) + 1;
+328  		     v_lh_products(v_day_offset).EXTEND;
+329  		     v_lh_products(v_day_offset)(v_lh_products(v_day_offset).COUNT) := v_products_to_import(idx);
+330  		 END LOOP;
+331  	     ELSE
+332  		 -- Các tháng tiếp theo: chỉ nhập sản phẩm thực sự bán
+333  		 FOR i IN 1..v_all_products.COUNT LOOP
+334  		     v_MaSP := v_all_products(i);
+335  		     IF v_sales_qty(v_MaSP) > 0 THEN
+336  			 v_products_to_import.EXTEND;
+337  			 v_products_to_import(v_products_to_import.COUNT) := v_MaSP;
+338  		     END IF;
+339  		 END LOOP;
 340  
-341  			 ELSIF j IN (7, 8) THEN
-342  			     -- Đơn 7 và 8: Đang giao hàng
-343  			     SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
-344  			     SP_XACNHAN_GIAOHANG(v_MaDH, v_MaNV_GiaoHang);
-345  
-346  			 ELSIF j IN (9, 10) THEN
-347  			     -- Đơn 9 và 10: Chờ giao hàng (đã xuất kho nhưng shipper chưa nhận)
-348  			     SP_XACNHAN_XUATKHO(v_MaDH, v_MaNV_GiaoHang);
-349  
-350  			 ELSIF j IN (11, 12) THEN
-351  			     -- Đơn 11 và 12: Đặt hàng thành công, đang giữ kho tạm thời (Đã đặt) -> XUATKHO giữ trạng thái 'Tạm giữ'
-352  			     NULL;
-353  
-354  			 ELSIF j = 13 THEN
-355  			     -- Đơn 13: Đã hủy đơn hàng (hoàn lại kho qua SP_HUY_DH)
-356  			     SP_HUY_DH(v_MaDH, N'Khách hàng báo hủy do thay đổi kế hoạch sản xuất B2B');
-357  
-358  			 ELSIF j = 14 THEN
-359  			     -- Đơn 14: Giữ nguyên trạng thái mới đặt (Đã đặt)
-360  			     NULL;
-361  			 END IF;
-362  
-363  			 -- Đồng bộ hóa ngày đặt, giao yêu cầu và giao thực tế
-364  			 UPDATE DONHANG
-365  			 SET TGDat = v_simulated_date,
-366  			     TGGiaoYC = v_simulated_date + 2
-367  			 WHERE MaDH = v_MaDH;
-368  
-369  			 UPDATE XUATKHO SET TGCapNhat = v_simulated_date WHERE MaDH = v_MaDH;
-370  		     EXCEPTION WHEN OTHERS THEN NULL;
-371  		     END;
-372  		 END IF;
-373  
-374  	     END LOOP;
-375  	 END LOOP;
-376  
-377  	 COMMIT;
-378  	 DBMS_OUTPUT.PUT_LINE('HOÀN TẤT SINH DATA KÈM LỊCH SỬ BIẾN ĐỘNG GIÁ MUA & BÁN!');
-379  EXCEPTION WHEN OTHERS THEN ROLLBACK; DBMS_OUTPUT.PUT_LINE('LỖI: ' || SQLERRM);
-380  END;
-381  /
-BẮT ĐẦU CHẠY DATA ENRICHMENT - GIAI ĐOẠN 11/2025 - 05/2026            
-Lỗi tạo yêu cầu xuất kho DH000100: ORA-20024: Kho không đủ hàng   
-cho: SP000013                                                                   
-Lỗi tạo yêu cầu xuất kho DH000101: ORA-20024: Kho không đủ hàng   
-cho: SP000013                                                                   
-Lỗi tạo yêu cầu xuất kho DH000102: ORA-20024: Kho không đủ hàng   
-cho: SP000015                                                                   
-Lỗi tạo yêu cầu xuất kho DH000103: ORA-20024: Kho không đủ hàng   
-cho: SP000022                                                                   
-Lỗi tạo yêu cầu xuất kho DH000104: ORA-20024: Kho không đủ hàng   
-cho: SP000016                                                                   
-Lỗi tạo yêu cầu xuất kho DH000105: ORA-20024: Kho không đủ hàng   
-cho: SP000017                                                                   
-Lỗi tạo yêu cầu xuất kho DH000106: ORA-20024: Kho không đủ hàng   
-cho: SP000019                                                                   
-Lỗi tạo yêu cầu xuất kho DH000107: ORA-20024: Kho không đủ hàng   
-cho: SP000020                                                                   
-Lỗi tạo yêu cầu xuất kho DH000108: ORA-20024: Kho không đủ hàng   
-cho: SP000023                                                                   
-Lỗi tạo yêu cầu xuất kho DH000109: ORA-20024: Kho không đủ hàng   
-cho: SP000015                                                                   
-Lỗi tạo yêu cầu xuất kho DH000110: ORA-20024: Kho không đủ hàng   
-cho: SP000016                                                                   
-Lỗi tạo yêu cầu xuất kho DH000111: ORA-20024: Kho không đủ hàng   
-cho: SP000022                                                                   
-Lỗi tạo yêu cầu xuất kho DH000112: ORA-20024: Kho không đủ hàng   
-cho: SP000016                                                                   
-Lỗi tạo yêu cầu xuất kho DH000113: ORA-20024: Kho không đủ hàng   
-cho: SP000022                                                                   
-HOÀN TẤT SINH DATA KÈM LỊCH SỬ BIẾN ĐỘNG GIÁ MUA & BÁN!          
+341  		 IF v_month_date < TO_DATE('2026-05-01', 'YYYY-MM-DD') THEN
+342  		     -- Tháng quá khứ: chia đều sản phẩm bán vào 6 lô hàng
+343  		     FOR idx IN 1..v_products_to_import.COUNT LOOP
+344  			 v_day_offset := MOD(idx - 1, 6) + 1;
+345  			 v_lh_products(v_day_offset).EXTEND;
+346  			 v_lh_products(v_day_offset)(v_lh_products(v_day_offset).COUNT) := v_products_to_import(idx);
+347  		     END LOOP;
+348  		 ELSE
+349  		     -- Tháng 5/2026: Phân bổ thông minh
+350  		     -- Sản phẩm bán ở đơn 1..9 (hoàn thành/chờ thanh toán) xếp vào lô 1, 2, 3 để nhập kho trước
+351  		     DECLARE
+352  			 TYPE t_active_flags IS TABLE OF NUMBER INDEX BY VARCHAR2(10);
+353  			 v_active_flags t_active_flags;
+354  			 v_sp VARCHAR2(10);
+355  			 v_act_sp t_product_list := t_product_list();
+356  			 v_inact_sp t_product_list := t_product_list();
+357  		     BEGIN
+358  			 FOR i IN 1..v_all_products.COUNT LOOP
+359  			     v_active_flags(v_all_products(i)) := 0;
+360  			 END LOOP;
+361  
+362  			 FOR idx IN 1..v_monthly_order_details.COUNT LOOP
+363  			     FOR od_idx IN 1..9 LOOP
+364  				 IF v_monthly_order_details(idx).MaDH = v_monthly_orders(od_idx).MaDH THEN
+365  				     v_active_flags(v_monthly_order_details(idx).MaSP) := 1;
+366  				     EXIT;
+367  				 END IF;
+368  			     END LOOP;
+369  			 END LOOP;
+370  
+371  			 FOR i IN 1..v_products_to_import.COUNT LOOP
+372  			     v_sp := v_products_to_import(i);
+373  			     IF v_active_flags(v_sp) = 1 THEN
+374  				 v_act_sp.EXTEND;
+375  				 v_act_sp(v_act_sp.COUNT) := v_sp;
+376  			     ELSE
+377  				 v_inact_sp.EXTEND;
+378  				 v_inact_sp(v_inact_sp.COUNT) := v_sp;
+379  			     END IF;
+380  			 END LOOP;
+381  
+382  			 IF v_act_sp.COUNT > 0 THEN
+383  			     FOR idx IN 1..v_act_sp.COUNT LOOP
+384  				 v_day_offset := MOD(idx - 1, 3) + 1; -- Lô 1, 2, 3
+385  				 v_lh_products(v_day_offset).EXTEND;
+386  				 v_lh_products(v_day_offset)(v_lh_products(v_day_offset).COUNT) := v_act_sp(idx);
+387  			     END LOOP;
+388  			 END IF;
+389  
+390  			 IF v_inact_sp.COUNT > 0 THEN
+391  			     FOR idx IN 1..v_inact_sp.COUNT LOOP
+392  				 v_day_offset := MOD(idx - 1, 3) + 4; -- Lô 4, 5, 6
+393  				 v_lh_products(v_day_offset).EXTEND;
+394  				 v_lh_products(v_day_offset)(v_lh_products(v_day_offset).COUNT) := v_inact_sp(idx);
+395  			     END LOOP;
+396  			 END IF;
+397  		     END;
+398  		 END IF;
+399  	     END IF;
+400  
+401  	     -- =================================================================
+402  	     -- 4. TẠO LÔ HÀNG VÀ THỰC HIỆN NHẬP KHO THỰC TẾ (LOHANG, CHITIETLOHANG)
+403  	     -- =================================================================
+404  	     FOR d IN 1..6 LOOP
+405  		 v_day_offset := CASE d
+406  		     WHEN 1 THEN 2   -- Ngày 3
+407  		     WHEN 2 THEN 7   -- Ngày 8
+408  		     WHEN 3 THEN 12  -- Ngày 13
+409  		     WHEN 4 THEN 17  -- Ngày 18
+410  		     WHEN 5 THEN 22  -- Ngày 23
+411  		     ELSE 27	     -- Ngày 28
+412  		 END;
+413  		 v_simulated_date := v_month_start + v_day_offset;
+414  
+415  		 -- Đảm bảo lô hàng không bị trống
+416  		 IF v_lh_products(d).COUNT = 0 THEN
+417  		     v_lh_products(d).EXTEND;
+418  		     v_lh_products(d)(1) := 'SP000001';
+419  		 END IF;
+420  
+421  		 SELECT MaNCC INTO v_MaNCC FROM (SELECT MaNCC FROM NHACUNGCAP WHERE TrangThaiHopTac = 1 ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+422  		 SELECT MaNV INTO v_MaNV_ThuMua FROM (SELECT MaNV FROM NHANVIEN WHERE ChucVu = 'NV thu mua' ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+423  
+424  		 v_MaLH := 'LH' || LPAD(SEQ_LOHANG.NEXTVAL, 6, '0');
+425  
+426  		 INSERT INTO LOHANG (MaLH, MaNCC, MaNV, TGNhap, TrangThaiLH)
+427  		 VALUES (v_MaLH, v_MaNCC, v_MaNV_ThuMua, v_simulated_date, 'Chờ kiểm duyệt');
+428  
+429  		 FOR idx IN 1..v_lh_products(d).COUNT LOOP
+430  		     v_MaSP := v_lh_products(d)(idx);
+431  
+432  		     -- Tính toán số lượng nhập
+433  		     v_SoLuong_import := v_sales_qty(v_MaSP);
+434  		     IF v_SoLuong_import > 0 THEN
+435  			 -- Chỉ nhập dư 2% lượng bán + 15 kg dự phòng để tối ưu hóa biên lợi nhuận
+436  			 -- Riêng tháng đầu tiên nhập nền vừa đủ (+50 kg dự phòng)
+437  			 IF v_month_offset = 0 THEN
+438  			     v_SoLuong_import := ROUND(v_SoLuong_import * 1.02 + 50);
+439  			 ELSE
+440  			     v_SoLuong_import := ROUND(v_SoLuong_import * 1.02 + 15);
+441  			 END IF;
+442  		     ELSE
+443  			 v_SoLuong_import := 50;
+444  		     END IF;
+445  
+446  		     -- Định mức quy mô 100 < SL < 10000
+447  		     IF v_SoLuong_import < 100 THEN
+448  			 v_SoLuong_import := 100;
+449  		     END IF;
+450  		     IF v_SoLuong_import > 9500 THEN
+451  			 v_SoLuong_import := 9500;
+452  		     END IF;
+453  
+454  		     INSERT INTO CHITIETLOHANG (MaLH, MaSP, SoLuong)
+455  		     VALUES (v_MaLH, v_MaSP, v_SoLuong_import);
+456  
+457  		     -- Xác định kho và thực hiện nhập kho thực tế
+458  		     SELECT BaoQuan INTO v_BaoQuan FROM SANPHAM WHERE MaSP = v_MaSP;
+459  		     SELECT MaKho INTO v_MaKho FROM (SELECT MaKho FROM KHO WHERE LoaiKho = v_BaoQuan ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+460  
+461  		     IF v_month_date < TO_DATE('2026-05-01', 'YYYY-MM-DD') OR d <= 3 THEN
+462  			 SP_XACNHAN_NHAPKHO(v_MaLH, v_MaSP, v_MaKho, v_simulated_date + 365, 'Kệ A' || TRUNC(DBMS_RANDOM.VALUE(1, 11)));
+463  			 UPDATE TONKHO SET TGNhapKho = v_simulated_date WHERE MaLH = v_MaLH AND MaSP = v_MaSP;
+464  		     END IF;
+465  		 END LOOP;
+466  
+467  		 -- Đồng bộ trạng thái lô hàng
+468  		 IF v_month_date < TO_DATE('2026-05-01', 'YYYY-MM-DD') THEN
+469  		     UPDATE LOHANG SET TrangThaiLH = N'Đã nhập kho' WHERE MaLH = v_MaLH;
+470  		 ELSE
+471  		     IF d <= 3 THEN
+472  			 UPDATE LOHANG SET TrangThaiLH = N'Đã nhập kho' WHERE MaLH = v_MaLH;
+473  		     ELSIF d = 4 THEN
+474  			 SP_YEUCAU_NHAPKHO(v_MaLH);
+475  		     -- d = 5, 6 giữ trạng thái "Chờ kiểm duyệt"
+476  		     END IF;
+477  		 END IF;
+478  	     END LOOP;
+479  
+480  	     -- =================================================================
+481  	     -- 5. THIẾT LẬP ĐƠN HÀNG VÀ CHẠY NGHIỆP VỤ XUẤT KHO THỰC TẾ TRÊN DATABASE
+482  	     -- =================================================================
+483  	     FOR j IN 1..v_monthly_orders.COUNT LOOP
+484  		 v_MaDH := v_monthly_orders(j).MaDH;
+485  		 v_simulated_date := v_monthly_orders(j).TGDat;
+486  
+487  		 INSERT INTO DONHANG (MaDH, MaKH, MaNV, TGDat, TGGiaoYC, DiaChiGiaoHang, TrangThaiDH, TrangThaiTT, PhuongThucTT)
+488  		 VALUES (
+489  		     v_MaDH,
+490  		     v_monthly_orders(j).MaKH,
+491  		     v_monthly_orders(j).MaNV_GiaoHang,
+492  		     v_simulated_date,
+493  		     v_monthly_orders(j).TGGiaoYC,
+494  		     v_monthly_orders(j).DiaChiGiao,
+495  		     'Đã đặt',
+496  		     0,
+497  		     v_monthly_orders(j).PhuongThucTT
+498  		 );
+499  
+500  		 -- Insert chi tiết đơn hàng
+501  		 FOR idx IN 1..v_monthly_order_details.COUNT LOOP
+502  		     IF v_monthly_order_details(idx).MaDH = v_MaDH THEN
+503  			 INSERT INTO CHITIETDONHANG (MaDH, MaSP, SoLuong)
+504  			 VALUES (v_MaDH, v_monthly_order_details(idx).MaSP, v_monthly_order_details(idx).SoLuong);
+505  		     END IF;
+506  		 END LOOP;
+507  
+508  		 -- Gọi nghiệp vụ yêu cầu xuất kho (Trigger/Procedure sẽ tự động tạm giữ tồn kho)
+509  		 BEGIN
+510  		     SP_YEUCAU_XUATKHO(v_MaDH);
+511  		     UPDATE XUATKHO SET TGCapNhat = v_simulated_date WHERE MaDH = v_MaDH;
+512  		 EXCEPTION
+513  		     WHEN OTHERS THEN
+514  			 DBMS_OUTPUT.PUT_LINE('Lỗi tạo yêu cầu xuất kho ' || v_MaDH || ': ' || SQLERRM);
+515  		 END;
+516  
+517  		 -- Đẩy trạng thái nghiệp vụ theo phân bổ thời gian thực tế
+518  		 IF v_monthly_orders(j).TrangThaiDH = N'Hoàn thành' THEN
+519  		     BEGIN
+520  			 SP_XACNHAN_XUATKHO(v_MaDH, v_monthly_orders(j).MaNV_GiaoHang);
+521  			 SP_XACNHAN_GIAOHANG(v_MaDH, v_monthly_orders(j).MaNV_GiaoHang);
+522  			 SP_GIAOHANG_THANHCONG(v_MaDH, v_monthly_orders(j).MaNV_GiaoHang);
+523  
+524  			 UPDATE DONHANG
+525  			 SET TrangThaiTT = v_monthly_orders(j).TrangThaiTT,
+526  			     TrangThaiDH = N'Hoàn thành',
+527  			     TGGiaoTT = v_monthly_orders(j).TGGiaoTT
+528  			 WHERE MaDH = v_MaDH;
+529  		     EXCEPTION WHEN OTHERS THEN NULL;
+530  		     END;
+531  
+532  		 ELSIF v_monthly_orders(j).TrangThaiDH = N'Chờ thanh toán' THEN
+533  		     BEGIN
+534  			 SP_XACNHAN_XUATKHO(v_MaDH, v_monthly_orders(j).MaNV_GiaoHang);
+535  			 SP_XACNHAN_GIAOHANG(v_MaDH, v_monthly_orders(j).MaNV_GiaoHang);
+536  			 SP_GIAOHANG_THANHCONG(v_MaDH, v_monthly_orders(j).MaNV_GiaoHang);
+537  
+538  			 UPDATE DONHANG
+539  			 SET TrangThaiTT = 0,
+540  			     TrangThaiDH = N'Chờ thanh toán',
+541  			     TGGiaoTT = v_monthly_orders(j).TGGiaoTT
+542  			 WHERE MaDH = v_MaDH;
+543  		     EXCEPTION WHEN OTHERS THEN NULL;
+544  		     END;
+545  
+546  		 ELSIF v_monthly_orders(j).TrangThaiDH = N'Đang giao' THEN
+547  		     BEGIN
+548  			 SP_XACNHAN_XUATKHO(v_MaDH, v_monthly_orders(j).MaNV_GiaoHang);
+549  			 SP_XACNHAN_GIAOHANG(v_MaDH, v_monthly_orders(j).MaNV_GiaoHang);
+550  		     EXCEPTION WHEN OTHERS THEN NULL;
+551  		     END;
+552  
+553  		 ELSIF v_monthly_orders(j).TrangThaiDH = N'Chờ giao hàng' THEN
+554  		     BEGIN
+555  			 SP_XACNHAN_XUATKHO(v_MaDH, v_monthly_orders(j).MaNV_GiaoHang);
+556  		     EXCEPTION WHEN OTHERS THEN NULL;
+557  		     END;
+558  
+559  		 ELSIF v_monthly_orders(j).TrangThaiDH = N'Đã huỷ' THEN
+560  		     BEGIN
+561  			 SP_HUY_DH(v_MaDH, N'Khách hàng báo hủy do thay đổi kế hoạch sản xuất B2B');
+562  		     EXCEPTION WHEN OTHERS THEN NULL;
+563  		     END;
+564  
+565  		 ELSIF v_monthly_orders(j).TrangThaiDH = N'Đã đặt' THEN
+566  		     NULL;
+567  		 END IF;
+568  
+569  		 -- Đồng bộ hóa ngày tháng của đơn hàng & ngày cập nhật xuất kho
+570  		 UPDATE DONHANG
+571  		 SET TGDat = v_simulated_date,
+572  		     TGGiaoYC = v_simulated_date + 2
+573  		 WHERE MaDH = v_MaDH;
+574  
+575  		 UPDATE XUATKHO SET TGCapNhat = v_simulated_date WHERE MaDH = v_MaDH;
+576  	     END LOOP;
+577  	 END LOOP;
+578  
+579  	 COMMIT;
+580  	 DBMS_OUTPUT.PUT_LINE('HOÀN TẤT SINH DATA THEO CHUYÊN ĐỀ MATCH IN-MEMORY FINANCIALS!');
+581  EXCEPTION WHEN OTHERS THEN ROLLBACK; DBMS_OUTPUT.PUT_LINE('LỖI: ' || SQLERRM);
+582  END;
+583  /
+BẮT ĐẦU CHẠY DATA ENRICHMENT CAO CẤP - MATCH IN-MEMORY FINANCIALS               
+HOÀN TẤT SINH DATA THEO CHUYÊN ĐỀ MATCH IN-MEMORY FINANCIALS!                   
 
 PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> COMMIT;
+
+Commit complete.
 
 SQL> 
 SQL> -- ===== CÁC CÂU LỆNH TRUY VẤN XÁC MINH DỮ LIỆU SAU KHI CHẠY =====
@@ -3043,15 +3216,15 @@ SQL> SELECT 'LOHANG (Lô hàng)' AS "Bảng", COUNT(*) AS "Số bản ghi" FROM 
  12  UNION ALL
  13  SELECT 'LICHSUGIA (Biến động giá)', COUNT(*) FROM LICHSUGIA;
 
-Bảng                                      Số bản ghi                      
-------------------------------------------- --------------                      
-LOHANG (Lô hàng)                                      42                      
-CHITIETLOHANG (Chi tiết lô)                          90                      
-DONHANG (Đơn hàng)                                   84                      
-CHITIETDONHANG (Chi tiết đơn)                      368                      
-TONKHO (Lưu kho thực tế)                           84                      
-XUATKHO (Xuất kho chi tiết)                        368                      
-LICHSUGIA (Biến động giá)                        122                      
+Bảng                              Số bản ghi                                    
+--------------------------------- ----------                                    
+LOHANG (Lô hàng)                          42                                    
+CHITIETLOHANG (Chi tiết lô)              165                                    
+DONHANG (Đơn hàng)                        98                                    
+CHITIETDONHANG (Chi tiết đơn)            427                                    
+TONKHO (Lưu kho thực tế)                 160                                    
+XUATKHO (Xuất kho chi tiết)              548                                    
+LICHSUGIA (Biến động giá)                123                                    
 
 7 rows selected.
 
@@ -3074,115 +3247,147 @@ SQL> SELECT TrangThaiDH AS "Trạng thái Đơn",
   7  GROUP BY TrangThaiDH, TrangThaiTT, PhuongThucTT
   8  ORDER BY TrangThaiDH, TrangThaiTT;
 
-Trạng thái Đơn                                TT Thanh Toán               
--------------------------------------------------- --------------               
-Phương thức                                    Số đơn hàng             
--------------------------------------------------- ----------------             
-Tổng doanh thu                                                                
-----------------                                                                
-Chờ giao hàng                                                0               
-Chuyển khoản                                                  1             
-        77499000                                                                
-                                                                                
-Chờ giao hàng                                                0               
-Ghi nợ                                                          1             
-       198637000                                                                
-
-Trạng thái Đơn                                TT Thanh Toán               
--------------------------------------------------- --------------               
-Phương thức                                    Số đơn hàng             
--------------------------------------------------- ----------------             
-Tổng doanh thu                                                                
-----------------                                                                
-                                                                                
-Chờ thanh toán                                               0               
-Ghi nợ                                                         16             
-      1798939340                                                                
-                                                                                
-Hoàn thành                                                    1               
-COD                                                              15             
-
-Trạng thái Đơn                                TT Thanh Toán               
--------------------------------------------------- --------------               
-Phương thức                                    Số đơn hàng             
--------------------------------------------------- ----------------             
-Tổng doanh thu                                                                
-----------------                                                                
-      1321877700                                                                
-                                                                                
-Hoàn thành                                                    1               
-Chuyển khoản                                                 13             
-      1449079980                                                                
-                                                                                
-Hoàn thành                                                    1               
-
-Trạng thái Đơn                                TT Thanh Toán               
--------------------------------------------------- --------------               
-Phương thức                                    Số đơn hàng             
--------------------------------------------------- ----------------             
-Tổng doanh thu                                                                
-----------------                                                                
-Ghi nợ                                                         22             
-      2107500560                                                                
-                                                                                
-Hoàn thành                                                    1               
-Ví điện tử                                                 10             
-       728312500                                                                
+Trạng thái Đơn                                                                  
+--------------------------------------------------------------------------------
+TT Thanh Toán                                                                   
+-------------                                                                   
+Phương thức                                                                     
+--------------------------------------------------------------------------------
+Số đơn hàng Tổng doanh thu                                                      
+----------- --------------                                                      
+Chờ giao hàng                                                                   
+            0                                                                   
+Chuyển khoản                                                                    
+          1       25320000                                                      
                                                                                 
 
-Trạng thái Đơn                                TT Thanh Toán               
--------------------------------------------------- --------------               
-Phương thức                                    Số đơn hàng             
--------------------------------------------------- ----------------             
-Tổng doanh thu                                                                
-----------------                                                                
-Đang giao                                                      0               
-Ghi nợ                                                          1             
-       203631260                                                                
-                                                                                
-Đang giao                                                      0               
-Ví điện tử                                                  1             
-        17212000                                                                
-
-Trạng thái Đơn                                TT Thanh Toán               
--------------------------------------------------- --------------               
-Phương thức                                    Số đơn hàng             
--------------------------------------------------- ----------------             
-Tổng doanh thu                                                                
-----------------                                                                
-                                                                                
-Đã huỷ                                                      0               
-Ghi nợ                                                          1             
-        67597460                                                                
-                                                                                
-Đã đặt                                                     0               
-COD                                                               1             
-
-Trạng thái Đơn                                TT Thanh Toán               
--------------------------------------------------- --------------               
-Phương thức                                    Số đơn hàng             
--------------------------------------------------- ----------------             
-Tổng doanh thu                                                                
-----------------                                                                
-        20886740                                                                
-                                                                                
-Đã đặt                                                     0               
-Ghi nợ                                                          1             
-        89838650                                                                
-                                                                                
-Đã đặt                                                     0               
-
-Trạng thái Đơn                                TT Thanh Toán               
--------------------------------------------------- --------------               
-Phương thức                                    Số đơn hàng             
--------------------------------------------------- ----------------             
-Tổng doanh thu                                                                
-----------------                                                                
-Ví điện tử                                                  1             
-       122361000                                                                
+Trạng thái Đơn                                                                  
+--------------------------------------------------------------------------------
+TT Thanh Toán                                                                   
+-------------                                                                   
+Phương thức                                                                     
+--------------------------------------------------------------------------------
+Số đơn hàng Tổng doanh thu                                                      
+----------- --------------                                                      
+Chờ giao hàng                                                                   
+            0                                                                   
+Ghi nợ                                                                          
+          1       59419000                                                      
                                                                                 
 
-13 rows selected.
+Trạng thái Đơn                                                                  
+--------------------------------------------------------------------------------
+TT Thanh Toán                                                                   
+-------------                                                                   
+Phương thức                                                                     
+--------------------------------------------------------------------------------
+Số đơn hàng Tổng doanh thu                                                      
+----------- --------------                                                      
+Chờ thanh toán                                                                  
+            0                                                                   
+Ghi nợ                                                                          
+         13     1144424420                                                      
+                                                                                
+
+Trạng thái Đơn                                                                  
+--------------------------------------------------------------------------------
+TT Thanh Toán                                                                   
+-------------                                                                   
+Phương thức                                                                     
+--------------------------------------------------------------------------------
+Số đơn hàng Tổng doanh thu                                                      
+----------- --------------                                                      
+Hoàn thành                                                                      
+            1                                                                   
+COD                                                                             
+         28     3670845980                                                      
+                                                                                
+
+Trạng thái Đơn                                                                  
+--------------------------------------------------------------------------------
+TT Thanh Toán                                                                   
+-------------                                                                   
+Phương thức                                                                     
+--------------------------------------------------------------------------------
+Số đơn hàng Tổng doanh thu                                                      
+----------- --------------                                                      
+Hoàn thành                                                                      
+            1                                                                   
+Chuyển khoản                                                                    
+         12     1088523740                                                      
+                                                                                
+
+Trạng thái Đơn                                                                  
+--------------------------------------------------------------------------------
+TT Thanh Toán                                                                   
+-------------                                                                   
+Phương thức                                                                     
+--------------------------------------------------------------------------------
+Số đơn hàng Tổng doanh thu                                                      
+----------- --------------                                                      
+Hoàn thành                                                                      
+            1                                                                   
+Ghi nợ                                                                          
+         34     3431063400                                                      
+                                                                                
+
+Trạng thái Đơn                                                                  
+--------------------------------------------------------------------------------
+TT Thanh Toán                                                                   
+-------------                                                                   
+Phương thức                                                                     
+--------------------------------------------------------------------------------
+Số đơn hàng Tổng doanh thu                                                      
+----------- --------------                                                      
+Hoàn thành                                                                      
+            1                                                                   
+Ví điện tử                                                                      
+          6      417905650                                                      
+                                                                                
+
+Trạng thái Đơn                                                                  
+--------------------------------------------------------------------------------
+TT Thanh Toán                                                                   
+-------------                                                                   
+Phương thức                                                                     
+--------------------------------------------------------------------------------
+Số đơn hàng Tổng doanh thu                                                      
+----------- --------------                                                      
+Đang giao                                                                       
+            0                                                                   
+Chuyển khoản                                                                    
+          1      126389000                                                      
+                                                                                
+
+Trạng thái Đơn                                                                  
+--------------------------------------------------------------------------------
+TT Thanh Toán                                                                   
+-------------                                                                   
+Phương thức                                                                     
+--------------------------------------------------------------------------------
+Số đơn hàng Tổng doanh thu                                                      
+----------- --------------                                                      
+Đã huỷ                                                                          
+            0                                                                   
+Ghi nợ                                                                          
+          1       40574940                                                      
+                                                                                
+
+Trạng thái Đơn                                                                  
+--------------------------------------------------------------------------------
+TT Thanh Toán                                                                   
+-------------                                                                   
+Phương thức                                                                     
+--------------------------------------------------------------------------------
+Số đơn hàng Tổng doanh thu                                                      
+----------- --------------                                                      
+Đã đặt                                                                          
+            0                                                                   
+Chuyển khoản                                                                    
+          1      304837900                                                      
+                                                                                
+
+10 rows selected.
 
 SQL> 
 SQL> -- 3. Phân bổ các trạng thái lô hàng nhập kho
@@ -3198,18 +3403,18 @@ SQL> SELECT TrangThaiLH AS "Trạng thái Lô hàng", COUNT(*) AS "Số lô hàn
   2  FROM LOHANG
   3  GROUP BY TrangThaiLH;
 
-Trạng thái Lô hàng                            Số lô hàng               
--------------------------------------------------- --------------               
-Tổng giá trị nhập                                                        
-------------------------                                                        
-Đã nhập kho                                                39               
-              5.2826E+10                                                        
+Trạng thái Lô hàng                                                              
+--------------------------------------------------------------------------------
+Số lô hàng Tổng giá trị nhập                                                    
+---------- -----------------                                                    
+Đã nhập kho                                                                     
+        39        7516146000                                                    
                                                                                 
-Chờ nhập kho                                                1               
-               286680000                                                        
+Chờ nhập kho                                                                    
+         1          57324000                                                    
                                                                                 
-Chờ kiểm duyệt                                            2               
-               349171000                                                        
+Chờ kiểm duyệt                                                                  
+         2         180188000                                                    
                                                                                 
 
 3 rows selected.
@@ -3235,41 +3440,41 @@ MASP
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
 SP000001                                                                        
-Thịt heo Iberico                                                              
-            7814                                                                
+Thịt heo Iberico                                                                
+         951                                                                    
                                                                                 
 SP000002                                                                        
-Thịt bò Kobe                                                                 
-           10805                                                                
+Thịt bò Kobe                                                                    
+        1744                                                                    
 
 MASP                                                                            
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
                                                                                 
 SP000003                                                                        
-Thịt gà ta thả vườn                                                     
-            9159                                                                
+Thịt gà ta thả vườn                                                             
+        1863                                                                    
                                                                                 
 SP000004                                                                        
-Đùi cừu Úc                                                                 
+Đùi cừu Úc                                                                      
 
 MASP                                                                            
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
-           11587                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
+        1207                                                                    
                                                                                 
 SP000005                                                                        
-Thịt vịt xiêm                                                              
-           10128                                                                
+Thịt vịt xiêm                                                                   
+        1329                                                                    
                                                                                 
 SP000006                                                                        
 
@@ -3277,55 +3482,55 @@ MASP
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
-Cá hồi NaUy nguyên con                                                      
-            8099                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
+Cá hồi NaUy nguyên con                                                          
+         796                                                                    
                                                                                 
 SP000007                                                                        
-Mực ống Trường Sa                                                        
-            9866                                                                
+Mực ống Trường Sa                                                               
+        1463                                                                    
                                                                                 
 
 MASP                                                                            
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
 SP000008                                                                        
-Tôm sú Cà Mau                                                                
-           11651                                                                
+Tôm sú Cà Mau                                                                   
+        1448                                                                    
                                                                                 
 SP000009                                                                        
-Cua thịt Năm Căn                                                            
-           11869                                                                
+Cua thịt Năm Căn                                                                
+        1844                                                                    
 
 MASP                                                                            
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
                                                                                 
 SP000010                                                                        
-Bạch tuộc sữa                                                             
-            9694                                                                
+Bạch tuộc sữa                                                                   
+        1278                                                                    
                                                                                 
 SP000011                                                                        
-Cải bắp Đà Lạt                                                          
+Cải bắp Đà Lạt                                                                  
 
 MASP                                                                            
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
-           10890                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
+        1563                                                                    
                                                                                 
 SP000012                                                                        
-Cà chua Cherry                                                                 
-            9144                                                                
+Cà chua Cherry                                                                  
+        1848                                                                    
                                                                                 
 SP000013                                                                        
 
@@ -3333,55 +3538,55 @@ MASP
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
-Súp lơ xanh                                                                   
-            9930                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
+Súp lơ xanh                                                                     
+        1395                                                                    
                                                                                 
 SP000014                                                                        
-Cà rốt Baby                                                                  
-            8802                                                                
+Cà rốt Baby                                                                     
+        1513                                                                    
                                                                                 
 
 MASP                                                                            
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
 SP000015                                                                        
-Khoai tây mầm                                                                
-           10589                                                                
+Khoai tây mầm                                                                   
+        1133                                                                    
                                                                                 
 SP000016                                                                        
-Táo Envy Mỹ                                                                  
-            8190                                                                
+Táo Envy Mỹ                                                                     
+        1169                                                                    
 
 MASP                                                                            
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
                                                                                 
 SP000017                                                                        
-Nho mẫu đơn Hàn Quốc                                                     
-            7302                                                                
+Nho mẫu đơn Hàn Quốc                                                            
+        1202                                                                    
                                                                                 
 SP000018                                                                        
-Dâu tây Mộc Châu                                                           
+Dâu tây Mộc Châu                                                                
 
 MASP                                                                            
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
-            7629                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
+        1237                                                                    
                                                                                 
 SP000019                                                                        
-Dưa lưới Taki                                                               
-            8944                                                                
+Dưa lưới Taki                                                                   
+        1551                                                                    
                                                                                 
 SP000020                                                                        
 
@@ -3389,51 +3594,51 @@ MASP
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
-Bơ sáp Đắk Lắk                                                           
-            7268                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
+Bơ sáp Đắk Lắk                                                                  
+        1371                                                                    
                                                                                 
 SP000021                                                                        
-Hạt điều rang củi                                                        
-            7330                                                                
+Hạt điều rang củi                                                               
+        1188                                                                    
                                                                                 
 
 MASP                                                                            
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
 SP000022                                                                        
-Hạt macca Úc                                                                 
-            7725                                                                
+Hạt macca Úc                                                                    
+        1105                                                                    
                                                                                 
 SP000023                                                                        
-Đậu phộng sấy                                                            
-            6106                                                                
+Đậu phộng sấy                                                                   
+        1174                                                                    
 
 MASP                                                                            
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
                                                                                 
 SP000024                                                                        
-Hạt dẻ cười Mỹ                                                         
-            9420                                                                
+Hạt dẻ cười Mỹ                                                                  
+        1546                                                                    
                                                                                 
 SP000025                                                                        
-Gạo ST25                                                                      
+Gạo ST25                                                                        
 
 MASP                                                                            
 ----------                                                                      
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tổng SL Nhập                                                                
-----------------                                                                
-            8172                                                                
+Tổng SL Nhập                                                                    
+------------                                                                    
+        1491                                                                    
                                                                                 
 
 25 rows selected.
@@ -3454,16 +3659,16 @@ SQL> SELECT TO_CHAR(TGApDung, 'MM-YYYY') AS "Tháng-Năm", COUNT(*) AS "Số l�
   4  GROUP BY TO_CHAR(TGApDung, 'MM-YYYY')
   5  ORDER BY TO_CHAR(TGApDung, 'MM-YYYY');
 
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-01-2026                         4                                               
-02-2026                         4                                               
-03-2026                         4                                               
-04-2026                         4                                               
-05-2026                         4                                               
-10-2025                         1                                               
-11-2025                         4                                               
-12-2025                         4                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+01-2026                4                                                        
+02-2026                4                                                        
+03-2026                4                                                        
+04-2026                4                                                        
+05-2026                4                                                        
+10-2025                1                                                        
+11-2025                4                                                        
+12-2025                4                                                        
 
 8 rows selected.
 
@@ -3484,194 +3689,194 @@ SQL> SELECT lsp.TenLSP AS "Loại Sản Phẩm", TO_CHAR(lsg.TGApDung, 'MM-YYYY'
   5  GROUP BY lsp.TenLSP, TO_CHAR(lsg.TGApDung, 'MM-YYYY')
   6  ORDER BY TO_CHAR(lsg.TGApDung, 'MM-YYYY'), lsp.TenLSP;
 
-Loại Sản Phẩm                                                             
+Loại Sản Phẩm                                                                   
 --------------------------------------------------------------------------------
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-Ngũ cốc và hạt                                                            
-01-2026                         2                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+Ngũ cốc và hạt                                                                  
+01-2026                2                                                        
                                                                                 
-Rau củ quả                                                                  
-01-2026                         2                                               
+Rau củ quả                                                                      
+01-2026                2                                                        
                                                                                 
-Thủy hải sản                                                              
-01-2026                         2                                               
+Thịt các loại                                                                   
+01-2026                6                                                        
                                                                                 
 
-Loại Sản Phẩm                                                             
+Loại Sản Phẩm                                                                   
 --------------------------------------------------------------------------------
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-Thịt các loại                                                              
-01-2026                         6                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+Thủy hải sản                                                                    
+01-2026                2                                                        
                                                                                 
-Trái cây                                                                      
-01-2026                         2                                               
+Trái cây                                                                        
+01-2026                2                                                        
                                                                                 
-Ngũ cốc và hạt                                                            
-02-2026                         2                                               
+Ngũ cốc và hạt                                                                  
+02-2026                2                                                        
                                                                                 
 
-Loại Sản Phẩm                                                             
+Loại Sản Phẩm                                                                   
 --------------------------------------------------------------------------------
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-Rau củ quả                                                                  
-02-2026                         2                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+Rau củ quả                                                                      
+02-2026                2                                                        
                                                                                 
-Thủy hải sản                                                              
-02-2026                         2                                               
+Thịt các loại                                                                   
+02-2026                6                                                        
                                                                                 
-Thịt các loại                                                              
-02-2026                         6                                               
+Thủy hải sản                                                                    
+02-2026                2                                                        
                                                                                 
 
-Loại Sản Phẩm                                                             
+Loại Sản Phẩm                                                                   
 --------------------------------------------------------------------------------
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-Trái cây                                                                      
-02-2026                         2                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+Trái cây                                                                        
+02-2026                2                                                        
                                                                                 
-Ngũ cốc và hạt                                                            
-03-2026                         2                                               
+Ngũ cốc và hạt                                                                  
+03-2026                2                                                        
                                                                                 
-Rau củ quả                                                                  
-03-2026                         2                                               
+Rau củ quả                                                                      
+03-2026                2                                                        
                                                                                 
 
-Loại Sản Phẩm                                                             
+Loại Sản Phẩm                                                                   
 --------------------------------------------------------------------------------
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-Thủy hải sản                                                              
-03-2026                         2                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+Thịt các loại                                                                   
+03-2026                6                                                        
                                                                                 
-Thịt các loại                                                              
-03-2026                         6                                               
+Thủy hải sản                                                                    
+03-2026                2                                                        
                                                                                 
-Trái cây                                                                      
-03-2026                         2                                               
+Trái cây                                                                        
+03-2026                2                                                        
                                                                                 
 
-Loại Sản Phẩm                                                             
+Loại Sản Phẩm                                                                   
 --------------------------------------------------------------------------------
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-Ngũ cốc và hạt                                                            
-04-2026                         2                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+Ngũ cốc và hạt                                                                  
+04-2026                2                                                        
                                                                                 
-Rau củ quả                                                                  
-04-2026                         1                                               
+Rau củ quả                                                                      
+04-2026                2                                                        
                                                                                 
-Thủy hải sản                                                              
-04-2026                         2                                               
+Thịt các loại                                                                   
+04-2026                6                                                        
                                                                                 
 
-Loại Sản Phẩm                                                             
+Loại Sản Phẩm                                                                   
 --------------------------------------------------------------------------------
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-Thịt các loại                                                              
-04-2026                         6                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+Thủy hải sản                                                                    
+04-2026                2                                                        
                                                                                 
-Trái cây                                                                      
-04-2026                         2                                               
+Trái cây                                                                        
+04-2026                2                                                        
                                                                                 
-Ngũ cốc và hạt                                                            
-05-2026                         2                                               
+Ngũ cốc và hạt                                                                  
+05-2026                2                                                        
                                                                                 
 
-Loại Sản Phẩm                                                             
+Loại Sản Phẩm                                                                   
 --------------------------------------------------------------------------------
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-Rau củ quả                                                                  
-05-2026                         2                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+Rau củ quả                                                                      
+05-2026                2                                                        
                                                                                 
-Thủy hải sản                                                              
-05-2026                         2                                               
+Thịt các loại                                                                   
+05-2026                6                                                        
                                                                                 
-Thịt các loại                                                              
-05-2026                         6                                               
+Thủy hải sản                                                                    
+05-2026                2                                                        
                                                                                 
 
-Loại Sản Phẩm                                                             
+Loại Sản Phẩm                                                                   
 --------------------------------------------------------------------------------
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-Trái cây                                                                      
-05-2026                         2                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+Trái cây                                                                        
+05-2026                2                                                        
                                                                                 
-Ngũ cốc và hạt                                                            
-10-2025                         5                                               
+Ngũ cốc và hạt                                                                  
+10-2025                5                                                        
                                                                                 
-Rau củ quả                                                                  
-10-2025                         5                                               
+Rau củ quả                                                                      
+10-2025                5                                                        
                                                                                 
 
-Loại Sản Phẩm                                                             
+Loại Sản Phẩm                                                                   
 --------------------------------------------------------------------------------
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-Thủy hải sản                                                              
-10-2025                         5                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+Thịt các loại                                                                   
+10-2025                5                                                        
                                                                                 
-Thịt các loại                                                              
-10-2025                         5                                               
+Thủy hải sản                                                                    
+10-2025                5                                                        
                                                                                 
-Trái cây                                                                      
-10-2025                         5                                               
+Trái cây                                                                        
+10-2025                5                                                        
                                                                                 
 
-Loại Sản Phẩm                                                             
+Loại Sản Phẩm                                                                   
 --------------------------------------------------------------------------------
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-Ngũ cốc và hạt                                                            
-11-2025                         2                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+Ngũ cốc và hạt                                                                  
+11-2025                2                                                        
                                                                                 
-Rau củ quả                                                                  
-11-2025                         2                                               
+Rau củ quả                                                                      
+11-2025                2                                                        
                                                                                 
-Thủy hải sản                                                              
-11-2025                         2                                               
+Thịt các loại                                                                   
+11-2025                6                                                        
                                                                                 
 
-Loại Sản Phẩm                                                             
+Loại Sản Phẩm                                                                   
 --------------------------------------------------------------------------------
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-Thịt các loại                                                              
-11-2025                         6                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+Thủy hải sản                                                                    
+11-2025                2                                                        
                                                                                 
-Trái cây                                                                      
-11-2025                         2                                               
+Trái cây                                                                        
+11-2025                2                                                        
                                                                                 
-Ngũ cốc và hạt                                                            
-12-2025                         2                                               
+Ngũ cốc và hạt                                                                  
+12-2025                2                                                        
                                                                                 
 
-Loại Sản Phẩm                                                             
+Loại Sản Phẩm                                                                   
 --------------------------------------------------------------------------------
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-Rau củ quả                                                                  
-12-2025                         2                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+Rau củ quả                                                                      
+12-2025                2                                                        
                                                                                 
-Thủy hải sản                                                              
-12-2025                         2                                               
+Thịt các loại                                                                   
+12-2025                6                                                        
                                                                                 
-Thịt các loại                                                              
-12-2025                         6                                               
+Thủy hải sản                                                                    
+12-2025                2                                                        
                                                                                 
 
-Loại Sản Phẩm                                                             
+Loại Sản Phẩm                                                                   
 --------------------------------------------------------------------------------
-Tháng- Số lần biến động                                               
-------- -------------------------                                               
-Trái cây                                                                      
-12-2025                         2                                               
+Tháng-N Số lần biến động                                                        
+------- ----------------                                                        
+Trái cây                                                                        
+12-2025                2                                                        
                                                                                 
 
 40 rows selected.
@@ -3698,227 +3903,157 @@ MATONKHO   MASP
 ---------- ----------                                                           
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000100   SP000001                                                             
-Thịt heo Iberico                                                              
-                           683                       640                        
-                         43                      43                             
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung) Chênh lệch (Tạm giữ)             
+------------------------ --------------------- --------------------             
+Tạm giữ ở XUATKHO                                                               
+-----------------                                                               
+TK000197   SP000001                                                             
+Thịt heo Iberico                                                                
+                      76                     0                   76             
+               76                                                               
                                                                                 
 
 MATONKHO   MASP                                                                 
 ---------- ----------                                                           
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000102   SP000003                                                             
-Thịt gà ta thả vườn                                                     
-                          2081                      1983                        
-                         98                      98                             
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung) Chênh lệch (Tạm giữ)             
+------------------------ --------------------- --------------------             
+Tạm giữ ở XUATKHO                                                               
+-----------------                                                               
+TK000201   SP000002                                                             
+Thịt bò Kobe                                                                    
+                      22                     0                   22             
+               22                                                               
                                                                                 
 
 MATONKHO   MASP                                                                 
 ---------- ----------                                                           
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000104   SP000005                                                             
-Thịt vịt xiêm                                                              
-                          1052                       968                        
-                         84                      84                             
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung) Chênh lệch (Tạm giữ)             
+------------------------ --------------------- --------------------             
+Tạm giữ ở XUATKHO                                                               
+-----------------                                                               
+TK000207   SP000016                                                             
+Táo Envy Mỹ                                                                     
+                      45                     0                   45             
+               45                                                               
                                                                                 
 
 MATONKHO   MASP                                                                 
 ---------- ----------                                                           
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000105   SP000006                                                             
-Cá hồi NaUy nguyên con                                                      
-                          1704                      1591                        
-                        113                     113                             
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung) Chênh lệch (Tạm giữ)             
+------------------------ --------------------- --------------------             
+Tạm giữ ở XUATKHO                                                               
+-----------------                                                               
+TK000218   SP000001                                                             
+Thịt heo Iberico                                                                
+                     100                    61                   39             
+               39                                                               
                                                                                 
 
 MATONKHO   MASP                                                                 
 ---------- ----------                                                           
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000107   SP000008                                                             
-Tôm sú Cà Mau                                                                
-                          1497                      1402                        
-                         95                      95                             
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung) Chênh lệch (Tạm giữ)             
+------------------------ --------------------- --------------------             
+Tạm giữ ở XUATKHO                                                               
+-----------------                                                               
+TK000223   SP000002                                                             
+Thịt bò Kobe                                                                    
+                     118                    95                   23             
+               23                                                               
                                                                                 
 
 MATONKHO   MASP                                                                 
 ---------- ----------                                                           
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000111   SP000012                                                             
-Cà chua Cherry                                                                 
-                          1245                      1191                        
-                         54                      54                             
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung) Chênh lệch (Tạm giữ)             
+------------------------ --------------------- --------------------             
+Tạm giữ ở XUATKHO                                                               
+-----------------                                                               
+TK000224   SP000008                                                             
+Tôm sú Cà Mau                                                                   
+                      31                     0                   31             
+               31                                                               
                                                                                 
 
 MATONKHO   MASP                                                                 
 ---------- ----------                                                           
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000112   SP000013                                                             
-Súp lơ xanh                                                                   
-                           731                       545                        
-                        186                     186                             
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung) Chênh lệch (Tạm giữ)             
+------------------------ --------------------- --------------------             
+Tạm giữ ở XUATKHO                                                               
+-----------------                                                               
+TK000231   SP000004                                                             
+Đùi cừu Úc                                                                      
+                     123                    26                   97             
+               97                                                               
                                                                                 
 
 MATONKHO   MASP                                                                 
 ---------- ----------                                                           
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000114   SP000015                                                             
-Khoai tây mầm                                                                
-                          1643                      1540                        
-                        103                     103                             
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung) Chênh lệch (Tạm giữ)             
+------------------------ --------------------- --------------------             
+Tạm giữ ở XUATKHO                                                               
+-----------------                                                               
+TK000233   SP000016                                                             
+Táo Envy Mỹ                                                                     
+                     144                    87                   57             
+               57                                                               
                                                                                 
 
 MATONKHO   MASP                                                                 
 ---------- ----------                                                           
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000115   SP000016                                                             
-Táo Envy Mỹ                                                                  
-                          2309                      2251                        
-                         58                      58                             
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung) Chênh lệch (Tạm giữ)             
+------------------------ --------------------- --------------------             
+Tạm giữ ở XUATKHO                                                               
+-----------------                                                               
+TK000238   SP000023                                                             
+Đậu phộng sấy                                                                   
+                     128                    21                  107             
+              107                                                               
                                                                                 
 
 MATONKHO   MASP                                                                 
 ---------- ----------                                                           
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000116   SP000017                                                             
-Nho mẫu đơn Hàn Quốc                                                     
-                           520                       491                        
-                         29                      29                             
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung) Chênh lệch (Tạm giữ)             
+------------------------ --------------------- --------------------             
+Tạm giữ ở XUATKHO                                                               
+-----------------                                                               
+TK000250   SP000008                                                             
+Tôm sú Cà Mau                                                                   
+                     359                   321                   38             
+               38                                                               
                                                                                 
 
 MATONKHO   MASP                                                                 
 ---------- ----------                                                           
 TENSP                                                                           
 --------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000117   SP000018                                                             
-Dâu tây Mộc Châu                                                           
-                          2345                      2288                        
-                         57                      57                             
+Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung) Chênh lệch (Tạm giữ)             
+------------------------ --------------------- --------------------             
+Tạm giữ ở XUATKHO                                                               
+-----------------                                                               
+TK000256   SP000009                                                             
+Cua thịt Năm Căn                                                                
+                     278                   174                  104             
+              104                                                               
                                                                                 
 
-MATONKHO   MASP                                                                 
----------- ----------                                                           
-TENSP                                                                           
---------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000118   SP000019                                                             
-Dưa lưới Taki                                                               
-                          1570                      1550                        
-                         20                      20                             
-                                                                                
-
-MATONKHO   MASP                                                                 
----------- ----------                                                           
-TENSP                                                                           
---------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000119   SP000020                                                             
-Bơ sáp Đắk Lắk                                                           
-                          2095                      2014                        
-                         81                      81                             
-                                                                                
-
-MATONKHO   MASP                                                                 
----------- ----------                                                           
-TENSP                                                                           
---------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000121   SP000022                                                             
-Hạt macca Úc                                                                 
-                           830                       765                        
-                         65                      65                             
-                                                                                
-
-MATONKHO   MASP                                                                 
----------- ----------                                                           
-TENSP                                                                           
---------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000122   SP000023                                                             
-Đậu phộng sấy                                                            
-                          1483                      1311                        
-                        172                     172                             
-                                                                                
-
-MATONKHO   MASP                                                                 
----------- ----------                                                           
-TENSP                                                                           
---------------------------------------------------------------------------------
-Tồn kho thực tế (ConLai) SL Khả dụng (KhaDung)                        
------------------------------- -------------------------                        
-Chênh lệch (Tạm giữ) Tạm giữ ở XUATKHO                             
---------------------------- -----------------------                             
-TK000123   SP000024                                                             
-Hạt dẻ cười Mỹ                                                         
-                          2258                      2231                        
-                         27                      27                             
-                                                                                
-
-16 rows selected.
+11 rows selected.
 
 SQL> 
 SQL> SPOOL OFF;
