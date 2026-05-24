@@ -174,7 +174,7 @@ CREATE TABLE DONHANG (
     TongTienHang NUMBER(15,2) DEFAULT 0 CHECK (TongTienHang >= 0),
     GiamGia NUMBER(15,2) DEFAULT 0 CHECK (GiamGia >= 0),
     TongTien NUMBER(15,2) DEFAULT 0 CHECK (TongTien >= 0),
-    TrangThaiDH NVARCHAR2(50) DEFAULT N'Đã đặt' CHECK (TrangThaiDH IN (N'Đã đặt', N'Chờ xử lý', N'Chờ thanh toán', N'Chờ giao hàng', N'Đang giao', N'Hoàn thành', N'Đã huỷ')),
+    TrangThaiDH NVARCHAR2(50) DEFAULT N'Đã đặt' CHECK (TrangThaiDH IN (N'Đã đặt', N'Chờ thanh toán', N'Chờ giao hàng', N'Đang giao', N'Hoàn thành', N'Đã huỷ')),
     TrangThaiTT NUMBER(1) DEFAULT 0 CHECK (TrangThaiTT IN (0, 1)),
     PhuongThucTT NVARCHAR2(50) DEFAULT N'COD' CHECK (PhuongThucTT IN (N'COD', N'Chuyển khoản', N'Ví điện tử', N'Ghi nợ')),
     CONSTRAINT FK_DH_KH FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
