@@ -44,7 +44,7 @@ public class LoHangForm extends JDialog {
 
     public LoHangForm(Window parent) {
         super(parent, "Tạo lô hàng nhập mới", ModalityType.APPLICATION_MODAL);
-        setSize(1100, 720); 
+        setSize(1300, 720); 
         setLocationRelativeTo(parent);
         initComponents();
     }
@@ -147,7 +147,7 @@ public class LoHangForm extends JDialog {
         JLabel lblTitle1 = new JLabel("Danh sách Sản phẩm");
         lblTitle1.setFont(new Font("Segoe UI", Font.BOLD, 15));
         productCard.add(lblTitle1, BorderLayout.NORTH);
-        productCard.add(new JScrollPane(buildProductTable()), BorderLayout.CENTER);
+        productCard.add(buildProductTable(), BorderLayout.CENTER);
 
         // Bảng 2: Chi tiết lô hàng
         JPanel orderCard = new JPanel(new BorderLayout(12, 12));
@@ -156,7 +156,7 @@ public class LoHangForm extends JDialog {
         JLabel lblTitle2 = new JLabel("Chi tiết Lô hàng (Sản phẩm đã chọn)");
         lblTitle2.setFont(new Font("Segoe UI", Font.BOLD, 15));
         orderCard.add(lblTitle2, BorderLayout.NORTH);
-        orderCard.add(new JScrollPane(buildOrderTable()), BorderLayout.CENTER);
+        orderCard.add(buildOrderTable(), BorderLayout.CENTER);
         orderCard.add(buildOrderFooter(), BorderLayout.SOUTH);
 
         panel.add(productCard);

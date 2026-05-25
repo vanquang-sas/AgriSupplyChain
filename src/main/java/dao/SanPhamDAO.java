@@ -26,7 +26,7 @@ public class SanPhamDAO {
                     sp.setMaSP(rs.getString("MaSP"));
                     sp.setTenSP(rs.getString("TenSP"));
                     sp.setMaLSP(rs.getString("MaLSP"));
-                    sp.setTenLSP(rs.getString("TenLSP")); // Lấy từ JOIN
+                    sp.setTenLSP(rs.getString("TenLSP"));
                     sp.setChatLuong(rs.getString("ChatLuong"));
                     sp.setGiaMua(rs.getDouble("GiaMua"));
                     sp.setGiaBan(rs.getDouble("GiaBan"));

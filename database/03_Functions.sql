@@ -174,6 +174,7 @@ END;
 
 
 -- 1. Function lấy danh sách Sản phẩm (Có tên loại)
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 CREATE OR REPLACE FUNCTION FN_LAY_DS_SANPHAM
 RETURN SYS_REFCURSOR
 AS
@@ -181,16 +182,9 @@ AS
 BEGIN
     -- Trả về danh sách sản phẩm kèm tên loại (nếu có)
     OPEN v_cursor FOR
-        SELECT SP.MaSP,
-               SP.TenSP,
-               SP.MaLSP,
-               LSP.TenLSP,
-               SP.ChatLuong,
-               SP.GiaMua,
-               SP.GiaBan,
-               SP.DonViTinh,
-               SP.BaoQuan,
-               SP.HinhAnh
+        SELECT SP.MaSP, SP.TenSP, SP.MaLSP, LSP.TenLSP,
+               SP.ChatLuong, SP.GiaMua, SP.GiaBan,
+               SP.DonViTinh, SP.BaoQuan, SP.HinhAnh
         FROM SANPHAM SP
         LEFT JOIN LOAISANPHAM LSP ON SP.MaLSP = LSP.MaLSP
         ORDER BY SP.MaSP;

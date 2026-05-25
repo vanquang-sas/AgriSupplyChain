@@ -70,7 +70,7 @@ public class DonHangPanel extends JPanel {
     private JLabel lblTongDH, lblDangXuLy, lblDaGiao, lblDaHuy;
 
     private static final String[] COLUMNS = {
-            "MÃ ĐH", "NGÀY ĐẶT", "SẢN PHẨM", "TỔNG TIỀN", "TRẠNG THÁI", "HÀNH ĐỘNG"
+            "MÃ ĐH", "NGÀY ĐẶT", "SẢN PHẨM", "TỔNG TIỀN", "P.THỨC T.TOÁN", "TRẠNG THÁI", "HÀNH ĐỘNG"
     };
 
     public DonHangPanel() {
@@ -232,7 +232,7 @@ public class DonHangPanel extends JPanel {
 
         // --- Khu vực Bảng ---
         tableModel = new DefaultTableModel(COLUMNS, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return c == 5; } // Cột 5: Hành động Hủy đơn
+            @Override public boolean isCellEditable(int r, int c) { return c == 6; } // Cột 6: Hành động Hủy đơn
         };
 
         table = new JTable(tableModel);
@@ -259,7 +259,7 @@ public class DonHangPanel extends JPanel {
                 comp.setForeground(new Color(17, 24, 39)); 
                 comp.setBackground(new Color(243, 244, 246));
                 JLabel label = (JLabel) comp;
-                if(c == 3 || c == 4 || c == 5) label.setHorizontalAlignment(SwingConstants.CENTER);
+                if(c >= 3) label.setHorizontalAlignment(SwingConstants.CENTER);
                 else label.setHorizontalAlignment(SwingConstants.LEFT);
                 label.setBorder(new EmptyBorder(0, 16, 0, 8)); 
                 return label;
@@ -270,19 +270,19 @@ public class DonHangPanel extends JPanel {
             table.getColumnModel().getColumn(i).setHeaderRenderer(hdrRdr);
         }
 
-        int[] widths = {100, 150, 250, 120, 150, 100};
+        int[] widths = {100, 150, 250, 120, 140, 140, 100};
         for (int i = 0; i < widths.length; i++) {
             table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         }
 
         ZebraHoverRenderer zebraRdr = new ZebraHoverRenderer(table);
-        for (int i = 0; i < 4; i++) {
-            table.getColumnModel().getColumn(i).setCellRenderer(zebraRdr); // Cột 0,1,2,3 là text
+        for (int i = 0; i < 5; i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(zebraRdr); // Cột 0,1,2,3,4 là text
         }
         
-        table.getColumnModel().getColumn(4).setCellRenderer(new BadgeStatusRenderer(table)); // Cột trạng thái
-        table.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer()); // Nút Hành động
-        table.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor(new JCheckBox()));
+        table.getColumnModel().getColumn(5).setCellRenderer(new BadgeStatusRenderer(table)); // Cột trạng thái
+        table.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer()); // Nút Hành động
+        table.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor(new JCheckBox()));
 
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createEmptyBorder()); 
@@ -323,7 +323,7 @@ public class DonHangPanel extends JPanel {
         }
 
         tableModel.setRowCount(0);
-        tableModel.addRow(new Object[]{"Đang tải dữ liệu...", "", "", "", "", ""});
+        tableModel.addRow(new Object[]{"Đang tải dữ liệu...", "", "", "", "", "", ""});
 
         if (activeLoadWorker != null && !activeLoadWorker.isDone()) {
             activeLoadWorker.cancel(true);
@@ -357,7 +357,7 @@ public class DonHangPanel extends JPanel {
                     loadTableData(currentDataList);
                 } catch (Exception e) {
                     tableModel.setRowCount(0);
-                    tableModel.addRow(new Object[]{"Lỗi tải dữ liệu", "", "", "", "", ""});
+                    tableModel.addRow(new Object[]{"Lỗi tải dữ liệu", "", "", "", "", "", ""});
                     JOptionPane.showMessageDialog(DonHangPanel.this, "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -396,7 +396,7 @@ public class DonHangPanel extends JPanel {
                                   + "</div></html>";
 
             tableModel.addRow(new Object[]{
-                    dh.getMaDH(), ngayDat, htmlDanhSachSP, tongTien, dh.getTrangThaiDH(), "Hủy đơn"
+                    dh.getMaDH(), ngayDat, htmlDanhSachSP, tongTien, dh.getPhuongThucTT(), dh.getTrangThaiDH(), "Hủy đơn"
             });
         }
         updateRowHeights();
@@ -404,7 +404,7 @@ public class DonHangPanel extends JPanel {
 
     private void xuLyHuyDon(int row) {
         String maDH = (String) tableModel.getValueAt(row, 0);
-        String trangThai = (String) tableModel.getValueAt(row, 4);
+        String trangThai = (String) tableModel.getValueAt(row, 5);
 
         int confirm = JOptionPane.showConfirmDialog(this, 
                 "Bạn có chắc chắn muốn hủy đơn hàng " + maDH + " không?", 
@@ -504,7 +504,7 @@ public class DonHangPanel extends JPanel {
         try {
             btn.setIcon(new com.formdev.flatlaf.extras.FlatSVGIcon(svgPath, 18, 18));
         } catch (Throwable ex) {
-            btn.setText("↻"); btn.setFont(new Font("Segoe UI", Font.BOLD, 18));
+            btn.setText("R"); btn.setFont(new Font("Segoe UI", Font.BOLD, 18));
         }
         btn.setContentAreaFilled(false); btn.setFocusPainted(false); btn.setBorderPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -607,6 +607,11 @@ public class DonHangPanel extends JPanel {
                 setForeground(AppColor.PRIMARY); 
                 setHorizontalAlignment(SwingConstants.RIGHT); 
             }
+            else if (c == 4) { 
+                setFont(new Font("Segoe UI", Font.PLAIN, 13)); 
+                setForeground(new Color(75, 85, 99)); 
+                setHorizontalAlignment(SwingConstants.CENTER); 
+            }
             else { 
                 setFont(new Font("Segoe UI", Font.PLAIN, 13)); 
                 setForeground(new Color(75, 85, 99)); 
@@ -676,7 +681,7 @@ public class DonHangPanel extends JPanel {
             setFont(new Font("Segoe UI", Font.BOLD, 12));
         }
         @Override public Component getTableCellRendererComponent(JTable t, Object value, boolean isS, boolean hasF, int r, int c) {
-            String status = (String) t.getValueAt(r, 4);
+            String status = (String) t.getValueAt(r, 5);
             String maDH = (String) t.getValueAt(r, 0);
             JPanel cell = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
             cell.setOpaque(true);
@@ -707,7 +712,7 @@ public class DonHangPanel extends JPanel {
             button.setCursor(new Cursor(Cursor.HAND_CURSOR)); button.setFont(new Font("Segoe UI", Font.BOLD, 12));
             button.addActionListener(e -> { 
                 fireEditingStopped(); 
-                String status = (String) table.getValueAt(clickedRow, 4);
+                String status = (String) table.getValueAt(clickedRow, 5);
                 if (status.equalsIgnoreCase("Chờ thanh toán")) {
                     xuLyThanhToan(clickedRow);
                 } else {
@@ -717,7 +722,7 @@ public class DonHangPanel extends JPanel {
         }
         @Override public Component getTableCellEditorComponent(JTable t, Object value, boolean isS, int r, int c) {
             clickedRow = r;
-            String status = (String) t.getValueAt(r, 4);
+            String status = (String) t.getValueAt(r, 5);
             String maDH = (String) t.getValueAt(r, 0);
             if (status.equalsIgnoreCase("Đã đặt") || status.equalsIgnoreCase("Chờ xử lý")) {
                 button.setText("Huỷ đơn"); button.setBackground(AppColor.ERROR); button.setForeground(Color.WHITE); button.setEnabled(true);
@@ -732,6 +737,4 @@ public class DonHangPanel extends JPanel {
             return button;
         }
     }
-    
 }
-

@@ -122,7 +122,11 @@ public class DatHangForm extends JDialog {
         spnNgayGiao = new JSpinner(dateModel);
         JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(spnNgayGiao, "dd/MM/yyyy HH:mm");
         spnNgayGiao.setEditor(dateEditor);
-        spnNgayGiao.setValue(new Date());
+        
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.add(java.util.Calendar.DAY_OF_MONTH, 1);
+        spnNgayGiao.setValue(cal.getTime());
+        
         styleComponent(spnNgayGiao);
         body.add(wrapFull(spnNgayGiao));
         body.add(Box.createVerticalStrut(20));

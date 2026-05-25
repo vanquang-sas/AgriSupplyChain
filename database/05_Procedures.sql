@@ -163,6 +163,7 @@ CREATE OR REPLACE PROCEDURE SP_YEUCAU_XUATKHO (p_MaDH IN VARCHAR2) IS
     v_SoLuongCan NUMBER;
     v_SoLuongXuat NUMBER;
     v_TrangThaiDH NVARCHAR2(50);
+
 BEGIN
     SELECT TrangThaiDH INTO v_TrangThaiDH FROM DONHANG WHERE MaDH = p_MaDH;
     IF v_TrangThaiDH IN (N'Đang giao', N'Hoàn thành', N'Đã huỷ') THEN
