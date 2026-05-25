@@ -1,6 +1,7 @@
 package gui.panel;
 
 import bus.TonKhoBUS;
+import bus.ThamSoBUS;
 import com.formdev.flatlaf.FlatClientProperties;
 import util.AppColor;
 
@@ -26,6 +27,8 @@ public class TonKhoPanel extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private TonKhoBUS tonKhoBUS = new TonKhoBUS();
+    private ThamSoBUS thamSoBUS = new ThamSoBUS();
+    private double minTonKho = 10.0;
     private ModernSearchField txtSearch;
     private OutlineButton btnSort;
     private String currentSortOpt = "Sắp xếp: Mới nhất";
@@ -175,13 +178,13 @@ public class TonKhoPanel extends JPanel {
 
         // ================= SETUP TABLE (STYLE NHAPKHO) =================
         String[] columnNames = {
-                "Sản phẩm/Loại", "Mã loại", "Đơn vị tính", "Tổng số lượng tồn", "Trạng thái", "Hành động"
+                "Sản phẩm/Loại", "Mã loại", "Đơn vị tính", "Tổng số lượng khả dụng", "Tổng số lượng tồn", "Trạng thái", "Hành động"
         };
 
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 5; // Chỉ cột Hành động có thể edit (click)
+                return column == 6; // Chỉ cột Hành động có thể edit (click)
             }
 
             @Override
@@ -233,7 +236,7 @@ public class TonKhoPanel extends JPanel {
                 l.setForeground(AppColor.TEXT_SECONDARY);
                 l.setBackground(AppColor.BACKGROUND);
 
-                if (c == 4 || c == 5)
+                if (c == 5 || c == 6)
                     l.setHorizontalAlignment(SwingConstants.CENTER);
                 else
                     l.setHorizontalAlignment(SwingConstants.LEFT);
@@ -275,17 +278,19 @@ public class TonKhoPanel extends JPanel {
         table.getColumnModel().getColumn(1).setCellRenderer(left);
         table.getColumnModel().getColumn(2).setCellRenderer(left);
         table.getColumnModel().getColumn(3).setCellRenderer(left);
-        table.getColumnModel().getColumn(4).setCellRenderer(new BadgeStatusRenderer());
+        table.getColumnModel().getColumn(4).setCellRenderer(new StockQuantityRenderer());
+        table.getColumnModel().getColumn(5).setCellRenderer(new BadgeStatusRenderer());
 
-        table.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer());
-        table.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor(new JCheckBox()));
+        table.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer());
+        table.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor(new JCheckBox()));
 
         table.getColumnModel().getColumn(0).setPreferredWidth(250);
         table.getColumnModel().getColumn(1).setPreferredWidth(120);
         table.getColumnModel().getColumn(2).setPreferredWidth(100);
         table.getColumnModel().getColumn(3).setPreferredWidth(150);
-        table.getColumnModel().getColumn(4).setPreferredWidth(120);
+        table.getColumnModel().getColumn(4).setPreferredWidth(150);
         table.getColumnModel().getColumn(5).setPreferredWidth(120);
+        table.getColumnModel().getColumn(6).setPreferredWidth(120);
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -413,7 +418,7 @@ public class TonKhoPanel extends JPanel {
         int outOfStock = 0;
 
         for (Object[] row : originalData) {
-            String status = row.length > 5 && row[5] != null ? row[5].toString() : "";
+            String status = row.length > 6 && row[6] != null ? row[6].toString() : "";
             if (status.equals("Hết hạn")) {
                 outOfStock++;
             } else if (status.equals("Sắp hết hạn")) {
@@ -430,6 +435,11 @@ public class TonKhoPanel extends JPanel {
     }
 
     private void loadDataToTable(boolean keepCurrentPage) {
+        try {
+            this.minTonKho = thamSoBUS.getValueByName("MIN_TONKHO", 10.0);
+        } catch (Exception e) {
+            this.minTonKho = 10.0;
+        }
         ArrayList<Object[]> list = tonKhoBUS.getDanhSachTonKhoTongHop();
         originalData = (list != null) ? list : new ArrayList<>();
         updateSummaryCards();
@@ -489,15 +499,21 @@ public class TonKhoPanel extends JPanel {
             String maSP = row[2] != null ? row[2].toString() : "";
             String dvt = row[3] != null ? row[3].toString() : "";
             double slConLai = row[4] != null ? (double) row[4] : 0;
+            double slKhaDung = row.length > 5 && row[5] != null ? (double) row[5] : 0;
 
-            // ✅ Xóa .0 nếu là số nguyên
+            // ✅ Xóa .0 nếu là số nguyên cho Tổng số lượng tồn
             String soLuong = (slConLai == (long) slConLai)
                     ? String.valueOf((long) slConLai)
                     : String.valueOf(slConLai);
 
-            String trangThai = row.length > 5 && row[5] != null ? row[5].toString() : "Còn hạn";
+            // ✅ Xóa .0 nếu là số nguyên cho Tổng số lượng khả dụng
+            String soLuongKhaDung = (slKhaDung == (long) slKhaDung)
+                    ? String.valueOf((long) slKhaDung)
+                    : String.valueOf(slKhaDung);
+
+            String trangThai = row.length > 6 && row[6] != null ? row[6].toString() : "Còn hạn";
             tableModel.addRow(new Object[] {
-                    tenSP, maSP, dvt, soLuong, trangThai, "Chi tiết"
+                    tenSP, maSP, dvt, soLuongKhaDung, soLuong, trangThai, "Chi tiết"
             });
         }
     }
@@ -557,6 +573,85 @@ public class TonKhoPanel extends JPanel {
     }
 
     // ================= RENDERER CHO BẢNG =================
+    private class StockQuantityRenderer extends JPanel implements TableCellRenderer {
+        private String quantityStr = "";
+        private boolean isLowStock = false;
+
+        public StockQuantityRenderer() {
+            setOpaque(true);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
+            this.quantityStr = v == null ? "" : v.toString();
+            this.isLowStock = false;
+            if (v != null) {
+                try {
+                    double sl = Double.parseDouble(v.toString());
+                    if (sl < minTonKho) {
+                        this.isLowStock = true;
+                    }
+                } catch (NumberFormatException e) {
+                    // ignore
+                }
+            }
+
+            setBackground(
+                    sel ? t.getSelectionBackground() : (r % 2 == 0 ? AppColor.BACKGROUND : AppColor.SECONDARY_HOVER));
+            setForeground(sel ? AppColor.PRIMARY_ACTIVE : AppColor.TEXT_PRIMARY);
+            return this;
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (quantityStr.isEmpty())
+                return;
+
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // 1. Draw the quantity number
+            g2.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            g2.setColor(getForeground());
+            FontMetrics fmNum = g2.getFontMetrics();
+            int xNum = 15; // standard left padding
+            int yNum = (getHeight() - fmNum.getHeight()) / 2 + fmNum.getAscent();
+            g2.drawString(quantityStr, xNum, yNum);
+
+            // 2. Draw the low stock badge if needed
+            if (isLowStock) {
+                String badgeText = "(Sắp hết hàng)";
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                FontMetrics fmBadge = g2.getFontMetrics();
+                
+                // Color configuration: orange text, yellow background
+                Color bgBadge = new Color(254, 240, 138); // Soft yellow: #FEF08A
+                Color fgBadge = new Color(217, 119, 6);   // Deep orange: #D97706
+
+                int px = 8; // badge horizontal padding
+                int py = 3; // badge vertical padding
+                int badgeW = fmBadge.stringWidth(badgeText) + px * 2;
+                int badgeH = fmBadge.getHeight() + py * 2;
+
+                // Position the badge after the number
+                int gap = 8; // gap between number and badge
+                int xBadge = xNum + fmNum.stringWidth(quantityStr) + gap;
+                int yBadge = (getHeight() - badgeH) / 2;
+
+                // Draw rounded rectangle background
+                g2.setColor(bgBadge);
+                g2.fill(new RoundRectangle2D.Float(xBadge, yBadge, badgeW, badgeH, 8, 8));
+
+                // Draw text inside badge
+                g2.setColor(fgBadge);
+                g2.drawString(badgeText, xBadge + px, yBadge + py + fmBadge.getAscent());
+            }
+
+            g2.dispose();
+        }
+    }
+
     class ImageRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {

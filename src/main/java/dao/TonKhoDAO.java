@@ -70,6 +70,7 @@ public class TonKhoDAO {
         ArrayList<Object[]> ketQua = new ArrayList<>();
         String sql = "SELECT sp.HinhAnh, sp.TenSP, sp.MaSP, sp.DonViTinh, " +
                 "SUM(tk.SLConLai) as TongSoLuong, " +
+                "SUM(tk.SLKhaDung) as TongKhaDung, " +
                 "CASE " +
                 "   WHEN SUM(CASE WHEN tk.TrangThai = N'Hết hạn' THEN 1 ELSE 0 END) > 0 THEN N'Hết hạn' " +
                 "   WHEN SUM(CASE WHEN tk.TrangThai = N'Sắp hết hạn' THEN 1 ELSE 0 END) > 0 THEN N'Sắp hết hạn' " +
@@ -85,13 +86,14 @@ public class TonKhoDAO {
                 ResultSet rs = pst.executeQuery()) {
 
             while (rs.next()) {
-                Object[] row = new Object[6];
+                Object[] row = new Object[7];
                 row[0] = rs.getString("HinhAnh");
                 row[1] = rs.getString("TenSP");
                 row[2] = rs.getString("MaSP");
                 row[3] = rs.getString("DonViTinh");
                 row[4] = rs.getDouble("TongSoLuong");
-                row[5] = rs.getString("TrangThaiTongHop");
+                row[5] = rs.getDouble("TongKhaDung");
+                row[6] = rs.getString("TrangThaiTongHop");
                 ketQua.add(row);
             }
         } catch (Exception e) {

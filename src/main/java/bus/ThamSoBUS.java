@@ -59,4 +59,8 @@ public class ThamSoBUS {
 
         dao.capNhat(maTS, giaTri, moTa);
     }
+
+    public double getValueByName(String name, double defaultValue) {
+        return dao.getValueByName(name, defaultValue);
+    }
 }

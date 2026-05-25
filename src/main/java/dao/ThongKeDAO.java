@@ -33,35 +33,34 @@ public class ThongKeDAO {
 
     public List<ThongKeDTO.SanPham> getThongKeSanPham(java.util.Date tuNgay, java.util.Date denNgay) {
         List<ThongKeDTO.SanPham> list = new ArrayList<>();
-        String sql = "SELECT sp.MaSP, sp.TenSP, " +
-                     "NVL(SUM(v.SoLuongBan), 0) AS TongSoLuong, " +
-                     "NVL(SUM(v.DoanhThu), 0) AS TongDoanhThu, " +
-                     "NVL(SUM(v.ChiPhi), 0) AS TongChiPhi " +
-                     "FROM SANPHAM sp " +
-                     "LEFT JOIN V_THONGKE_SP v ON sp.MaSP = v.MaSP " +
-                     "     AND TRUNC(v.NgayGD) >= ? AND TRUNC(v.NgayGD) <= ? " +
-                     "GROUP BY sp.MaSP, sp.TenSP";
+        String sql = "{? = call FN_THONGKE_SANPHAM(?, ?)}";
                      
         try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setDate(1, new java.sql.Date(tuNgay.getTime()));
-            ps.setDate(2, new java.sql.Date(denNgay.getTime()));
-            ResultSet rs = ps.executeQuery();
-            
-            while (rs.next()) {
-                ThongKeDTO.SanPham dto = new ThongKeDTO.SanPham();
-                dto.maSP = rs.getString("MaSP");
-                dto.tenSP = rs.getString("TenSP");
-                dto.soLuong = rs.getInt("TongSoLuong");
-                dto.doanhThu = rs.getDouble("TongDoanhThu");
-                
-                double chiPhi = rs.getDouble("TongChiPhi");
-                dto.loiNhuan = dto.doanhThu - chiPhi;
-                dto.bienDoLN = dto.doanhThu > 0 ? (dto.loiNhuan / dto.doanhThu) * 100 : 0;
-                
-                list.add(dto);
+            CallableStatement cs = con.prepareCall(sql)) {
+            cs.registerOutParameter(1, OracleTypes.CURSOR);
+            cs.setDate(2, new java.sql.Date(tuNgay.getTime()));
+            cs.setDate(3, new java.sql.Date(denNgay.getTime()));
+            cs.execute();
+
+            try (ResultSet rs = (ResultSet) cs.getObject(1)) {
+                while (rs.next()) {
+                    ThongKeDTO.SanPham dto = new ThongKeDTO.SanPham();
+                    dto.maSP = rs.getString("MaSP");
+                    dto.tenSP = rs.getString("TenSP");
+                    dto.soLuong = rs.getInt("TongSoLuong");
+                    dto.doanhThu = rs.getDouble("TongDoanhThu");
+                    
+                    double chiPhi = rs.getDouble("TongChiPhi");
+                    dto.loiNhuan = dto.doanhThu - chiPhi;
+                    dto.bienDoLN = dto.doanhThu > 0 ? (dto.loiNhuan / dto.doanhThu) * 100 : 0;
+                    
+                    list.add(dto);
+                }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) { 
+            e.printStackTrace(); 
+        }
+
         return list;
     }
 

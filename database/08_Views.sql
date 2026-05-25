@@ -39,13 +39,16 @@ SELECT
     (ct.SoLuong * ct.GiaBan) AS DoanhThu,
     (ct.SoLuong * NVL(
         (SELECT GiaMua FROM (
-            SELECT GiaMua, MaSP, TGApDung FROM LICHSUGIA ORDER BY TGApDung DESC
-        ) lg WHERE lg.MaSP = sp.MaSP AND ROWNUM = 1), 
+            SELECT GiaMua, MaSP, TGApDung 
+            FROM LICHSUGIA 
+            ORDER BY TGApDung DESC
+        ) lg WHERE lg.MaSP = sp.MaSP 
+                AND ROWNUM = 1), 
     ct.GiaBan * 0.7)) AS ChiPhi
 FROM CHITIETDONHANG ct
 JOIN DONHANG dh ON ct.MaDH = dh.MaDH
 JOIN SANPHAM sp ON ct.MaSP = sp.MaSP
-WHERE dh.TrangThaiDH NOT IN ('Đã hủy');
+WHERE dh.TrangThaiDH = N'Hoàn thành';
 
 CREATE OR REPLACE VIEW V_THONGKE_CONGNO AS
 SELECT 

@@ -232,51 +232,23 @@ END FN_LAY_DS_DONHANG_BY_KH;
 
 -- 3. Thống kê Top N Sản phẩm bán chạy nhất
 CREATE OR REPLACE FUNCTION FN_THONGKE_SANPHAM (
-    p_Limit IN NUMBER,
-    p_Type IN VARCHAR2,
     p_FromDate IN DATE,
     p_ToDate IN DATE
 ) RETURN SYS_REFCURSOR
 AS
     v_cursor SYS_REFCURSOR;
-    v_Limit NUMBER := p_Limit;
 BEGIN
-    IF v_Limit = 0 THEN 
-        v_Limit := 999999; 
-    END IF;
-
-    IF p_Type = 'BEST' THEN
-        OPEN v_cursor FOR
-        SELECT TenSP, TongSoLuong FROM (
-            SELECT sp.TenSP, NVL(SUM(ct.SoLuong), 0) AS TongSoLuong
-            FROM SANPHAM sp
-            -- Lọc ngày và trạng thái trước, sau đó mới LEFT JOIN để đếm số lượng
-            LEFT JOIN (
-                SELECT ctdh.MaSP, ctdh.SoLuong
-                FROM CHITIETDONHANG ctdh
-                JOIN DONHANG dh ON ctdh.MaDH = dh.MaDH
-                WHERE dh.TrangThaiDH = 'Hoàn thành'
-                  AND TRUNC(dh.TGDat) BETWEEN p_FromDate AND p_ToDate
-            ) ct ON sp.MaSP = ct.MaSP
-            GROUP BY sp.TenSP
-            ORDER BY TongSoLuong DESC 
-        ) WHERE ROWNUM <= v_Limit ORDER BY TongSoLuong DESC; 
-    ELSE
-        OPEN v_cursor FOR
-        SELECT TenSP, TongSoLuong FROM (
-            SELECT sp.TenSP, NVL(SUM(ct.SoLuong), 0) AS TongSoLuong
-            FROM SANPHAM sp
-            LEFT JOIN (
-                SELECT ctdh.MaSP, ctdh.SoLuong
-                FROM CHITIETDONHANG ctdh
-                JOIN DONHANG dh ON ctdh.MaDH = dh.MaDH
-                WHERE dh.TrangThaiDH = 'Hoàn thành'
-                  AND TRUNC(dh.TGDat) BETWEEN p_FromDate AND p_ToDate
-            ) ct ON sp.MaSP = ct.MaSP
-            GROUP BY sp.TenSP
-            ORDER BY TongSoLuong ASC 
-        ) WHERE ROWNUM <= v_Limit ORDER BY TongSoLuong DESC; 
-    END IF;
+    OPEN v_cursor FOR
+        SELECT sp.MaSP, sp.TenSP,
+        NVL(SUM(v.SoLuongBan), 0) AS TongSoLuong,
+        NVL(SUM(v.DoanhThu), 0) AS TongDoanhThu,
+        NVL(SUM(v.ChiPhi), 0) AS TongChiPhi
+        FROM SANPHAM sp
+        LEFT JOIN V_THONGKE_SP v ON sp.MaSP = v.MaSP
+            AND TRUNC(v.NgayGD) >= TRUNC(p_FromDate)
+            AND TRUNC(v.NgayGD) <= TRUNC(p_ToDate)
+        GROUP BY sp.MaSP, sp.TenSP;
+    
     RETURN v_cursor;
 END;
 /
