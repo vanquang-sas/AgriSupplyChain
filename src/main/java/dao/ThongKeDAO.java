@@ -32,11 +32,18 @@ public class ThongKeDAO {
     }
 
     public List<ThongKeDTO.SanPham> getThongKeSanPham(java.util.Date tuNgay, java.util.Date denNgay) {
+        Connection conn = null;
         List<ThongKeDTO.SanPham> list = new ArrayList<>();
         String sql = "{? = call FN_THONGKE_SANPHAM(?, ?)}";
                      
-        try (Connection con = DBConnection.getConnection();
-            CallableStatement cs = con.prepareCall(sql)) {
+        try {
+            conn = DBConnection.getConnection();
+            // Tắt auto-commit để quản lý transaction thủ công
+            conn.setAutoCommit(false); 
+            /// Set mức cô lập SERIALIZABLE để đảm bảo tính nhất quán 
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            CallableStatement cs = conn.prepareCall(sql);
+
             cs.registerOutParameter(1, OracleTypes.CURSOR);
             cs.setDate(2, new java.sql.Date(tuNgay.getTime()));
             cs.setDate(3, new java.sql.Date(denNgay.getTime()));
@@ -57,6 +64,8 @@ public class ThongKeDAO {
                     list.add(dto);
                 }
             }
+
+            conn.commit(); // Commit transaction nếu mọi thứ thành công
         } catch (Exception e) { 
             e.printStackTrace(); 
         }

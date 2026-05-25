@@ -11,11 +11,17 @@ import java.util.List;
 public class SanPhamDAO {
 
     public List<SanPhamDTO> getAll() {
+        Connection conn = null;
         List<SanPhamDTO> list = new ArrayList<>();
         String sql = "{? = call FN_LAY_DS_SANPHAM()}";
         
-        try (Connection conn = DBConnection.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+        try {
+            conn = DBConnection.getConnection();
+            // Tắt auto-commit để quản lý transaction thủ công
+            conn.setAutoCommit(false); 
+            /// Set mức cô lập SERIALIZABLE để đảm bảo tính nhất quán 
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+             CallableStatement cs = conn.prepareCall(sql);
              
             cs.registerOutParameter(1, OracleTypes.CURSOR);
             cs.execute();
@@ -36,8 +42,19 @@ public class SanPhamDAO {
                     list.add(sp);
                 }
             }
+
+            conn.commit(); // Commit transaction nếu mọi thứ thành công
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return list;
     }

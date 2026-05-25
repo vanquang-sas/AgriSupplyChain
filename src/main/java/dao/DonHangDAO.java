@@ -132,9 +132,7 @@ public class DonHangDAO {
 
         try {
             conn = DBConnection.getConnection();
-            conn.setAutoCommit(false); // Bắt đầu Transaction
 
-            // Đã bổ sung DiaChiGiaoHang, PhuongThucTT, TGGiaoYC và TrangThaiTT (bỏ TgDat để CSDL tự sinh bằng DEFAULT SYSDATE)
             String sqlDH = "INSERT INTO DONHANG (MaKH, TGGiaoYC, TongTienHang, PhiVanChuyen, TongTien, TrangThaiDH, DiaChiGiaoHang, PhuongThucTT, TrangThaiTT) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             pstmtDH = conn.prepareStatement(sqlDH, new String[]{"MADH"});
             pstmtDH.setString(1, donHang.getMaKH());
