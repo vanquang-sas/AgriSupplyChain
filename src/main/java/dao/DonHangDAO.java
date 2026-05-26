@@ -132,6 +132,10 @@ public class DonHangDAO {
 
         try {
             conn = DBConnection.getConnection();
+            if (conn == null) {
+                return false;
+            }
+            conn.setAutoCommit(false);
 
             String sqlDH = "INSERT INTO DONHANG (MaKH, TGGiaoYC, TongTienHang, PhiVanChuyen, TongTien, TrangThaiDH, DiaChiGiaoHang, PhuongThucTT, TrangThaiTT) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             pstmtDH = conn.prepareStatement(sqlDH, new String[]{"MADH"});
