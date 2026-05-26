@@ -124,7 +124,7 @@ CREATE TABLE LOHANG (
     MaNV VARCHAR2(10),
     TGNhap DATE DEFAULT SYSDATE,
     TongTien NUMBER(15,2) DEFAULT 0 CHECK (TongTien >= 0),
-    TrangThaiLH NVARCHAR2(50) DEFAULT N'Chờ kiểm duyệt' CHECK (TrangThaiLH IN (N'Chờ kiểm duyệt', N'Chờ nhập kho', N'Đã nhập kho')),
+    TrangThaiLH NVARCHAR2(50) DEFAULT N'Chờ kiểm duyệt' CHECK (TrangThaiLH IN (N'Chờ kiểm duyệt', N'Chờ nhập kho', N'Đã nhập kho', N'Từ chối nhập')),
     CONSTRAINT FK_LH_NCC FOREIGN KEY (MaNCC) REFERENCES NHACUNGCAP(MaNCC),
     CONSTRAINT FK_LH_NV FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
 );

@@ -6,38 +6,8 @@
 SET FEEDBACK ON;
 SET SERVEROUTPUT ON;
 
-PROMPT --- DANG THIET LAP CAC JOB TU DONG HOA ---
-
--- ------------------------------------------------------------------------------------
--- 1. JOB 1: TỰ ĐỘNG XÓA GIỎ HÀNG VÀO CUỐI NGÀY
--- Mục tiêu: Dọn sạch bảng GIOHANG vào lúc 23:59:00 hàng ngày.
--- ------------------------------------------------------------------------------------
-BEGIN
-    -- Xoá job cũ nếu đã tồn tại để tránh xung đột khi chạy lại file script
-    BEGIN
-        DBMS_SCHEDULER.DROP_JOB(job_name => 'JOB_AUTO_DELETE_GIOHANG', force => TRUE);
-    EXCEPTION
-        WHEN OTHERS THEN
-            NULL; -- Bỏ qua lỗi nếu job chưa tồn tại
-    END;
-
-    -- Tạo Job mới
-    DBMS_SCHEDULER.CREATE_JOB (
-        job_name        => 'JOB_AUTO_DELETE_GIOHANG',
-        job_type        => 'PLSQL_BLOCK',
-        job_action      => 'BEGIN DELETE FROM GIOHANG; COMMIT; END;',
-        start_date      => SYSTIMESTAMP,
-        repeat_interval => 'FREQ=DAILY; BYHOUR=23; BYMINUTE=59; BYSECOND=00',
-        enabled         => TRUE,
-        comments        => 'Tu dong xoa toan bo gio hang vao cuoi ngay luc 23:59:00 hàng ngày'
-    );
-    
-    DBMS_OUTPUT.PUT_LINE('-> Khoi tao thanh cong JOB_AUTO_DELETE_GIOHANG.');
-END;
-/
-
--- ------------------------------------------------------------------------------------
--- 2. JOB 2: KIỂM TRA HẾT HẠN VÀ CẬP NHẬT TRẠNG THÁI TỒN KHO HÀNG NGÀY
+------------------------------------------------------------------------------------
+-- KIỂM TRA HẾT HẠN VÀ CẬP NHẬT TRẠNG THÁI TỒN KHO HÀNG NGÀY
 -- Mục tiêu: Vào đầu ngày mới (00:00:05 hàng ngày), thực hiện quét và cập nhật trạng thái
 -- tồn kho (từ Còn hạn -> Sắp hết hạn/Hết hạn), tự động thêm thông báo cho Nhân viên kho.
 -- ------------------------------------------------------------------------------------

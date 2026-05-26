@@ -281,6 +281,68 @@ BEGIN
     END IF;
 END;
 /
+
+-- ================================= Bảng XUATKHO DEMO LOST UPDATE =================================
+--CREATE OR REPLACE TRIGGER TRG_XK_CAPNHAT_TONKHO
+--BEFORE INSERT OR UPDATE OF TrangThaiXK OR DELETE ON XUATKHO
+--FOR EACH ROW
+--DECLARE
+--    v_SLConLai NUMBER;
+--    v_SLKhaDung NUMBER;
+--    v_MaTonKho_Check VARCHAR2(10);
+--BEGIN
+--    -- Lấy mã tồn kho tuỳ theo thao tác
+--    IF DELETING THEN v_MaTonKho_Check := :OLD.MaTonKho;
+--    ELSE v_MaTonKho_Check := :NEW.MaTonKho; END IF;
+--
+--    -- BƯỚC A: ĐỌC SỐ LƯỢNG HIỆN TẠI VÀO BIẾN (Chạy SELECT thường, không FOR UPDATE)
+--    SELECT SLConLai, SLKhaDung INTO v_SLConLai, v_SLKhaDung 
+--    FROM TONKHO WHERE MaTonKho = v_MaTonKho_Check;
+--
+--    IF INSERTING THEN
+--        -- Kiểm tra tồn kho khả dụng dựa trên giá trị biến đã đọc
+--        IF v_SLKhaDung < :NEW.SLXuat THEN
+--            RAISE_APPLICATION_ERROR(-20010, 'Lỗi: Kho không đủ SL khả dụng (' || v_SLKhaDung || ') cho lô ' || :NEW.MaTonKho);
+--        ELSE
+--            -- BƯỚC B: ĐẶT ĐỘ TRỄ 10 GIÂY NGAY SAU KHI ĐỌC VÀ TRƯỚC KHI GHI
+--            -- Điều này giúp luồng B thoải mái đọc được giá trị cũ (500) trong khi luồng A đang ngủ
+--            DBMS_SESSION.SLEEP(7);
+--
+--            -- BƯỚC C: GHI ĐÈ GIÁ TRỊ TUYỆT ĐỐI (Dùng kết quả tính toán của biến nhớ PL/SQL)
+--            UPDATE TONKHO 
+--            SET SLKhaDung = (v_SLKhaDung - :NEW.SLXuat),
+--                SLConLai  = (v_SLConLai - :NEW.SLXuat)
+--            WHERE MaTonKho = :NEW.MaTonKho;
+--        END IF;
+--
+--    ELSIF UPDATING THEN
+--        -- Chuyển từ "Tạm giữ" -> "Đã xuất": Lấy hàng ra khỏi kho (Trừ SLConLai, còn SLKhaDung đã trừ trước đó rồi)
+--        IF :OLD.TrangThaiXK = 'Tạm giữ' AND :NEW.TrangThaiXK = 'Đã xuất' THEN
+--            UPDATE TONKHO SET SLConLai = SLConLai - :NEW.SLXuat WHERE MaTonKho = :NEW.MaTonKho;
+--            
+--        -- Chuyển từ "Tạm giữ" -> "Đã huỷ": Khách huỷ đơn trước khi giao, hoàn lại SLKhaDung
+--        ELSIF :OLD.TrangThaiXK = 'Tạm giữ' AND :NEW.TrangThaiXK = 'Đã huỷ' THEN
+--            UPDATE TONKHO SET SLKhaDung = SLKhaDung + :OLD.SLXuat WHERE MaTonKho = :NEW.MaTonKho;
+--            
+--        -- Chuyển từ "Đã xuất" -> "Đã huỷ": Hàng đã đi nhưng bị trả về, hoàn lại cả 2
+--        ELSIF :OLD.TrangThaiXK = 'Đã xuất' AND :NEW.TrangThaiXK = 'Đã huỷ' THEN
+--            UPDATE TONKHO 
+--            SET SLConLai = SLConLai + :OLD.SLXuat, SLKhaDung = SLKhaDung + :OLD.SLXuat 
+--            WHERE MaTonKho = :NEW.MaTonKho;
+--        END IF;
+--
+--    ELSIF DELETING THEN
+--        IF :OLD.TrangThaiXK = 'Tạm giữ' THEN
+--            UPDATE TONKHO SET SLKhaDung = SLKhaDung + :OLD.SLXuat WHERE MaTonKho = :OLD.MaTonKho;
+--        ELSIF :OLD.TrangThaiXK = 'Đã xuất' THEN
+--            UPDATE TONKHO 
+--            SET SLConLai = SLConLai + :OLD.SLXuat, SLKhaDung = SLKhaDung + :OLD.SLXuat 
+--            WHERE MaTonKho = :OLD.MaTonKho;
+--        END IF;
+--    END IF;
+--END;
+--/
+
 -- ================================= Bảng SANPHAM =================================
 -- 10. Tự động ghi nhận lịch sử giá mỗi khi thay đổi giá mua hoặc bán của sản phẩm
 CREATE OR REPLACE TRIGGER TRG_SP_LUU_LSG

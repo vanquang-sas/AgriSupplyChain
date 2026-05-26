@@ -574,7 +574,7 @@ public class LoHangPanel extends JPanel {
         List<LoHangDTO> list = loHangBUS.getAll();
         currentDataList.clear();
         for (LoHangDTO lh : list) {
-            if (lh.getTrangThaiLH() != null && lh.getTrangThaiLH().equalsIgnoreCase("Đã nhập kho")) {
+            if (lh.getTrangThaiLH() != null && (lh.getTrangThaiLH().equalsIgnoreCase("Đã nhập kho") || lh.getTrangThaiLH().equalsIgnoreCase("Không duyệt"))) {
                 continue;
             }
             if (keyword == null || keyword.isEmpty()) {
@@ -773,8 +773,10 @@ public class LoHangPanel extends JPanel {
             Color badgeBg, badgeFg;
             if (status.equalsIgnoreCase("Đã nhập kho")) {
                 badgeBg = new Color(0xD1FAE5); badgeFg = new Color(0x065F46);
-            } else if (status.equalsIgnoreCase("Chờ nhập kho") || status.equalsIgnoreCase("Đang chờ nhập")) {
+            } else if (status.equalsIgnoreCase("Chờ nhập kho") || status.equalsIgnoreCase("Đang chờ nhập") || status.equalsIgnoreCase("Chờ kiểm duyệt")) {
                 badgeBg = new Color(0xFEF3C7); badgeFg = new Color(0xD97706);
+            } else if (status.equalsIgnoreCase("Không duyệt")) {
+                badgeBg = new Color(254, 226, 226); badgeFg = AppColor.ERROR;
             } else {
                 badgeBg = new Color(0xF3F4F6); badgeFg = new Color(0x374151);
             }

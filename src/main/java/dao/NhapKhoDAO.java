@@ -25,6 +25,17 @@ public class NhapKhoDAO {
         }
     }
 
+    public void tuChoiNhapKho(String maLH) throws SQLException {
+        String sql = "{call SP_TUCHOI_NHAPKHO(?)}";
+
+        try (Connection conn = DBConnection.getConnection();
+                CallableStatement cs = conn.prepareCall(sql)) {
+
+            cs.setString(1, maLH);
+            cs.execute();
+        }
+    }
+
     // Lấy danh sách lô hàng đang chờ nhập kho
     public ArrayList<Object[]> getDanhSachNhapKho() {
         ArrayList<Object[]> list = new ArrayList<>();

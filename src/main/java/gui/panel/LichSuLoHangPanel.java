@@ -210,7 +210,13 @@ public class LichSuLoHangPanel extends JPanel {
                     lh.getMaLH(), lh.getTenNCC() != null ? lh.getTenNCC() : lh.getMaNCC(), lh.getMaNV(), lh.getTgNhap(), formattedTongTien, lh.getTrangThaiLH()
             });
             total++;
-            if (lh.getTrangThaiLH() != null && lh.getTrangThaiLH().equalsIgnoreCase("Đã nhập kho")) done++; else pending++;
+            if (lh.getTrangThaiLH() != null) {
+                if (lh.getTrangThaiLH().equalsIgnoreCase("Đã nhập kho")) {
+                    done++;
+                } else if (lh.getTrangThaiLH().equalsIgnoreCase("Chờ nhập kho") || lh.getTrangThaiLH().equalsIgnoreCase("Chờ kiểm duyệt") || lh.getTrangThaiLH().equalsIgnoreCase("Đang chờ nhập")) {
+                    pending++;
+                }
+            }
         }
         lblTong.setText(String.valueOf(total)); lblChoNhap.setText(String.valueOf(pending)); lblDaNhap.setText(String.valueOf(done));
     }
@@ -417,12 +423,15 @@ public class LichSuLoHangPanel extends JPanel {
             String text = value == null ? "" : value.toString();
             final Color badgeBg;
             final Color badgeFg;
-            if ("Đang chờ nhập".equalsIgnoreCase(text)) {
+            if ("Đang chờ nhập".equalsIgnoreCase(text) || "Chờ nhập kho".equalsIgnoreCase(text) || "Chờ kiểm duyệt".equalsIgnoreCase(text)) {
                 badgeBg = new Color(254, 243, 199);
                 badgeFg = AppColor.WARNING_ACTIVE;
             } else if ("Đã nhập kho".equalsIgnoreCase(text)) {
                 badgeBg = AppColor.SUCCESS_HOVER;
                 badgeFg = Color.WHITE;
+            } else if ("Không duyệt".equalsIgnoreCase(text)) {
+                badgeBg = new Color(254, 226, 226);
+                badgeFg = AppColor.ERROR;
             } else {
                 badgeBg = AppColor.SECONDARY_HOVER;
                 badgeFg = AppColor.TEXT_PRIMARY;

@@ -56,4 +56,23 @@ public class NhapKhoBUS {
             return "Lỗi hệ thống Database: " + msg;
         }
     }
+
+    public String tuChoiNhapKho(String maLH) {
+        if (maLH == null || maLH.trim().isEmpty()) {
+            return "Mã lô hàng không hợp lệ!";
+        }
+
+        try {
+            dao.tuChoiNhapKho(maLH);
+            return "SUCCESS";
+        } catch (Exception e) {
+            String msg = e.getMessage();
+            if (msg == null) return "Lỗi không xác định!";
+
+            if (msg.contains("ORA-20029")) {
+                return "Lỗi: Lô hàng không ở trạng thái chờ nhập kho!";
+            }
+            return "Lỗi hệ thống Database: " + msg;
+        }
+    }
 }

@@ -115,6 +115,20 @@ EXCEPTION
 END;
 /
 
+CREATE OR REPLACE PROCEDURE SP_TUCHOI_NHAPKHO (p_MaLH IN VARCHAR2) IS
+    v_TrangThaiLH NVARCHAR2(50);
+BEGIN
+    SELECT TrangThaiLH INTO v_TrangThaiLH FROM LOHANG WHERE MaLH = p_MaLH;
+    IF v_TrangThaiLH NOT IN (N'Chờ nhập kho') THEN
+        RAISE_APPLICATION_ERROR(-20029, 'Lô hàng này không ở trạng thái: Chờ nhập kho');
+    END IF;
+    UPDATE LOHANG SET TrangThaiLH = N'Từ chối nhập' WHERE MaLH = p_MaLH;
+    COMMIT;
+EXCEPTION 
+    WHEN OTHERS THEN ROLLBACK; RAISE;
+END;
+/
+
 CREATE OR REPLACE PROCEDURE SP_XACNHAN_NHAPKHO (
     p_MaLH IN VARCHAR2,
     p_MaSP IN VARCHAR2,
@@ -175,7 +189,8 @@ BEGIN
         FOR rec_TK IN (
             SELECT TK.MaTonKho, TK.SLKhaDung FROM TONKHO TK
             WHERE TK.MaSP = rec_CTDH.MaSP AND TK.SLKhaDung > 0 AND TK.TGHetHan >= TRUNC(SYSDATE)
-            ORDER BY TK.TGHetHan ASC, TK.TGNhapKho ASC FOR UPDATE
+            ORDER BY TK.TGHetHan ASC, TK.TGNhapKho ASC
+            FOR UPDATE
         ) LOOP
             EXIT WHEN v_SoLuongCan = 0;
             IF rec_TK.SLKhaDung >= v_SoLuongCan THEN
@@ -431,24 +446,7 @@ BEGIN
 END;
 /
 
--- ================================= Giỏ hàng =================================
 
-CREATE OR REPLACE PROCEDURE PROC_CLEANUP_GIOHANG IS
-BEGIN
-    DELETE FROM GIOHANG
-    WHERE (SYSTIMESTAMP - TGCapNhat) > INTERVAL '12' HOUR;
- 
-    COMMIT;
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK;
-        DBMS_OUTPUT.PUT_LINE('Lỗi PROC_CLEANUP_GIOHANG: ' || SQLERRM);
-END PROC_CLEANUP_GIOHANG;
-/
- 
-
-
- 
 -- Procedure Nhận đơn giao
 CREATE OR REPLACE PROCEDURE SP_XACNHAN_GIAOHANG (
     p_MaDH IN VARCHAR2,

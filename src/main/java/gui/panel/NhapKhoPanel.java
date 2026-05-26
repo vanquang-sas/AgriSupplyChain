@@ -91,10 +91,14 @@ public class NhapKhoPanel extends JPanel {
         JButton btnConfirm = buildPrimaryButton("Xác nhận nhập kho", 0, 36);
         btnConfirm.addActionListener(e -> onConfirmNhapKho());
         
+        JButton btnReject = buildDangerButton("Từ chối nhập", 0, 36);
+        btnReject.addActionListener(e -> onRejectNhapKho());
+        
         JButton btnRefresh = buildOutlineButton("Làm mới", 0, 36);
         btnRefresh.addActionListener(e -> loadDataToTable());
         
         left.add(btnConfirm);
+        left.add(btnReject);
         left.add(btnRefresh);
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 4));
@@ -439,6 +443,40 @@ public class NhapKhoPanel extends JPanel {
         }
     }
 
+    private void onRejectNhapKho() {
+        if (table.isEditing()) {
+            table.getCellEditor().stopCellEditing();
+        }
+
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            warn("Vui lòng chọn một lô hàng cần từ chối!");
+            return;
+        }
+
+        String maLH = getCell(row, 0);
+        String maSP = getCell(row, 1);
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc chắn muốn từ chối nhập kho cho lô hàng " + maLH + " (Sản phẩm: " + maSP + ") không?",
+                "Xác nhận từ chối",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            String result = new bus.NhapKhoBUS().tuChoiNhapKho(maLH);
+            if ("SUCCESS".equals(result)) {
+                JOptionPane.showMessageDialog(this, "Đã từ chối nhập kho cho lô hàng " + maLH + " thành công!",
+                        "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                loadDataToTable();
+            } else {
+                JOptionPane.showMessageDialog(this, result, "Lỗi khi từ chối nhập", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
     private String getCell(int row, int col) {
         Object value = table.getValueAt(row, col);
         return value == null ? "" : value.toString().trim();
@@ -529,6 +567,39 @@ public class NhapKhoPanel extends JPanel {
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
                 
                 // Vẽ viền hơi đậm hơn một chút để tạo độ sắc nét
+                g2.setColor(bg.darker());
+                g2.setStroke(new BasicStroke(1.1f));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
+                
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        if (width > 0) btn.setPreferredSize(new Dimension(width, height));
+        else btn.setPreferredSize(new Dimension(btn.getPreferredSize().width + 40, height));
+        
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setOpaque(false);
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        return btn;
+    }
+
+    private JButton buildDangerButton(String text, int width, int height) {
+        JButton btn = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+                
+                Color bg = getModel().isPressed() ? AppColor.ERROR_ACTIVE : (getModel().isRollover() ? AppColor.ERROR_HOVER : AppColor.ERROR);
+                g2.setColor(bg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                
                 g2.setColor(bg.darker());
                 g2.setStroke(new BasicStroke(1.1f));
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
