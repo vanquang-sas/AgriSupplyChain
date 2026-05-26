@@ -1,7 +1,12 @@
 package gui.panel;
 
 import bus.NhapKhoBUS;
+import bus.LoHangBUS;
+import bus.SanPhamBUS;
 import dto.TonKhoDTO;
+import dto.LoHangDTO;
+import dto.ChiTietLoHangDTO;
+import dto.SanPhamDTO;
 import util.AppColor;
 
 import javax.swing.*;
@@ -17,7 +22,6 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import com.toedter.calendar.JDateChooser;
 
 public class NhapKhoPanel extends JPanel {
@@ -26,29 +30,31 @@ public class NhapKhoPanel extends JPanel {
     private static final Color PRIMARY_LIGHT = new Color(22, 163, 74, 28);
     private static final Color WARNING_LIGHT = new Color(245, 158, 11, 24);
 
-    private final String[] columns = {
-            "MÃ LÔ", "MÃ SP", "SẢN PHẨM", "SỐ LƯỢNG", "KHO",
-            "LOẠI KHO", "VỊ TRÍ", "NGÀY HẾT HẠN", "TRẠNG THÁI"
+    private final String[] shipmentColumns = {
+            "MÃ LÔ", "NGÀY NHẬP", "TỔNG TIỀN", "TRẠNG THÁI"
     };
 
-    private JTable table;
-    private DefaultTableModel tableModel;
+    private final String[] detailColumns = {
+            "MÃ SP", "SẢN PHẨM", "SỐ LƯỢNG", "KHO", "LOẠI KHO", "VỊ TRÍ", "NGÀY HẾT HẠN"
+    };
+
+    private JTable shipmentTable;
+    private DefaultTableModel shipmentModel;
+    private JTable detailTable;
+    private DefaultTableModel detailModel;
+    
     private JTextField txtSearch;
     private JLabel lblCount;
-    private JLabel lblPage;
     private JLabel lblTongLoHang;
     private JLabel lblTongSanPham;
     private JLabel lblLoHangLon;
-    private JButton btnPrev;
-    private JButton btnNext;
     private JButton btnSort;
 
-    private List<Object[]> allData = new ArrayList<>();
-    private List<Object[]> filteredData = new ArrayList<>();
+    private List<LoHangDTO> allShipments = new ArrayList<>();
+    private List<LoHangDTO> filteredShipments = new ArrayList<>();
     private Map<String, String> khoLoaiKhoMap = new LinkedHashMap<>();
-    private int currentPage = 1;
-    private final int rowsPerPage = 6;
     private String currentSortKey;
+    private String selectedMaLH;
 
     public NhapKhoPanel() {
         setLayout(new BorderLayout());
@@ -63,7 +69,7 @@ public class NhapKhoPanel extends JPanel {
         content.add(Box.createVerticalStrut(16));
         content.add(buildCards());
         content.add(Box.createVerticalStrut(22));
-        content.add(buildTablePanel());
+        content.add(buildMainSplitPanel());
 
         add(content, BorderLayout.CENTER);
         loadDataToTable();
@@ -156,20 +162,35 @@ public class NhapKhoPanel extends JPanel {
         return card;
     }
 
-    private JPanel buildTablePanel() {
+    private JPanel buildMainSplitPanel() {
+        JPanel splitWrapper = new JPanel(new BorderLayout(16, 0));
+        splitWrapper.setOpaque(false);
+        splitWrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JPanel leftPanel = buildShipmentsPanel();
+        JPanel rightPanel = buildDetailCard();
+
+        leftPanel.setPreferredSize(new Dimension(450, 0));
+
+        splitWrapper.add(leftPanel, BorderLayout.WEST);
+        splitWrapper.add(rightPanel, BorderLayout.CENTER);
+
+        return splitWrapper;
+    }
+
+    private JPanel buildShipmentsPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(AppColor.SURFACE);
         panel.setBorder(new LineBorder(AppColor.BORDER));
-        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        tableModel = new DefaultTableModel(columns, 0) {
+        shipmentModel = new DefaultTableModel(shipmentColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 4 || column == 6 || column == 7;
+                return false;
             }
         };
 
-        table = new JTable(tableModel) {
+        shipmentTable = new JTable(shipmentModel) {
             @Override
             public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
                 Component c = super.prepareRenderer(renderer, row, column);
@@ -180,30 +201,17 @@ public class NhapKhoPanel extends JPanel {
                 return c;
             }
         };
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        table.setRowHeight(55);
-        table.setShowVerticalLines(false);
-        table.setShowHorizontalLines(false);
-        table.setGridColor(AppColor.BORDER);
-        table.setIntercellSpacing(new Dimension(0, 0));
-        table.setFocusable(false);
-        table.setSelectionBackground(PRIMARY_LIGHT);
-        table.setSelectionForeground(AppColor.PRIMARY_ACTIVE);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        shipmentTable.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        shipmentTable.setRowHeight(50);
+        shipmentTable.setShowVerticalLines(false);
+        shipmentTable.setShowHorizontalLines(false);
+        shipmentTable.setGridColor(AppColor.BORDER);
+        shipmentTable.setIntercellSpacing(new Dimension(0, 0));
+        shipmentTable.setFocusable(false);
+        shipmentTable.setSelectionBackground(PRIMARY_LIGHT);
+        shipmentTable.setSelectionForeground(AppColor.PRIMARY_ACTIVE);
 
-        setupTableColumns();
-
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.getViewport().setBackground(AppColor.SURFACE);
-        panel.add(scrollPane, BorderLayout.CENTER);
-        panel.add(buildFooter(), BorderLayout.SOUTH);
-        return panel;
-    }
-
-    private void setupTableColumns() {
-        JTableHeader header = table.getTableHeader();
+        JTableHeader header = shipmentTable.getTableHeader();
         header.setPreferredSize(new Dimension(0, 48));
         header.setFont(new Font("Segoe UI", Font.BOLD, 11));
         header.setBackground(AppColor.BACKGROUND);
@@ -212,13 +220,79 @@ public class NhapKhoPanel extends JPanel {
         header.setBorder(new MatteBorder(0, 0, 1, 0, AppColor.BORDER));
 
         DefaultTableCellRenderer textRenderer = new TextCellRenderer();
-        for (int i = 0; i < table.getColumnCount(); i++) {
-            table.getColumnModel().getColumn(i).setCellRenderer(textRenderer);
+        for (int i = 0; i < shipmentTable.getColumnCount(); i++) {
+            shipmentTable.getColumnModel().getColumn(i).setCellRenderer(textRenderer);
         }
-        table.getColumnModel().getColumn(0).setCellRenderer(new BoldCellRenderer(AppColor.TEXT_PRIMARY));
-        table.getColumnModel().getColumn(1).setCellRenderer(new BoldCellRenderer(AppColor.TEXT_PRIMARY));
-        table.getColumnModel().getColumn(5).setCellRenderer(new LoaiKhoBadgeRenderer());
-        table.getColumnModel().getColumn(8).setCellRenderer(new StatusBadgeRenderer());
+        shipmentTable.getColumnModel().getColumn(0).setCellRenderer(new BoldCellRenderer(AppColor.TEXT_PRIMARY));
+        shipmentTable.getColumnModel().getColumn(3).setCellRenderer(new StatusBadgeRenderer());
+
+        int[] widths = { 90, 110, 110, 120 };
+        for (int i = 0; i < widths.length; i++) {
+            shipmentTable.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+        }
+
+        shipmentTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && shipmentTable.getSelectedRow() >= 0) {
+                selectedMaLH = shipmentTable.getValueAt(shipmentTable.getSelectedRow(), 0).toString();
+                showShipmentDetails(selectedMaLH);
+            }
+        });
+
+        JScrollPane scrollPane = new JScrollPane(shipmentTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(AppColor.SURFACE);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(buildFooter(), BorderLayout.SOUTH);
+        return panel;
+    }
+
+    private JPanel buildDetailCard() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(AppColor.SURFACE);
+        panel.setBorder(new LineBorder(AppColor.BORDER));
+
+        detailModel = new DefaultTableModel(detailColumns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 3 || column == 5 || column == 6;
+            }
+        };
+
+        detailTable = new JTable(detailModel) {
+            @Override
+            public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
+                if (!isRowSelected(row)) {
+                    c.setBackground(row % 2 == 0 ? AppColor.BACKGROUND : AppColor.SECONDARY_HOVER);
+                    c.setForeground(AppColor.TEXT_PRIMARY);
+                }
+                return c;
+            }
+        };
+        detailTable.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        detailTable.setRowHeight(50);
+        detailTable.setShowVerticalLines(false);
+        detailTable.setShowHorizontalLines(false);
+        detailTable.setGridColor(AppColor.BORDER);
+        detailTable.setIntercellSpacing(new Dimension(0, 0));
+        detailTable.setFocusable(false);
+        detailTable.setSelectionBackground(PRIMARY_LIGHT);
+        detailTable.setSelectionForeground(AppColor.PRIMARY_ACTIVE);
+
+        JTableHeader header = detailTable.getTableHeader();
+        header.setPreferredSize(new Dimension(0, 48));
+        header.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        header.setBackground(AppColor.BACKGROUND);
+        header.setForeground(AppColor.TEXT_SECONDARY);
+        header.setReorderingAllowed(false);
+        header.setBorder(new MatteBorder(0, 0, 1, 0, AppColor.BORDER));
+
+        DefaultTableCellRenderer textRenderer = new TextCellRenderer();
+        for (int i = 0; i < detailTable.getColumnCount(); i++) {
+            detailTable.getColumnModel().getColumn(i).setCellRenderer(textRenderer);
+        }
+        detailTable.getColumnModel().getColumn(0).setCellRenderer(new BoldCellRenderer(AppColor.TEXT_PRIMARY));
+        detailTable.getColumnModel().getColumn(4).setCellRenderer(new LoaiKhoBadgeRenderer());
 
         loadKhoEditor();
         
@@ -228,16 +302,22 @@ public class NhapKhoPanel extends JPanel {
         DefaultCellEditor viTriEditor = new DefaultCellEditor(cbViTri);
         viTriEditor.setClickCountToStart(1);
         
-        table.getColumnModel().getColumn(6).setCellEditor(viTriEditor);
-        table.getColumnModel().getColumn(6).setCellRenderer(new PlaceholderRenderer("Chọn vị trí..."));
+        detailTable.getColumnModel().getColumn(5).setCellEditor(viTriEditor);
+        detailTable.getColumnModel().getColumn(5).setCellRenderer(new PlaceholderRenderer("Chọn vị trí..."));
 
-        table.getColumnModel().getColumn(7).setCellEditor(new DateChooserEditor());
-        table.getColumnModel().getColumn(7).setCellRenderer(new DateCellRenderer());
+        detailTable.getColumnModel().getColumn(6).setCellEditor(new DateChooserEditor());
+        detailTable.getColumnModel().getColumn(6).setCellRenderer(new DateCellRenderer());
 
-        int[] widths = { 100, 100, 180, 80, 150, 100, 110, 130, 125 };
+        int[] widths = { 80, 160, 80, 120, 90, 80, 120 };
         for (int i = 0; i < widths.length; i++) {
-            table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+            detailTable.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         }
+
+        JScrollPane scrollPane = new JScrollPane(detailTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(AppColor.SURFACE);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        return panel;
     }
 
     private void loadKhoEditor() {
@@ -257,8 +337,8 @@ public class NhapKhoPanel extends JPanel {
         DefaultCellEditor khoEditor = new DefaultCellEditor(cbKho);
         khoEditor.setClickCountToStart(1);
         
-        table.getColumnModel().getColumn(4).setCellEditor(khoEditor);
-        table.getColumnModel().getColumn(4).setCellRenderer(new KhoTableRenderer(khoLoaiKhoMap));
+        detailTable.getColumnModel().getColumn(3).setCellEditor(khoEditor);
+        detailTable.getColumnModel().getColumn(3).setCellRenderer(new KhoTableRenderer(khoLoaiKhoMap));
     }
 
     private JPanel buildFooter() {
@@ -268,33 +348,27 @@ public class NhapKhoPanel extends JPanel {
                 new MatteBorder(1, 0, 0, 0, AppColor.BORDER),
                 new EmptyBorder(12, 22, 14, 22)));
 
-        lblCount = new JLabel("Hiển thị 0 - 0 của 0 lô hàng");
+        lblCount = new JLabel("Hiển thị 0 của 0 lô hàng");
         lblCount.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         lblCount.setForeground(AppColor.TEXT_SECONDARY);
         footer.add(lblCount, BorderLayout.WEST);
-
-        JPanel pages = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
-        pages.setOpaque(false);
-        btnPrev = buildPageButton("Trước");
-        btnNext = buildPageButton("Sau");
-        lblPage = new JLabel("1", SwingConstants.CENTER);
-        lblPage.setPreferredSize(new Dimension(32, 32));
-        lblPage.setOpaque(true);
-        lblPage.setBackground(AppColor.PRIMARY);
-        lblPage.setForeground(Color.WHITE);
-        lblPage.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnPrev.addActionListener(e -> changePage(-1));
-        btnNext.addActionListener(e -> changePage(1));
-        pages.add(btnPrev);
-        pages.add(lblPage);
-        pages.add(btnNext);
-        footer.add(pages, BorderLayout.EAST);
         return footer;
     }
 
     public void loadDataToTable() {
-        allData = new NhapKhoBUS().getDanhSachNhapKho();
-        allData.removeIf(row -> row[8] != null && row[8].toString().toLowerCase().contains("đã"));
+        try {
+            List<LoHangDTO> list = new bus.LoHangBUS().getAll();
+            allShipments = new ArrayList<>();
+            for (LoHangDTO lh : list) {
+                if (lh.getTrangThaiLH() != null && 
+                    lh.getTrangThaiLH().equalsIgnoreCase("Chờ nhập kho")) {
+                    allShipments.add(lh);
+                }
+            }
+        } catch (Exception e) {
+            allShipments = new ArrayList<>();
+        }
+
         if (txtSearch != null) {
             txtSearch.setText(SEARCH_PLACEHOLDER);
             txtSearch.setForeground(AppColor.TEXT_SECONDARY);
@@ -307,81 +381,98 @@ public class NhapKhoPanel extends JPanel {
     }
 
     private void filterTable() {
-        if (txtSearch == null)
+        if (txtSearch == null) {
+            filteredShipments = new ArrayList<>(allShipments);
+            sortData();
+            renderShipments();
             return;
+        }
         String keyword = txtSearch.getText().trim().toLowerCase();
         if (keyword.isEmpty() || SEARCH_PLACEHOLDER.toLowerCase().equals(keyword)) {
-            filteredData = new ArrayList<>(allData);
+            filteredShipments = new ArrayList<>(allShipments);
         } else {
-            filteredData = allData.stream()
-                    .filter(row -> java.util.Arrays.stream(row)
-                            .anyMatch(cell -> cell != null && cell.toString().toLowerCase().contains(keyword)))
-                    .collect(Collectors.toList());
+            filteredShipments = new ArrayList<>();
+            for (LoHangDTO lh : allShipments) {
+                if (lh.getMaLH().toLowerCase().contains(keyword) || 
+                    (lh.getTenNCC() != null && lh.getTenNCC().toLowerCase().contains(keyword)) ||
+                    (lh.getTrangThaiLH() != null && lh.getTrangThaiLH().toLowerCase().contains(keyword))) {
+                    filteredShipments.add(lh);
+                }
+            }
         }
         sortData();
-        currentPage = 1;
-        renderTablePage();
+        renderShipments();
     }
 
     private void sortData() {
         if (currentSortKey == null)
             return;
         switch (currentSortKey) {
-            case "sl_asc" ->
-                filteredData.sort(java.util.Comparator.comparingInt(r -> Integer.parseInt(r[3].toString())));
-            case "sl_desc" -> filteredData.sort(
-                    java.util.Comparator.<Object[]>comparingInt(r -> Integer.parseInt(r[3].toString())).reversed());
-            case "ma_asc" -> filteredData.sort(java.util.Comparator.comparing(r -> r[0].toString()));
-            case "ma_desc" ->
-                filteredData.sort(java.util.Comparator.<Object[], String>comparing(r -> r[0].toString()).reversed());
+            case "ma_asc" -> filteredShipments.sort(java.util.Comparator.comparing(r -> r.getMaLH()));
+            case "ma_desc" -> filteredShipments.sort(java.util.Comparator.<LoHangDTO, String>comparing(r -> r.getMaLH()).reversed());
+            case "tien_asc" -> filteredShipments.sort(java.util.Comparator.comparingDouble(r -> r.getTongTien()));
+            case "tien_desc" -> filteredShipments.sort(java.util.Comparator.<LoHangDTO>comparingDouble(r -> r.getTongTien()).reversed());
             default -> {
             }
         }
     }
 
-    private void renderTablePage() {
-        if (table.isEditing()) {
-            table.getCellEditor().stopCellEditing();
+    private void renderShipments() {
+        if (shipmentTable.isEditing()) {
+            shipmentTable.getCellEditor().stopCellEditing();
         }
-        tableModel.setRowCount(0);
-        int total = filteredData.size();
-        int totalPages = Math.max(1, (int) Math.ceil(total / (double) rowsPerPage));
-        currentPage = Math.min(Math.max(1, currentPage), totalPages);
-        int start = (currentPage - 1) * rowsPerPage;
-        int end = Math.min(start + rowsPerPage, total);
+        shipmentModel.setRowCount(0);
+        int total = filteredShipments.size();
 
-        for (int i = start; i < end; i++) {
-            tableModel.addRow(filteredData.get(i));
+        for (LoHangDTO lh : filteredShipments) {
+            shipmentModel.addRow(new Object[] {
+                lh.getMaLH(),
+                new SimpleDateFormat("dd/MM/yyyy").format(lh.getTgNhap()),
+                new java.text.DecimalFormat("#,###").format(lh.getTongTien()),
+                lh.getTrangThaiLH()
+            });
         }
 
-        lblPage.setText(total == 0 ? "0" : String.valueOf(currentPage));
         lblCount.setText(total == 0
                 ? "Không tìm thấy lô hàng nào"
-                : String.format("Hiển thị %d - %d của %d lô hàng", start + 1, end, total));
-        btnPrev.setEnabled(currentPage > 1);
-        btnNext.setEnabled(currentPage < totalPages);
+                : String.format("Hiển thị %d lô hàng", total));
+        
+        clearSelection();
         updateSummary();
     }
 
-    private void updateSummary() {
-        lblTongLoHang.setText(String.valueOf(allData.size()));
-        long totalQty = allData.stream().mapToLong(row -> Long.parseLong(row[3].toString())).sum();
-        lblTongSanPham.setText(String.format("%,d", totalQty));
-        long bigLots = allData.stream().filter(row -> Long.parseLong(row[3].toString()) >= 100).count();
-        lblLoHangLon.setText(String.valueOf(bigLots));
+    private void clearSelection() {
+        shipmentTable.clearSelection();
+        detailModel.setRowCount(0);
+        selectedMaLH = null;
     }
 
-    private void changePage(int delta) {
-        currentPage += delta;
-        renderTablePage();
+    private void updateSummary() {
+        lblTongLoHang.setText(String.valueOf(allShipments.size()));
+        long totalQty = 0;
+        long bigLots = 0;
+        LoHangBUS bus = new LoHangBUS();
+        for (LoHangDTO lh : allShipments) {
+            List<ChiTietLoHangDTO> details = bus.getChiTietLoHang(lh.getMaLH());
+            long lhQty = 0;
+            for (ChiTietLoHangDTO dt : details) {
+                lhQty += dt.getSoLuong();
+            }
+            totalQty += lhQty;
+            if (lhQty >= 100) {
+                bigLots++;
+            }
+        }
+        lblTongSanPham.setText(String.format("%,d", totalQty));
+        lblLoHangLon.setText(String.valueOf(bigLots));
     }
 
     private void showSortMenu() {
         JPopupMenu menu = new JPopupMenu();
-        addSort(menu, "Số lượng tăng dần", "sl_asc");
-        addSort(menu, "Số lượng giảm dần", "sl_desc");
         addSort(menu, "Mã lô hàng tăng dần", "ma_asc");
         addSort(menu, "Mã lô hàng giảm dần", "ma_desc");
+        addSort(menu, "Tổng tiền tăng dần", "tien_asc");
+        addSort(menu, "Tổng tiền giảm dần", "tien_desc");
         menu.show(btnSort, 0, btnSort.getHeight());
     }
 
@@ -395,77 +486,136 @@ public class NhapKhoPanel extends JPanel {
         menu.add(item);
     }
 
+    private void showShipmentDetails(String maLH) {
+        if (detailTable.isEditing()) {
+            detailTable.getCellEditor().stopCellEditing();
+        }
+        detailModel.setRowCount(0);
+        if (maLH == null || maLH.trim().isEmpty()) return;
+
+        List<ChiTietLoHangDTO> details = new LoHangBUS().getChiTietLoHang(maLH);
+        for (ChiTietLoHangDTO dt : details) {
+            detailModel.addRow(new Object[] {
+                dt.getMaSP(),
+                findProductNameByMaSP(dt.getMaSP()),
+                dt.getSoLuong(),
+                "",
+                findProductBaoQuanByMaSP(dt.getMaSP()),
+                "",
+                null
+            });
+        }
+    }
+
+    private String findProductNameByMaSP(String maSP) {
+        if (maSP == null) return "";
+        for (SanPhamDTO sp : new SanPhamBUS().getAll()) {
+            if (maSP.equals(sp.getMaSP())) return sp.getTenSP();
+        }
+        return "";
+    }
+
+    private String findProductBaoQuanByMaSP(String maSP) {
+        if (maSP == null) return "";
+        for (SanPhamDTO sp : new SanPhamBUS().getAll()) {
+            if (maSP.equals(sp.getMaSP())) return sp.getBaoQuan();
+        }
+        return "";
+    }
+
     private void onConfirmNhapKho() {
-        if (table.isEditing()) {
-            table.getCellEditor().stopCellEditing();
+        if (detailTable.isEditing()) {
+            detailTable.getCellEditor().stopCellEditing();
         }
 
-        int row = table.getSelectedRow();
-        if (row < 0) {
+        int selectedRow = shipmentTable.getSelectedRow();
+        if (selectedRow < 0) {
             warn("Vui lòng chọn một lô hàng cần nhập kho!");
             return;
         }
 
-        String maLH = getCell(row, 0);
-        String maSP = getCell(row, 1);
-        String tenSP = getCell(row, 2);
-        String maKho = getCell(row, 4);
-        String viTri = getCell(row, 6);
-        Date ngayHetHan = parseDate(table.getValueAt(row, 7));
+        String maLH = shipmentTable.getValueAt(selectedRow, 0).toString();
+        List<TonKhoDTO> listTonKho = new ArrayList<>();
+        List<String> listTenSP = new ArrayList<>();
 
-        if (maKho.isEmpty()) {
-            warn("Vui lòng chọn kho cho lô hàng " + maLH + "!");
-            return;
-        }
-        if (viTri.isEmpty()) {
-            warn("Vui lòng chọn vị trí cho lô hàng " + maLH + "!");
-            return;
-        }
-        if (ngayHetHan == null) {
-            warn("Ngày hết hạn không hợp lệ! Định dạng: d/M/yyyy");
-            return;
+        for (int i = 0; i < detailTable.getRowCount(); i++) {
+            String maSP = getCell(detailTable, i, 0);
+            String tenSP = getCell(detailTable, i, 1);
+            String maKho = getCell(detailTable, i, 3);
+            String viTri = getCell(detailTable, i, 5);
+            Date ngayHetHan = parseDate(detailTable.getValueAt(i, 6));
+
+            if (maKho.isEmpty()) {
+                warn("Vui lòng chọn kho cho sản phẩm " + tenSP + "!");
+                return;
+            }
+            if (viTri.isEmpty()) {
+                warn("Vui lòng chọn vị trí cho sản phẩm " + tenSP + "!");
+                return;
+            }
+            if (ngayHetHan == null) {
+                warn("Vui lòng chọn ngày hết hạn cho sản phẩm " + tenSP + "!");
+                return;
+            }
+
+            TonKhoDTO dto = new TonKhoDTO();
+            dto.setMaLH(maLH);
+            dto.setMaSP(maSP);
+            dto.setMaKho(maKho);
+            dto.setViTri(viTri);
+            dto.setTgHetHan(ngayHetHan);
+
+            listTonKho.add(dto);
+            listTenSP.add(tenSP);
         }
 
-        TonKhoDTO dto = new TonKhoDTO();
-        dto.setMaLH(maLH);
-        dto.setMaSP(maSP);
-        dto.setMaKho(maKho);
-        dto.setViTri(viTri);
-        dto.setTgHetHan(ngayHetHan);
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc chắn muốn tiến hành nhập kho cho toàn bộ sản phẩm thuộc lô hàng " + maLH + " không?",
+                "Xác nhận nhập kho lô hàng",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
 
-        String result = new NhapKhoBUS().xacNhanNhapKho(dto, tenSP);
-        if ("SUCCESS".equals(result)) {
-            JOptionPane.showMessageDialog(this, "Nhập kho thành công!\nLô: " + maLH + ", SP: " + maSP,
+        if (confirm == JOptionPane.YES_OPTION) {
+            NhapKhoBUS bus = new NhapKhoBUS();
+            for (int i = 0; i < listTonKho.size(); i++) {
+                String result = bus.xacNhanNhapKho(listTonKho.get(i), listTenSP.get(i));
+                if (!"SUCCESS".equals(result)) {
+                    JOptionPane.showMessageDialog(this, "Lỗi khi nhập kho sản phẩm " + listTenSP.get(i) + ":\n" + result,
+                            "Lỗi nhập kho", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+
+            JOptionPane.showMessageDialog(this, "Đã nhập kho toàn bộ sản phẩm của lô hàng " + maLH + " thành công!",
                     "Thành công", JOptionPane.INFORMATION_MESSAGE);
             loadDataToTable();
-        } else {
-            JOptionPane.showMessageDialog(this, result, "Không thể nhập kho", JOptionPane.WARNING_MESSAGE);
         }
     }
 
     private void onRejectNhapKho() {
-        if (table.isEditing()) {
-            table.getCellEditor().stopCellEditing();
+        if (shipmentTable.isEditing()) {
+            shipmentTable.getCellEditor().stopCellEditing();
         }
 
-        int row = table.getSelectedRow();
-        if (row < 0) {
+        int selectedRow = shipmentTable.getSelectedRow();
+        if (selectedRow < 0) {
             warn("Vui lòng chọn một lô hàng cần từ chối!");
             return;
         }
 
-        String maLH = getCell(row, 0);
-        String maSP = getCell(row, 1);
+        String maLH = shipmentTable.getValueAt(selectedRow, 0).toString();
 
         int confirm = JOptionPane.showConfirmDialog(
                 this,
-                "Bạn có chắc chắn muốn từ chối nhập kho cho lô hàng " + maLH + " (Sản phẩm: " + maSP + ") không?",
-                "Xác nhận từ chối",
-                JOptionPane.YES_NO_OPTION,
+                "Bạn có chắc chắn muốn từ chối nhập kho cho toàn bộ lô hàng " + maLH + " không?",
+                "Xác nhận từ chối lô hàng",
+                JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.WARNING_MESSAGE
         );
 
-        if (confirm == JOptionPane.YES_OPTION) {
+        if (confirm == JOptionPane.OK_OPTION) {
             String result = new bus.NhapKhoBUS().tuChoiNhapKho(maLH);
             if ("SUCCESS".equals(result)) {
                 JOptionPane.showMessageDialog(this, "Đã từ chối nhập kho cho lô hàng " + maLH + " thành công!",
@@ -477,8 +627,8 @@ public class NhapKhoPanel extends JPanel {
         }
     }
 
-    private String getCell(int row, int col) {
-        Object value = table.getValueAt(row, col);
+    private String getCell(JTable tbl, int row, int col) {
+        Object value = tbl.getValueAt(row, col);
         return value == null ? "" : value.toString().trim();
     }
 
@@ -515,7 +665,6 @@ public class NhapKhoPanel extends JPanel {
 
             @Override
             protected void paintBorder(Graphics g) {
-                // Do nothing here, painted in paintComponent
             }
         };
         wrap.setBackground(AppColor.BACKGROUND);
@@ -566,7 +715,6 @@ public class NhapKhoPanel extends JPanel {
                 g2.setColor(bg);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
                 
-                // Vẽ viền hơi đậm hơn một chút để tạo độ sắc nét
                 g2.setColor(bg.darker());
                 g2.setStroke(new BasicStroke(1.1f));
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
@@ -650,12 +798,6 @@ public class NhapKhoPanel extends JPanel {
         btn.setBorderPainted(false);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        return btn;
-    }
-
-    private JButton buildPageButton(String text) {
-        JButton btn = buildOutlineButton(text, 0, 32);
-        btn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         return btn;
     }
 
@@ -890,9 +1032,19 @@ public class NhapKhoPanel extends JPanel {
             super.paintComponent(g);
             if (text.isBlank())
                 return;
-            boolean done = text.toLowerCase().contains("đã");
-            paintBadge(g, text, done ? PRIMARY_LIGHT : WARNING_LIGHT,
-                    done ? AppColor.SUCCESS_ACTIVE : AppColor.WARNING_ACTIVE, getWidth(), getHeight());
+            Color bg;
+            Color fg;
+            if (text.equalsIgnoreCase("Chờ nhập kho")) {
+                bg = new Color(0xFEF3C7);
+                fg = new Color(0xD97706);
+            } else if (text.equalsIgnoreCase("Chờ kiểm duyệt")) {
+                bg = new Color(219, 234, 254);
+                fg = new Color(29, 78, 216);
+            } else {
+                bg = WARNING_LIGHT;
+                fg = AppColor.WARNING_ACTIVE;
+            }
+            paintBadge(g, text, bg, fg, getWidth(), getHeight());
         }
     }
 
@@ -924,7 +1076,6 @@ public class NhapKhoPanel extends JPanel {
             dateChooser.setBorder(BorderFactory.createEmptyBorder());
             dateChooser.setBackground(Color.WHITE);
             
-            // Ngăn người dùng nhập tay vào ô văn bản, chỉ cho chọn từ lịch
             if (dateChooser.getDateEditor() instanceof com.toedter.calendar.JTextFieldDateEditor editor) {
                 editor.setEditable(false);
                 editor.setBackground(Color.WHITE);

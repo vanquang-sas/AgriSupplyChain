@@ -574,7 +574,7 @@ public class LoHangPanel extends JPanel {
         List<LoHangDTO> list = loHangBUS.getAll();
         currentDataList.clear();
         for (LoHangDTO lh : list) {
-            if (lh.getTrangThaiLH() != null && (lh.getTrangThaiLH().equalsIgnoreCase("Đã nhập kho") || lh.getTrangThaiLH().equalsIgnoreCase("Không duyệt"))) {
+            if (lh.getTrangThaiLH() != null && (lh.getTrangThaiLH().equalsIgnoreCase("Đã nhập kho") || lh.getTrangThaiLH().equalsIgnoreCase("Từ chối nhập"))) {
                 continue;
             }
             if (keyword == null || keyword.isEmpty()) {
